@@ -11,122 +11,73 @@ final class HL7v2KitTests: XCTestCase {
         XCTAssertEqual(HL7v2KitVersion.version, "0.1.0")
     }
     
-    // MARK: - Message Creation Tests
+    // MARK: - Message Parsing Tests
     
-    func testMessageCreation() {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            timestamp: Date(),
-            rawData: "MSH|^~\\&|SYSTEM1|FACILITY1|SYSTEM2|FACILITY2|20240101120000||ADT^A01|MSG001|P|2.5"
-        )
+    func testMessageParsing() throws {
+        let rawMessage = "MSH|^~\\&|SYSTEM1|FACILITY1|SYSTEM2|FACILITY2|20240101120000||ADT^A01|MSG001|P|2.5"
+        let message = try HL7v2Message.parse(rawMessage)
         
-        XCTAssertEqual(message.messageID, "MSG001")
-        XCTAssertFalse(message.rawData.isEmpty)
+        XCTAssertEqual(message.messageControlID(), "MSG001")
+        XCTAssertEqual(message.messageType(), "ADT^A01")
+        XCTAssertEqual(message.version(), "2.5")
     }
     
-    func testMessageTimestamp() {
-        let timestamp = Date()
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            timestamp: timestamp,
-            rawData: "MSH|^~\\&|TEST"
-        )
+    func testMessageSegmentAccess() throws {
+        let rawMessage = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECEIVING_APP|RECEIVING_FAC|20240101120000||ADT^A01|MSG001|P|2.5"
+        let message = try HL7v2Message.parse(rawMessage)
         
-        XCTAssertEqual(message.timestamp, timestamp)
+        XCTAssertEqual(message.messageHeader.segmentID, "MSH")
+        XCTAssertEqual(message.messageHeader[2].value.value.raw, "SENDING_APP")
     }
     
     // MARK: - Message Validation Tests
     
     func testValidMessageValidation() throws {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: "MSH|^~\\&|SYSTEM1|FACILITY1|SYSTEM2|FACILITY2|20240101120000||ADT^A01|MSG001|P|2.5"
-        )
+        let rawMessage = "MSH|^~\\&|SYSTEM1|FACILITY1|SYSTEM2|FACILITY2|20240101120000||ADT^A01|MSG001|P|2.5"
+        let message = try HL7v2Message.parse(rawMessage)
         
         XCTAssertNoThrow(try message.validate())
     }
     
-    func testEmptyMessageValidation() {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: ""
-        )
-        
-        XCTAssertThrowsError(try message.validate()) { error in
-            guard case HL7Error.validationError = error else {
-                XCTFail("Expected validation error")
-                return
-            }
-        }
-    }
-    
-    // MARK: - Message Structure Tests
-    
-    func testMSHSegmentPresence() {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECEIVING_APP|RECEIVING_FAC|20240101120000||ADT^A01|MSG001|P|2.5"
-        )
-        
-        XCTAssertTrue(message.rawData.hasPrefix("MSH"))
-    }
-    
-    func testMessageDelimiters() {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: "MSH|^~\\&|TEST"
-        )
-        
-        XCTAssertTrue(message.rawData.contains("|"))
-        XCTAssertTrue(message.rawData.contains("^"))
-    }
-    
     // MARK: - Multiple Message Tests
     
-    func testMultipleMessageCreation() {
-        let messages = (1...10).map { i in
-            HL7v2Message(
-                messageID: "MSG\(String(format: "%03d", i))",
-                rawData: "MSH|^~\\&|SYS|FAC|SYS2|FAC2|20240101120000||ADT^A01|MSG\(String(format: "%03d", i))|P|2.5"
-            )
+    func testMultipleMessageParsing() throws {
+        let messages = try (1...10).map { i in
+            let raw = "MSH|^~\\&|SYS|FAC|SYS2|FAC2|20240101120000||ADT^A01|MSG\(String(format: "%03d", i))|P|2.5"
+            return try HL7v2Message.parse(raw)
         }
         
         XCTAssertEqual(messages.count, 10)
-        XCTAssertEqual(messages.first?.messageID, "MSG001")
-        XCTAssertEqual(messages.last?.messageID, "MSG010")
+        XCTAssertEqual(messages.first?.messageControlID(), "MSG001")
+        XCTAssertEqual(messages.last?.messageControlID(), "MSG010")
     }
     
     // MARK: - Sendable Conformance Tests
     
-    func testSendableConformance() async {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: "MSH|^~\\&|TEST"
-        )
+    func testSendableConformance() async throws {
+        let rawMessage = "MSH|^~\\&|TEST|FAC|TEST2|FAC2|20240101120000||ADT^A01|MSG001|P|2.5"
+        let message = try HL7v2Message.parse(rawMessage)
         
         await Task {
-            XCTAssertEqual(message.messageID, "MSG001")
+            XCTAssertEqual(message.messageControlID(), "MSG001")
         }.value
     }
     
     // MARK: - Performance Tests
     
-    func testMessageCreationPerformance() {
+    func testMessageParsingPerformance() {
+        let rawMessage = "MSH|^~\\&|TEST|FAC|TEST2|FAC2|20240101120000||ADT^A01|MSG001|P|2.5"
+        
         measure {
-            for i in 0..<1000 {
-                _ = HL7v2Message(
-                    messageID: "MSG\(i)",
-                    rawData: "MSH|^~\\&|TEST|FAC|TEST2|FAC2|20240101120000||ADT^A01|MSG\(i)|P|2.5"
-                )
+            for _ in 0..<1000 {
+                _ = try? HL7v2Message.parse(rawMessage)
             }
         }
     }
     
     func testMessageValidationPerformance() throws {
-        let message = HL7v2Message(
-            messageID: "MSG001",
-            rawData: "MSH|^~\\&|TEST|FAC|TEST2|FAC2|20240101120000||ADT^A01|MSG001|P|2.5"
-        )
+        let rawMessage = "MSH|^~\\&|TEST|FAC|TEST2|FAC2|20240101120000||ADT^A01|MSG001|P|2.5"
+        let message = try HL7v2Message.parse(rawMessage)
         
         measure {
             for _ in 0..<1000 {
