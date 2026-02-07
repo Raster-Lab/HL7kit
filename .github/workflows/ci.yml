@@ -1,0 +1,133 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Print Swift version
+      run: swift --version
+    
+    - name: Build package
+      run: swift build -v
+    
+    - name: Run tests with coverage
+      run: |
+        swift test --enable-code-coverage
+    
+    - name: Generate coverage report
+      run: |
+        xcrun llvm-cov export -format="lcov" \
+          .build/debug/HL7kitPackageTests.xctest/Contents/MacOS/HL7kitPackageTests \
+          -instr-profile .build/debug/codecov/default.profdata > coverage.lcov || true
+    
+    - name: Calculate coverage percentage
+      id: coverage
+      run: |
+        if [ -f coverage.lcov ]; then
+          COVERAGE=$(awk -F',' '
+            /^LF:/ { total_lines += $1 }
+            /^LH:/ { covered_lines += $1 }
+            END { 
+              if (total_lines > 0) {
+                printf "%.1f", (covered_lines / total_lines) * 100
+              } else {
+                print "0.0"
+              }
+            }' coverage.lcov | sed 's/LF://g; s/LH://g')
+          echo "coverage=${COVERAGE}" >> $GITHUB_OUTPUT
+          echo "### Code Coverage: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if coverage meets 90% threshold
+          THRESHOLD=90
+          COVERAGE_INT=$(echo ${COVERAGE} | cut -d. -f1)
+          if [ ${COVERAGE_INT} -ge ${THRESHOLD} ]; then
+            echo "✅ Code coverage (${COVERAGE}%) meets the ${THRESHOLD}% threshold" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Code coverage (${COVERAGE}%) is below the ${THRESHOLD}% threshold" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "coverage=0.0" >> $GITHUB_OUTPUT
+          echo "### Code Coverage: No coverage data available" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.lcov
+        fail_ci_if_error: false
+        verbose: true
+      continue-on-error: true
+    
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          .build/debug/*.xctest
+          coverage.lcov
+        retention-days: 30
+
+  lint:
+    name: SwiftLint
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install SwiftLint
+      run: brew install swiftlint
+    
+    - name: Run SwiftLint
+      run: swiftlint lint --reporter github-actions-logging || true
+      continue-on-error: true
+
+  documentation:
+    name: Generate Documentation
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Generate documentation
+      run: |
+        swift package --allow-writing-to-directory ./docs \
+          generate-documentation --target HL7Core --output-path ./docs/HL7Core || true
+        swift package --allow-writing-to-directory ./docs \
+          generate-documentation --target HL7v2Kit --output-path ./docs/HL7v2Kit || true
+        swift package --allow-writing-to-directory ./docs \
+          generate-documentation --target HL7v3Kit --output-path ./docs/HL7v3Kit || true
+        swift package --allow-writing-to-directory ./docs \
+          generate-documentation --target FHIRkit --output-path ./docs/FHIRkit || true
+      continue-on-error: true
+    
+    - name: Archive documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation
+        path: docs/
+        retention-days: 30
+      continue-on-error: true
