@@ -1,12 +1,12 @@
 # HL7kit - Swift HL7 Framework
 
-A comprehensive, native Swift 6.2 framework for working with HL7 v2.x and v3.x standards on Apple platforms. This project provides two separate toolkits optimized for low memory, CPU utilization, and network performance.
+A comprehensive, native Swift 6.2 framework for working with HL7 v2.x, v3.x, and FHIR standards on Apple platforms. This project provides separate toolkits optimized for low memory, CPU utilization, and network performance.
 
-> **Note**: This project specifically excludes HL7 FHIR, which will be handled in a separate project.
+> **Note**: HL7 FHIR is included as a separate package within this suite called **FHIRkit**.
 
 ## Overview
 
-HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from the ground up to leverage Apple platform capabilities. Given the fundamental differences between HL7 v2.x (pipe-delimited messaging) and v3.x (XML-based messaging), this framework is architected as two separate but complementary toolkits.
+HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from the ground up to leverage Apple platform capabilities. Given the fundamental differences between HL7 v2.x (pipe-delimited messaging), v3.x (XML-based messaging), and FHIR (RESTful API-based), this framework is architected as separate but complementary toolkits.
 
 ### Key Features (Planned)
 
@@ -15,7 +15,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Performance Focused**: Optimized for minimal memory footprint and CPU usage
 - **Network Efficient**: Smart caching, connection pooling, and efficient data transmission
 - **Type-Safe**: Strong typing for message structures and validation
-- **Comprehensive**: Full support for HL7 v2.x and v3.x standards
+- **Comprehensive**: Full support for HL7 v2.x, v3.x, and FHIR standards
 
 ## Project Structure
 
@@ -23,6 +23,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 HL7kit/
 ├── HL7v2Kit/          # HL7 v2.x toolkit
 ├── HL7v3Kit/          # HL7 v3.x toolkit
+├── FHIRkit/           # HL7 FHIR toolkit
 ├── HL7Core/           # Shared utilities and protocols
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites
@@ -63,6 +64,7 @@ Establish project foundation, architecture, and development infrastructure.
 #### 0.3 Standards Analysis
 - [ ] Deep dive into HL7 v2.x specifications (versions 2.1-2.8)
 - [ ] Deep dive into HL7 v3.x specifications (RIM, CDA)
+- [ ] Deep dive into HL7 FHIR specifications (R4, R5)
 - [ ] Identify common message types and use cases
 - [ ] Document conformance requirements
 - [ ] Create test data sets for validation
@@ -321,14 +323,144 @@ Add advanced capabilities and optimization for HL7 v3.x toolkit.
 
 ---
 
-## Phase 5: Integration & Common Services (Weeks 31-36)
+## Phase 5: FHIRkit Core Development (Weeks 31-38)
 
 ### Goals
-Build shared services and integration capabilities across both toolkits.
+Build the foundation for HL7 FHIR resource handling, RESTful client, and data modeling as a separate package within the HL7kit suite.
 
 ### Milestones
 
-#### 5.1 Common Services (Weeks 31-32)
+#### 5.1 FHIR Data Model Foundation (Weeks 31-32)
+- [ ] Implement FHIR base resource protocol
+- [ ] Create primitive data types (string, boolean, integer, decimal, uri, etc.)
+- [ ] Implement complex data types (HumanName, Address, ContactPoint, etc.)
+- [ ] Build Element and BackboneElement base structures
+- [ ] Create Resource and DomainResource base classes
+- [ ] Implement Meta, Narrative, and Extension support
+- [ ] Optimize for Swift value types and Codable conformance
+
+**Deliverables**: FHIR base data model with unit tests
+
+#### 5.2 Resource Implementations (Weeks 33-34)
+- [ ] Implement Patient, Practitioner, Organization resources
+- [ ] Create Observation, Condition, AllergyIntolerance resources
+- [ ] Build Encounter, Appointment, Schedule resources
+- [ ] Implement MedicationRequest, MedicationStatement resources
+- [ ] Create DiagnosticReport, DocumentReference resources
+- [ ] Add Bundle resource with transaction/batch support
+- [ ] Implement OperationOutcome for error handling
+
+**Deliverables**: 20+ common FHIR resource implementations
+
+#### 5.3 JSON/XML Serialization (Week 35)
+- [ ] Implement FHIR JSON parser and serializer
+- [ ] Implement FHIR XML parser and serializer
+- [ ] Handle polymorphic fields (choice types)
+- [ ] Support contained resources and references
+- [ ] Create streaming parser for large Bundles
+- [ ] Add serialization configuration options
+
+**Deliverables**: Complete FHIR serialization/deserialization support
+
+#### 5.4 RESTful Client (Week 36)
+- [ ] Design FHIR RESTful client using URLSession/async-await
+- [ ] Implement CRUD operations (create, read, update, delete)
+- [ ] Add search with FHIR search parameter support
+- [ ] Implement history and version read operations
+- [ ] Create batch/transaction Bundle support
+- [ ] Add pagination support for search results
+
+**Deliverables**: Production-ready FHIR RESTful client
+
+#### 5.5 Search & Query (Week 37)
+- [ ] Implement FHIR search parameter types (string, token, reference, date, etc.)
+- [ ] Create search result Bundle handling
+- [ ] Add chained and reverse-chained search support
+- [ ] Implement _include and _revinclude
+- [ ] Build compartment-based search
+- [ ] Create search parameter validation
+
+**Deliverables**: Comprehensive FHIR search API
+
+#### 5.6 Validation Engine (Week 38)
+- [ ] Implement resource validation against StructureDefinitions
+- [ ] Build cardinality and required field validation
+- [ ] Create value set and code system validation
+- [ ] Add FHIRPath expression evaluation
+- [ ] Implement profile validation
+- [ ] Create custom validation rules support
+
+**Deliverables**: Comprehensive FHIR validation framework
+
+---
+
+## Phase 6: FHIRkit Advanced Features (Weeks 39-44)
+
+### Goals
+Add advanced capabilities, SMART on FHIR support, and optimization for FHIRkit.
+
+### Milestones
+
+#### 6.1 SMART on FHIR Authentication (Weeks 39-40)
+- [ ] Implement OAuth 2.0 authorization flow
+- [ ] Create SMART App Launch Framework support
+- [ ] Add standalone and EHR launch sequences
+- [ ] Implement token management and refresh
+- [ ] Create scope handling and permission management
+- [ ] Add PKCE support for public clients
+
+**Deliverables**: Complete SMART on FHIR authentication
+
+#### 6.2 Terminology Services (Week 41)
+- [ ] Implement CodeSystem operations ($lookup, $validate-code)
+- [ ] Create ValueSet expansion and validation
+- [ ] Add ConceptMap translation support
+- [ ] Build local terminology cache
+- [ ] Support for SNOMED CT, LOINC, ICD, RxNorm
+- [ ] Integrate with external terminology servers
+
+**Deliverables**: FHIR terminology services framework
+
+#### 6.3 Operations & Extended Operations (Week 42)
+- [ ] Implement $everything operations (Patient, Encounter)
+- [ ] Create $validate operation support
+- [ ] Add $convert operation for format conversion
+- [ ] Build custom operation framework
+- [ ] Implement $meta operations
+- [ ] Create Bulk Data Access ($export) support
+
+**Deliverables**: FHIR operations framework
+
+#### 6.4 Subscriptions & Real-time (Week 43)
+- [ ] Implement FHIR Subscriptions (R5 topic-based)
+- [ ] Create WebSocket transport support
+- [ ] Add REST-hook notification handling
+- [ ] Build subscription management API
+- [ ] Implement event filtering
+- [ ] Create reconnection and reliability handling
+
+**Deliverables**: Real-time FHIR subscription support
+
+#### 6.5 Performance Optimization (Week 44)
+- [ ] Profile and optimize JSON/XML parsing performance
+- [ ] Implement resource caching strategies
+- [ ] Optimize memory usage for large Bundles
+- [ ] Add connection pooling for REST client
+- [ ] Create benchmarks vs. baseline
+- [ ] Document performance characteristics
+
+**Deliverables**: 50%+ performance improvement over initial implementation
+
+---
+
+## Phase 7: Integration & Common Services (Weeks 45-50)
+
+### Goals
+Build shared services and integration capabilities across all toolkits.
+
+### Milestones
+
+#### 7.1 Common Services (Weeks 45-46)
 - [ ] Unified logging framework
 - [ ] Common security services
 - [ ] Shared caching infrastructure
@@ -338,7 +470,7 @@ Build shared services and integration capabilities across both toolkits.
 
 **Deliverables**: Shared services library
 
-#### 5.2 Persistence Layer (Week 33)
+#### 7.2 Persistence Layer (Week 47)
 - [ ] Message archive/retrieval system
 - [ ] Core Data integration for local storage
 - [ ] CloudKit integration for sync
@@ -347,7 +479,7 @@ Build shared services and integration capabilities across both toolkits.
 
 **Deliverables**: Persistence framework
 
-#### 5.3 Security Framework (Week 34)
+#### 7.3 Security Framework (Week 48)
 - [ ] Message encryption/decryption
 - [ ] Digital signature support
 - [ ] Certificate management
@@ -357,7 +489,7 @@ Build shared services and integration capabilities across both toolkits.
 
 **Deliverables**: Production-grade security layer
 
-#### 5.4 Testing Infrastructure (Week 35)
+#### 7.4 Testing Infrastructure (Week 49)
 - [ ] Comprehensive unit test suite
 - [ ] Integration test framework
 - [ ] Performance test suite
@@ -367,7 +499,7 @@ Build shared services and integration capabilities across both toolkits.
 
 **Deliverables**: Complete test infrastructure with 90%+ coverage
 
-#### 5.5 Documentation (Week 36)
+#### 7.5 Documentation (Week 50)
 - [ ] Complete API documentation (DocC)
 - [ ] Developer guides and tutorials
 - [ ] Architecture documentation
@@ -379,14 +511,14 @@ Build shared services and integration capabilities across both toolkits.
 
 ---
 
-## Phase 6: Platform Features & Examples (Weeks 37-42)
+## Phase 8: Platform Features & Examples (Weeks 51-56)
 
 ### Goals
 Add Apple platform-specific features and create example applications.
 
 ### Milestones
 
-#### 6.1 Platform Integrations (Weeks 37-38)
+#### 8.1 Platform Integrations (Weeks 51-52)
 - [ ] HealthKit integration points
 - [ ] CareKit integration
 - [ ] ResearchKit integration
@@ -396,7 +528,7 @@ Add Apple platform-specific features and create example applications.
 
 **Deliverables**: Native Apple platform integrations
 
-#### 6.2 iOS Example App (Week 39)
+#### 8.2 iOS Example App (Week 53)
 - [ ] Message viewer/editor
 - [ ] Network testing tools
 - [ ] Validation showcase
@@ -405,7 +537,7 @@ Add Apple platform-specific features and create example applications.
 
 **Deliverables**: Production-quality iOS example app
 
-#### 6.3 macOS Example App (Week 40)
+#### 8.3 macOS Example App (Week 54)
 - [ ] Message processing workstation
 - [ ] Batch processing tools
 - [ ] Development/debugging tools
@@ -414,7 +546,7 @@ Add Apple platform-specific features and create example applications.
 
 **Deliverables**: Production-quality macOS example app
 
-#### 6.4 Command-Line Tools (Week 41)
+#### 8.4 Command-Line Tools (Week 55)
 - [ ] Message validator CLI
 - [ ] Format converter CLI
 - [ ] Network testing CLI
@@ -423,7 +555,7 @@ Add Apple platform-specific features and create example applications.
 
 **Deliverables**: Complete CLI toolkit
 
-#### 6.5 Sample Code & Tutorials (Week 42)
+#### 8.5 Sample Code & Tutorials (Week 56)
 - [ ] Quick start guides
 - [ ] Common use case examples
 - [ ] Integration examples
@@ -434,14 +566,14 @@ Add Apple platform-specific features and create example applications.
 
 ---
 
-## Phase 7: Polish & Release (Weeks 43-48)
+## Phase 9: Polish & Release (Weeks 57-62)
 
 ### Goals
 Finalize the framework for production release.
 
 ### Milestones
 
-#### 7.1 Beta Testing (Weeks 43-44)
+#### 9.1 Beta Testing (Weeks 57-58)
 - [ ] Private beta program
 - [ ] Collect feedback
 - [ ] Fix critical bugs
@@ -450,7 +582,7 @@ Finalize the framework for production release.
 
 **Deliverables**: Beta release with feedback incorporated
 
-#### 7.2 Security Audit (Week 45)
+#### 9.2 Security Audit (Week 59)
 - [ ] Third-party security review
 - [ ] Penetration testing
 - [ ] Vulnerability assessment
@@ -459,7 +591,7 @@ Finalize the framework for production release.
 
 **Deliverables**: Security audit report and fixes
 
-#### 7.3 Performance Benchmarking (Week 46)
+#### 9.3 Performance Benchmarking (Week 60)
 - [ ] Comprehensive performance testing
 - [ ] Comparison with HAPI and other tools
 - [ ] Memory profiling
@@ -468,8 +600,8 @@ Finalize the framework for production release.
 
 **Deliverables**: Performance benchmark report
 
-#### 7.4 Compliance Verification (Week 47)
-- [ ] HL7 conformance testing
+#### 9.4 Compliance Verification (Week 61)
+- [ ] HL7 and FHIR conformance testing
 - [ ] Standards compliance verification
 - [ ] Interoperability testing
 - [ ] Document compliance status
@@ -477,7 +609,7 @@ Finalize the framework for production release.
 
 **Deliverables**: Compliance certification
 
-#### 7.5 Release Preparation (Week 48)
+#### 9.5 Release Preparation (Week 62)
 - [ ] Final documentation review
 - [ ] Release notes
 - [ ] Migration guides
@@ -489,28 +621,28 @@ Finalize the framework for production release.
 
 ---
 
-## Phase 8: Post-Release & Maintenance (Ongoing)
+## Phase 10: Post-Release & Maintenance (Ongoing)
 
 ### Goals
 Maintain and enhance the framework based on community feedback.
 
 ### Milestones
 
-#### 8.1 Community Building
+#### 10.1 Community Building
 - [ ] Respond to issues and pull requests
 - [ ] Build contributor guidelines
 - [ ] Create governance model
 - [ ] Establish release cadence
 - [ ] Community events and presentations
 
-#### 8.2 Continuous Improvement
+#### 10.2 Continuous Improvement
 - [ ] Regular performance optimizations
 - [ ] Bug fixes and patches
-- [ ] New HL7 version support
+- [ ] New HL7 and FHIR version support
 - [ ] Enhanced platform features
 - [ ] Integration with new Apple frameworks
 
-#### 8.3 Extended Features (Future)
+#### 10.3 Extended Features (Future)
 - [ ] Additional transport protocols
 - [ ] More data type support
 - [ ] Extended vocabulary services
@@ -624,7 +756,7 @@ Maintain and enhance the framework based on community feedback.
 
 - **Code Coverage**: >90% for core modules
 - **Documentation Coverage**: 100% public API
-- **Conformance**: 100% HL7 specification compliance
+- **Conformance**: 100% HL7 and FHIR specification compliance
 - **API Stability**: Semantic versioning with clear migration paths
 
 ### Adoption Targets
@@ -644,7 +776,7 @@ Maintain and enhance the framework based on community feedback.
 |------|--------|-----------|
 | Performance doesn't meet targets | High | Early profiling, iterative optimization |
 | Swift 6.2 adoption issues | Medium | Maintain Swift 5.x compatibility initially |
-| Incomplete HL7 spec coverage | High | Phased approach, prioritize common use cases |
+| Incomplete HL7/FHIR spec coverage | High | Phased approach, prioritize common use cases |
 | Security vulnerabilities | Critical | Regular audits, security-first design |
 
 ### Project Risks
@@ -716,12 +848,14 @@ TBD - Consider MIT or Apache 2.0 for maximum adoption
 | 2 | Weeks 11-16 | HL7 v2.x Advanced | Data types, optimization, tools |
 | 3 | Weeks 17-24 | HL7 v3.x Core | RIM, XML parser, CDA |
 | 4 | Weeks 25-30 | HL7 v3.x Advanced | Templates, transforms, optimization |
-| 5 | Weeks 31-36 | Integration | Common services, security, testing |
-| 6 | Weeks 37-42 | Platform Features | Examples, integrations, tutorials |
-| 7 | Weeks 43-48 | Release | Beta testing, audit, release |
-| 8 | Ongoing | Maintenance | Community, improvements, features |
+| 5 | Weeks 31-38 | FHIRkit Core | Data model, resources, REST client, search |
+| 6 | Weeks 39-44 | FHIRkit Advanced | SMART on FHIR, terminology, subscriptions |
+| 7 | Weeks 45-50 | Integration | Common services, security, testing |
+| 8 | Weeks 51-56 | Platform Features | Examples, integrations, tutorials |
+| 9 | Weeks 57-62 | Release | Beta testing, audit, release |
+| 10 | Ongoing | Maintenance | Community, improvements, features |
 
-**Total Estimated Timeline**: 48 weeks (~12 months) to version 1.0.0
+**Total Estimated Timeline**: 62 weeks (~15 months) to version 1.0.0
 
 ---
 
