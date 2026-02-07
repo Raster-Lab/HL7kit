@@ -51,12 +51,12 @@ Build the foundation for HL7 v2.x message parsing, validation, and generation.
 ### Milestones
 
 #### 1.1 Core Data Structures (Weeks 3-4)
-- [ ] Implement Segment protocol and base classes
-- [ ] Implement Field, Component, and Subcomponent structures
-- [ ] Create Message container with efficient storage
-- [ ] Implement encoding character handling
-- [ ] Build escape sequence processor
-- [ ] Optimize for copy-on-write semantics
+- [x] Implement Segment protocol and base classes
+- [x] Implement Field, Component, and Subcomponent structures
+- [x] Create Message container with efficient storage
+- [x] Implement encoding character handling
+- [x] Build escape sequence processor
+- [x] Optimize for copy-on-write semantics
 
 **Deliverables**: Core v2.x data model with unit tests
 
