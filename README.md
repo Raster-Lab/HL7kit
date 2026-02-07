@@ -26,7 +26,8 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Structured Logging**: Advanced logging system with filtering, routing, and performance tracking
 - **Benchmarking Framework**: Performance measurement and optimization tools
 - **Memory-Efficient Parsing Strategies**: Comprehensive parsing framework with multiple strategies (lazy, streaming, chunked, indexed) for optimal memory usage
-- **High Test Coverage**: 156 unit tests with 90%+ code coverage
+- **Actor-Based Concurrency Model**: Complete concurrency architecture using Swift 6.2 actors with reference implementations for message processing, stream processing, routing, and resource management
+- **High Test Coverage**: 180 unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -41,10 +42,14 @@ HL7kit/
 │   ├── DataProtocols.swift    # Data handling protocols
 │   ├── ErrorRecovery.swift    # Error handling and recovery
 │   ├── Logging.swift          # Structured logging system
-│   └── Benchmarking.swift     # Performance benchmarking
+│   ├── Benchmarking.swift     # Performance benchmarking
+│   ├── ParsingStrategies.swift # Memory-efficient parsing
+│   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (123 tests, 90%+ coverage)
-└── Documentation/     # API documentation and guides
+├── Tests/             # Comprehensive test suites (180 tests, 90%+ coverage)
+├── Documentation/     # API documentation and guides
+├── CONCURRENCY_MODEL.md  # Actor-based concurrency architecture
+└── CODING_STANDARDS.md   # Development standards
 ```
 
 ---
