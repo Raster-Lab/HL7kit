@@ -21,7 +21,7 @@ public struct CDADocument: Sendable, Equatable {
     public var recordTarget: Entity?
     /// The document author.
     public var author: Entity?
-    /// The custodian organisation.
+    /// The custodian organization.
     public var custodian: Entity?
 
     /// The structured body sections.

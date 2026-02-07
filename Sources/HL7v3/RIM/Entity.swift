@@ -1,6 +1,6 @@
 import HL7Core
 
-/// A physical entity (person, place, organisation, device, material) in the RIM.
+/// A physical entity (person, place, organization, device, material) in the RIM.
 public struct Entity: Sendable, Equatable {
     /// The unique identifier.
     public var id: InstanceIdentifier?

@@ -39,7 +39,7 @@ public struct CodedValue: Sendable, Equatable {
     }
 }
 
-/// Null flavour values indicating why a value is absent.
+/// Null flavor values indicating why a value is absent.
 public enum NullFlavor: String, Sendable, Equatable {
     /// No information.
     case noInformation = "NI"
