@@ -28,8 +28,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Memory-Efficient Parsing Strategies**: Comprehensive parsing framework with multiple strategies (lazy, streaming, chunked, indexed) for optimal memory usage
 - **Actor-Based Concurrency Model**: Complete concurrency architecture using Swift 6.2 actors with reference implementations for message processing, stream processing, routing, and resource management
 - **HL7 v2.x Standards Analysis**: Comprehensive documentation of HL7 v2.x specifications (versions 2.1-2.8), message types, and conformance requirements
+- **HL7 v2.x Parser Infrastructure**: Configurable parser with encoding detection, delimiter auto-detection, error recovery modes (strict, skip, best-effort), streaming support, segment validation, and diagnostic reporting
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 180 unit tests with 90%+ code coverage
+- **High Test Coverage**: 347 unit tests with 90%+ code coverage
 
 ## Project Structure
 
