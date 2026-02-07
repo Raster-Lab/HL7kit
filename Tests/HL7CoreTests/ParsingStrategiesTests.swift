@@ -100,44 +100,54 @@ final class ParsingStrategiesTests: XCTestCase {
     
     // MARK: - LazyStorage Tests
     
-    func testLazyStorageNotParsedInitially() {
+    func testLazyStorageNotParsedInitially() async {
         let data = "Hello".data(using: .utf8)!
         let storage = LazyStorage<String>(rawData: data) { data in
             String(data: data, encoding: .utf8)!
         }
         
-        XCTAssertFalse(storage.isParsed)
-        XCTAssertEqual(storage.rawData, data)
+        let isParsed = await storage.isParsed
+        XCTAssertFalse(isParsed)
+        
+        let rawData = await storage.rawData
+        XCTAssertEqual(rawData, data)
     }
     
-    func testLazyStorageParseOnDemand() throws {
+    func testLazyStorageParseOnDemand() async throws {
         let data = "Hello, World!".data(using: .utf8)!
-        var storage = LazyStorage<String>(rawData: data) { data in
+        let storage = LazyStorage<String>(rawData: data) { data in
             String(data: data, encoding: .utf8)!
         }
         
         // Parse on first access
-        let value = try storage.value()
+        let value = try await storage.value()
         XCTAssertEqual(value, "Hello, World!")
-        XCTAssertTrue(storage.isParsed)
+        
+        let isParsed = await storage.isParsed
+        XCTAssertTrue(isParsed)
         
         // Second access should return cached value
-        let value2 = try storage.value()
+        let value2 = try await storage.value()
         XCTAssertEqual(value2, "Hello, World!")
     }
     
-    func testLazyStorageParserError() {
+    func testLazyStorageParserError() async {
         let data = "Invalid".data(using: .utf8)!
-        var storage = LazyStorage<Int>(rawData: data) { _ in
+        let storage = LazyStorage<Int>(rawData: data) { _ in
             throw HL7Error.parsingError("Cannot parse Int")
         }
         
-        XCTAssertThrowsError(try storage.value()) { error in
+        do {
+            _ = try await storage.value()
+            XCTFail("Expected error to be thrown")
+        } catch let error as HL7Error {
             if case HL7Error.parsingError(let description, _) = error {
                 XCTAssertEqual(description, "Cannot parse Int")
             } else {
                 XCTFail("Expected parsingError")
             }
+        } catch {
+            XCTFail("Expected HL7Error")
         }
     }
     
@@ -432,25 +442,28 @@ final class ParsingStrategiesTests: XCTestCase {
         XCTAssertEqual(metrics.poolHitRate, 0.5, accuracy: 0.001)
     }
     
-    func testLazyStorageWithComplexType() throws {
+    func testLazyStorageWithComplexType() async throws {
         struct ParsedMessage: Sendable {
             let segments: [String]
         }
         
         let data = "MSH|PID|OBX".data(using: .utf8)!
-        var storage = LazyStorage<ParsedMessage>(rawData: data) { data in
+        let storage = LazyStorage<ParsedMessage>(rawData: data) { data in
             let string = String(data: data, encoding: .utf8)!
             let segments = string.split(separator: "|").map(String.init)
             return ParsedMessage(segments: segments)
         }
         
-        XCTAssertFalse(storage.isParsed)
+        let isParsed = await storage.isParsed
+        XCTAssertFalse(isParsed)
         
-        let message = try storage.value()
+        let message = try await storage.value()
         XCTAssertEqual(message.segments.count, 3)
         XCTAssertEqual(message.segments[0], "MSH")
         XCTAssertEqual(message.segments[1], "PID")
         XCTAssertEqual(message.segments[2], "OBX")
-        XCTAssertTrue(storage.isParsed)
+        
+        let isParsed2 = await storage.isParsed
+        XCTAssertTrue(isParsed2)
     }
 }

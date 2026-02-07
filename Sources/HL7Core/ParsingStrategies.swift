@@ -142,8 +142,8 @@ public actor BufferPool {
 
 /// Storage strategy for lazy-parsed data using copy-on-write semantics
 public struct LazyStorage<T: Sendable>: Sendable {
-    /// Internal storage class for reference semantics
-    private final class Storage: @unchecked Sendable {
+    /// Thread-safe actor-based storage for lazy parsing
+    private actor Storage {
         let rawData: Data
         var parsedValue: T?
         let parser: @Sendable (Data) throws -> T
@@ -153,9 +153,25 @@ public struct LazyStorage<T: Sendable>: Sendable {
             self.parsedValue = nil
             self.parser = parser
         }
+        
+        /// Gets or parses the value (thread-safe, parses only once)
+        func getValue() throws -> T {
+            if let parsed = parsedValue {
+                return parsed
+            }
+            
+            let parsed = try parser(rawData)
+            parsedValue = parsed
+            return parsed
+        }
+        
+        /// Returns whether the value has been parsed
+        var isParsed: Bool {
+            parsedValue != nil
+        }
     }
     
-    private var storage: Storage
+    private let storage: Storage
     
     /// Creates lazy storage with raw data and a parser
     public init(rawData: Data, parser: @escaping @Sendable (Data) throws -> T) {
@@ -164,23 +180,21 @@ public struct LazyStorage<T: Sendable>: Sendable {
     
     /// The raw unparsed data
     public var rawData: Data {
-        storage.rawData
+        get async {
+            await storage.rawData
+        }
     }
     
-    /// Gets the parsed value, parsing if necessary (copy-on-write safe)
-    public mutating func value() throws -> T {
-        if let parsed = storage.parsedValue {
-            return parsed
-        }
-        
-        let parsed = try storage.parser(storage.rawData)
-        storage.parsedValue = parsed
-        return parsed
+    /// Gets the parsed value, parsing if necessary (thread-safe)
+    public func value() async throws -> T {
+        try await storage.getValue()
     }
     
     /// Whether the data has been parsed yet
     public var isParsed: Bool {
-        storage.parsedValue != nil
+        get async {
+            await storage.isParsed
+        }
     }
 }
 
