@@ -398,22 +398,24 @@ final class ActorPatternsTests: XCTestCase {
         let processor = MessageProcessor()
         let testData = "MSH|^~\\&|Test".data(using: .utf8)!
         
-        measure {
-            let expectation = XCTestExpectation(description: "Performance test")
-            
-            Task {
-                do {
-                    for _ in 0..<100 {
-                        _ = try await processor.process(data: testData)
-                    }
-                    expectation.fulfill()
-                } catch {
-                    XCTFail("Processing failed: \(error)")
-                }
-            }
-            
-            wait(for: [expectation], timeout: 10.0)
+        // Warmup
+        for _ in 0..<10 {
+            _ = try await processor.process(data: testData)
         }
+        await processor.resetMetrics()
+        
+        // Actual measurement
+        let startTime = ContinuousClock.now
+        for _ in 0..<100 {
+            _ = try await processor.process(data: testData)
+        }
+        let duration = ContinuousClock.now - startTime
+        
+        // Verify performance is reasonable (should be under 2 seconds for 100 messages)
+        XCTAssertLessThan(duration, .seconds(2), "Processing 100 messages took \(duration)")
+        
+        let metrics = await processor.metrics()
+        XCTAssertEqual(metrics.messagesProcessed, 100)
     }
     
     func testBatchProcessingPerformance() async throws {
@@ -423,20 +425,17 @@ final class ActorPatternsTests: XCTestCase {
             "MSH|^~\\&|Test\(index)".data(using: .utf8)!
         }
         
-        measure {
-            let expectation = XCTestExpectation(description: "Batch performance test")
-            
-            Task {
-                do {
-                    _ = try await processor.processBatch(messages, maxConcurrency: 8)
-                    expectation.fulfill()
-                } catch {
-                    XCTFail("Batch processing failed: \(error)")
-                }
-            }
-            
-            wait(for: [expectation], timeout: 10.0)
-        }
+        // Warmup
+        _ = try await processor.processBatch(messages, maxConcurrency: 8)
+        
+        // Actual measurement
+        let startTime = ContinuousClock.now
+        let results = try await processor.processBatch(messages, maxConcurrency: 8)
+        let duration = ContinuousClock.now - startTime
+        
+        // Verify performance is reasonable (should be under 1 second for batch of 100)
+        XCTAssertLessThan(duration, .seconds(1), "Batch processing 100 messages took \(duration)")
+        XCTAssertEqual(results.count, 100)
     }
     
     // MARK: - Thread Safety Tests

@@ -132,10 +132,7 @@ public actor MessageProcessor {
                     }
                 }
                 
-                group.addTask { [weak self] in
-                    guard let self = self else {
-                        throw HL7Error.unknown("Processor deallocated")
-                    }
+                group.addTask {
                     let result = try await self.process(data: data)
                     return (index, result)
                 }
@@ -167,10 +164,10 @@ public actor MessageProcessor {
         )
     }
     
-    /// Get current active processing count (nonisolated for performance)
-    public nonisolated var activeCount: Int {
+    /// Get current active processing count
+    public var activeCount: Int {
         get async {
-            await processingCount
+            processingCount
         }
     }
     
@@ -298,16 +295,16 @@ public actor StreamProcessor {
     // MARK: - Status
     
     /// Get current stream position
-    public nonisolated var currentPosition: Int {
+    public var currentPosition: Int {
         get async {
-            await position
+            position
         }
     }
     
     /// Check if currently processing
-    public nonisolated var processingActive: Bool {
+    public var processingActive: Bool {
         get async {
-            await isProcessing
+            isProcessing
         }
     }
 }
