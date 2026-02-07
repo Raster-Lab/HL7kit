@@ -17,6 +17,10 @@ DerivedData/
 *.profdata
 *.profraw
 .coverage/
+coverage.lcov
+
+# SwiftLint
+.swiftlint_baseline.json
 
 # macOS
 .DS_Store
