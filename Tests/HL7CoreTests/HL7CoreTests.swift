@@ -103,7 +103,7 @@ final class HL7CoreTests: XCTestCase {
         do {
             throw HL7Error.parsingError("Parse failed")
         } catch let error as HL7Error {
-            if case .parsingError(let message) = error {
+            if case .parsingError(let message, _) = error {
                 XCTAssertEqual(message, "Parse failed")
             } else {
                 XCTFail("Wrong error type")
