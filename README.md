@@ -25,7 +25,8 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Error Handling**: Enhanced error types with context, recovery strategies, and retry mechanisms
 - **Structured Logging**: Advanced logging system with filtering, routing, and performance tracking
 - **Benchmarking Framework**: Performance measurement and optimization tools
-- **High Test Coverage**: 123 unit tests with 90%+ code coverage
+- **Memory-Efficient Parsing Strategies**: Comprehensive parsing framework with multiple strategies (lazy, streaming, chunked, indexed) for optimal memory usage
+- **High Test Coverage**: 156 unit tests with 90%+ code coverage
 
 ## Project Structure
 
