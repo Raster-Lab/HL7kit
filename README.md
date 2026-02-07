@@ -58,9 +58,55 @@ The HL7kit project follows a phased development approach spanning approximately 
 
 ---
 
+## Development
+
+### Building and Testing
+
+```bash
+# Build the package
+swift build
+
+# Run tests
+swift test
+
+# Run tests with coverage
+swift test --enable-code-coverage
+
+# Generate coverage report (macOS)
+xcrun llvm-cov export -format="lcov" \
+  .build/debug/HL7kitPackageTests.xctest/Contents/MacOS/HL7kitPackageTests \
+  -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
+```
+
+### Code Quality
+
+HL7kit maintains high code quality standards:
+
+- **Code Coverage**: >90% for all core modules
+- **SwiftLint**: Automated code style enforcement (see `.swiftlint.yml`)
+- **Coding Standards**: Comprehensive guidelines in [CODING_STANDARDS.md](CODING_STANDARDS.md)
+
+```bash
+# Run SwiftLint (macOS)
+swiftlint lint
+
+# Auto-fix SwiftLint issues
+swiftlint --fix
+```
+
+---
+
 ## Contributing
 
-This project is in the planning phase. Once development begins, we'll welcome contributions in:
+We welcome contributions! Before contributing, please:
+
+1. Read our [Coding Standards](CODING_STANDARDS.md)
+2. Ensure your code passes SwiftLint checks
+3. Maintain >90% test coverage for new code
+4. Add documentation for public APIs
+5. Follow Swift 6.2 concurrency best practices
+
+Contributions welcome in:
 
 - Core implementation
 - Documentation
