@@ -264,6 +264,3 @@ final class MessageTests: XCTestCase {
         XCTAssertFalse(message.rawData.isEmpty)
     }
 }
-import XCTest
-@testable import HL7v2Kit
-@testable import HL7Core
