@@ -8,14 +8,12 @@ import XCTest
 
 final class StreamingAPITests: XCTestCase {
     
-    let sampleMessages = """
-    MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000||ADT^A01|MSG001|P|2.5
-    PID|1||12345||Doe^John
-    MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120001||ADT^A01|MSG002|P|2.5
-    PID|1||67890||Smith^Jane
-    MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120002||ADT^A01|MSG003|P|2.5
-    PID|1||11111||Brown^Bob
-    """
+    let sampleMessages = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000||ADT^A01|MSG001|P|2.5\r" +
+        "PID|1||12345||Doe^John\r" +
+        "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120001||ADT^A01|MSG002|P|2.5\r" +
+        "PID|1||67890||Smith^Jane\r" +
+        "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120002||ADT^A01|MSG003|P|2.5\r" +
+        "PID|1||11111||Brown^Bob"
     
     // MARK: - Data Stream Source Tests
     
@@ -186,18 +184,16 @@ final class StreamingAPITests: XCTestCase {
     // MARK: - Batch Stream Tests
     
     func testBatchStream() async throws {
-        let batchData = """
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5
-        PID|1||67890||Smith^Jane
-        BTS|2|Batch complete
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130100
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130101||ADT^A01|MSG003|P|2.5
-        PID|1||11111||Brown^Bob
-        BTS|1|Batch complete
-        """
+        let batchData = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5\r" +
+            "PID|1||67890||Smith^Jane\r" +
+            "BTS|2|Batch complete\r" +
+            "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130100\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130101||ADT^A01|MSG003|P|2.5\r" +
+            "PID|1||11111||Brown^Bob\r" +
+            "BTS|1|Batch complete"
         
         guard let data = batchData.data(using: .utf8) else {
             XCTFail("Failed to encode test data")
@@ -226,12 +222,10 @@ final class StreamingAPITests: XCTestCase {
     }
     
     func testFileStreamReaderStreamBatches() async throws {
-        let batchData = """
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        BTS|1|Batch complete
-        """
+        let batchData = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "BTS|1|Batch complete"
         
         // Create a temporary file
         let tempDir = FileManager.default.temporaryDirectory
@@ -309,11 +303,9 @@ final class StreamingAPITests: XCTestCase {
     // MARK: - Error Handling Tests
     
     func testStreamWithInvalidMessage() async throws {
-        let invalidMessages = """
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5
-        INVALID_SEGMENT_DATA
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG002|P|2.5
-        """
+        let invalidMessages = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5\r" +
+            "INVALID_SEGMENT_DATA\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG002|P|2.5"
         
         guard let data = invalidMessages.data(using: .utf8) else {
             XCTFail("Failed to encode test data")

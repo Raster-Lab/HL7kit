@@ -293,12 +293,10 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateValidADTA01() async throws {
         // Create a valid ADT^A01 message
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        EVN|A01|20240101120000
-        PID|1||12345||Doe^John||19800101|M
-        PV1|1|O|ER^1^1
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "EVN|A01|20240101120000\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PV1|1|O|ER^1^1"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -309,11 +307,9 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateMissingRequiredSegment() async throws {
         // ADT^A01 without required EVN segment
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        PID|1||12345||Doe^John||19800101|M
-        PV1|1|O|ER^1^1
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PV1|1|O|ER^1^1"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -324,13 +320,11 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateDuplicateNonRepeatingSegment() async throws {
         // ADT^A01 with duplicate PID (should be only once)
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        EVN|A01|20240101120000
-        PID|1||12345||Doe^John||19800101|M
-        PID|2||67890||Smith^Jane||19850202|F
-        PV1|1|O|ER^1^1
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "EVN|A01|20240101120000\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PID|2||67890||Smith^Jane||19850202|F\r" +
+            "PV1|1|O|ER^1^1"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -341,15 +335,13 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateRepeatingSegments() async throws {
         // ADT^A01 with multiple OBX (repeating is allowed)
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        EVN|A01|20240101120000
-        PID|1||12345||Doe^John||19800101|M
-        PV1|1|O|ER^1^1
-        OBX|1|ST|1234^Test1||Result1
-        OBX|2|ST|5678^Test2||Result2
-        OBX|3|ST|9012^Test3||Result3
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "EVN|A01|20240101120000\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PV1|1|O|ER^1^1\r" +
+            "OBX|1|ST|1234^Test1||Result1\r" +
+            "OBX|2|ST|5678^Test2||Result2\r" +
+            "OBX|3|ST|9012^Test3||Result3"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -360,13 +352,11 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateUnexpectedSegment() async throws {
         // ADT^A01 with unexpected ZZZ segment
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        EVN|A01|20240101120000
-        PID|1||12345||Doe^John||19800101|M
-        PV1|1|O|ER^1^1
-        ZZZ|CustomSegment
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "EVN|A01|20240101120000\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PV1|1|O|ER^1^1\r" +
+            "ZZZ|CustomSegment"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -378,13 +368,11 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateORUR01() async throws {
         // ORU^R01 with required OBX
-        let messageString = """
-        MSH|^~\\&|LAB|LAB_FAC|RECV_APP|RECV_FAC|20240101120000||ORU^R01|MSG456|P|2.5
-        PID|1||12345||Doe^John||19800101|M
-        OBR|1|ORDER123||TEST123^Test Name
-        OBX|1|ST|CODE1^Test1||Result1
-        OBX|2|NM|CODE2^Test2||42
-        """
+        let messageString = "MSH|^~\\&|LAB|LAB_FAC|RECV_APP|RECV_FAC|20240101120000||ORU^R01|MSG456|P|2.5\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "OBR|1|ORDER123||TEST123^Test Name\r" +
+            "OBX|1|ST|CODE1^Test1||Result1\r" +
+            "OBX|2|NM|CODE2^Test2||42"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -395,11 +383,9 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateORUR01MissingRequiredOBX() async throws {
         // ORU^R01 without required OBX
-        let messageString = """
-        MSH|^~\\&|LAB|LAB_FAC|RECV_APP|RECV_FAC|20240101120000||ORU^R01|MSG456|P|2.5
-        PID|1||12345||Doe^John||19800101|M
-        OBR|1|ORDER123||TEST123^Test Name
-        """
+        let messageString = "MSH|^~\\&|LAB|LAB_FAC|RECV_APP|RECV_FAC|20240101120000||ORU^R01|MSG456|P|2.5\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "OBR|1|ORDER123||TEST123^Test Name"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -410,10 +396,8 @@ final class MessageStructureTests: XCTestCase {
     
     func testValidateACK() async throws {
         // ACK message
-        let messageString = """
-        MSH|^~\\&|RECV_APP|RECV_FAC|SEND_APP|SEND_FAC|20240101120000||ACK|MSG789|P|2.5
-        MSA|AA|MSG123
-        """
+        let messageString = "MSH|^~\\&|RECV_APP|RECV_FAC|SEND_APP|SEND_FAC|20240101120000||ACK|MSG789|P|2.5\r" +
+            "MSA|AA|MSG123"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -426,12 +410,10 @@ final class MessageStructureTests: XCTestCase {
     
     func testBackwardCompatibilityV2_1Message() async throws {
         // v2.1 message should be valid even with newer structure definitions
-        let messageString = """
-        MSH|^~\\&|APP|FAC|APP|FAC|20240101||ADT^A01|123|P|2.1
-        EVN|A01|20240101
-        PID|1||12345||Doe^John
-        PV1|1|O|ER^1^1
-        """
+        let messageString = "MSH|^~\\&|APP|FAC|APP|FAC|20240101||ADT^A01|123|P|2.1\r" +
+            "EVN|A01|20240101\r" +
+            "PID|1||12345||Doe^John\r" +
+            "PV1|1|O|ER^1^1"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -443,13 +425,11 @@ final class MessageStructureTests: XCTestCase {
     func testBackwardCompatibilityIgnoreUnknownSegments() async throws {
         // Older version receiving newer message with unknown segments
         // Should warn but not fail validation
-        let messageString = """
-        MSH|^~\\&|APP|FAC|APP|FAC|20240101||ADT^A01|123|P|2.5
-        EVN|A01|20240101
-        PID|1||12345||Doe^John
-        PV1|1|O|ER^1^1
-        ZNF|NewFeatureSegment
-        """
+        let messageString = "MSH|^~\\&|APP|FAC|APP|FAC|20240101||ADT^A01|123|P|2.5\r" +
+            "EVN|A01|20240101\r" +
+            "PID|1||12345||Doe^John\r" +
+            "PV1|1|O|ER^1^1\r" +
+            "ZNF|NewFeatureSegment"
         
         let message = try HL7v2Message.parse(messageString)
         let result = await message.validateStructure()
@@ -508,13 +488,11 @@ final class MessageStructureTests: XCTestCase {
     }
     
     func testStructureValidationPerformance() async throws {
-        let messageString = """
-        MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5
-        EVN|A01|20240101120000
-        PID|1||12345||Doe^John||19800101|M
-        PV1|1|O|ER^1^1
-        OBX|1|ST|1234^Test||Result
-        """
+        let messageString = "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECV_APP|RECV_FAC|20240101120000||ADT^A01|MSG123|P|2.5\r" +
+            "EVN|A01|20240101120000\r" +
+            "PID|1||12345||Doe^John||19800101|M\r" +
+            "PV1|1|O|ER^1^1\r" +
+            "OBX|1|ST|1234^Test||Result"
         
         let message = try HL7v2Message.parse(messageString)
         

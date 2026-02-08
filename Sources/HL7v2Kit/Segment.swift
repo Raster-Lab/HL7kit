@@ -79,9 +79,9 @@ public struct BaseSegment: HL7v2Segment, Equatable {
             throw HL7Error.parsingError("Invalid segment ID: \(segmentID)")
         }
         
-        // Handle special case for MSH segment
-        if segmentID == "MSH" {
-            return try parseMSHSegment(rawValue, encodingCharacters: encodingCharacters)
+        // Handle special case for MSH, FHS, and BHS segments (they have encoding characters in field 2)
+        if segmentID == "MSH" || segmentID == "FHS" || segmentID == "BHS" {
+            return try parseMSHLikeSegment(rawValue, segmentID: segmentID, encodingCharacters: encodingCharacters)
         }
         
         // For other segments, extract everything after segment ID
@@ -104,29 +104,28 @@ public struct BaseSegment: HL7v2Segment, Equatable {
         return BaseSegment(segmentID: segmentID, fields: fields, encodingCharacters: encodingCharacters)
     }
     
-    /// Parse MSH segment (special case due to encoding characters in MSH-2)
-    private static func parseMSHSegment(_ rawValue: String, encodingCharacters: EncodingCharacters) throws -> BaseSegment {
-        // MSH format: MSH|^~\&|...
-        // MSH-1 is the field separator itself
-        // MSH-2 is the encoding characters (should NOT be parsed with delimiters)
+    /// Parse MSH, FHS, or BHS segment (special case due to encoding characters in field 2)
+    private static func parseMSHLikeSegment(_ rawValue: String, segmentID: String, encodingCharacters: EncodingCharacters) throws -> BaseSegment {
+        // MSH/FHS/BHS format: MSH|^~\&|... or FHS|^~\&|... or BHS|^~\&|...
+        // Field 1 is the field separator itself
+        // Field 2 is the encoding characters (should NOT be parsed with delimiters)
         
         guard rawValue.count >= 8 else {
-            throw HL7Error.parsingError("MSH segment too short")
+            throw HL7Error.parsingError("\(segmentID) segment too short")
         }
         
-        let segmentID = "MSH"
         let fieldSeparator = rawValue[rawValue.index(rawValue.startIndex, offsetBy: 3)]
         
         guard fieldSeparator == encodingCharacters.fieldSeparator else {
-            throw HL7Error.parsingError("MSH field separator mismatch")
+            throw HL7Error.parsingError("\(segmentID) field separator mismatch")
         }
         
-        // Extract encoding characters from MSH-2
+        // Extract encoding characters from field 2
         let encodingStart = rawValue.index(rawValue.startIndex, offsetBy: 4)
         let encodingEnd = rawValue.index(encodingStart, offsetBy: 4)
         let encodingString = String(rawValue[encodingStart..<encodingEnd])
         
-        // Parse the rest of the fields (after MSH-2)
+        // Parse the rest of the fields (after field 2)
         // The character after encodingEnd should be a field separator
         var remaining = String(rawValue[encodingEnd...])
         
@@ -137,18 +136,18 @@ public struct BaseSegment: HL7v2Segment, Equatable {
         
         let fieldParts = remaining.split(separator: encodingCharacters.fieldSeparator, omittingEmptySubsequences: false)
         
-        // MSH-1 is the field separator, MSH-2 is encoding characters
-        // Create MSH-2 field with a single subcomponent to avoid parsing delimiters
+        // Field 1 is the field separator, Field 2 is encoding characters
+        // Create Field 2 with a single subcomponent to avoid parsing delimiters
         let encodingSubcomponent = Subcomponent(rawValue: encodingString, encodingCharacters: encodingCharacters)
         let encodingComponent = Component(subcomponents: [encodingSubcomponent], encodingCharacters: encodingCharacters)
         let encodingField = Field(repetitions: [[encodingComponent]], encodingCharacters: encodingCharacters)
         
         var fields: [Field] = [
             Field.parse(String(fieldSeparator), encodingCharacters: encodingCharacters),
-            encodingField  // MSH-2 special handling
+            encodingField  // Field 2 special handling
         ]
         
-        // Add remaining fields (MSH-3 onward)
+        // Add remaining fields (Field 3 onward)
         fields.append(contentsOf: fieldParts.map { Field.parse(String($0), encodingCharacters: encodingCharacters) })
         
         return BaseSegment(segmentID: segmentID, fields: fields, encodingCharacters: encodingCharacters)
