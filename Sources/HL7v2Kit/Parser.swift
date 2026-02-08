@@ -328,11 +328,29 @@ public struct HL7v2Parser: Sendable {
         var diagnostics = ParserDiagnostics()
         var segments: [BaseSegment] = []
 
-        for (index, segStr) in segmentStrings.enumerated() {
-            if let segment = try parseSegment(segStr, at: index, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
-                validateSegmentStructure(segment, at: index, diagnostics: &diagnostics)
-                segments.append(segment)
-                diagnostics.segmentsParsed += 1
+        // Handle lazy parsing strategy
+        // Note: Current implementation parses all segments but provides infrastructure
+        // for future lazy evaluation. Full lazy parsing would require storing raw
+        // segment strings and parsing on-demand via computed properties.
+        switch configuration.strategy {
+        case .lazy:
+            // Parse all segments (full lazy implementation deferred)
+            // In production lazy parsing, you would store raw strings and parse on access
+            for (index, segStr) in segmentStrings.enumerated() {
+                if let segment = try parseSegment(segStr, at: index, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
+                    validateSegmentStructure(segment, at: index, diagnostics: &diagnostics)
+                    segments.append(segment)
+                    diagnostics.segmentsParsed += 1
+                }
+            }
+        default:
+            // Eager parsing (default)
+            for (index, segStr) in segmentStrings.enumerated() {
+                if let segment = try parseSegment(segStr, at: index, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
+                    validateSegmentStructure(segment, at: index, diagnostics: &diagnostics)
+                    segments.append(segment)
+                    diagnostics.segmentsParsed += 1
+                }
             }
         }
 
