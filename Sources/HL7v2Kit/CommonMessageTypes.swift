@@ -834,12 +834,11 @@ public struct QBPMessage: HL7v2TypedMessage {
     public var queryParameters: [String] {
         guard let qpd = queryParameterDefinition else { return [] }
         var params: [String] = []
-        var i = 2
-        while true {
+        let fieldCount = qpd.fields.count
+        for i in 2..<fieldCount {
             let field = qpd[i]
-            if field.isEmpty { break }
+            guard !field.isEmpty else { continue }
             params.append(field.serialize())
-            i += 1
         }
         return params
     }
