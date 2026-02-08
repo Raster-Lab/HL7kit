@@ -79,7 +79,7 @@ public struct BaseSegment: HL7v2Segment, Equatable {
             throw HL7Error.parsingError("Invalid segment ID: \(segmentID)")
         }
         
-        // Handle special case for MSH, FHS, and BHS segments (they have encoding characters in field 2)
+        // Handle special case for MSH, FHS, and BHS segments (encoding characters are in the second field)
         if segmentID == "MSH" || segmentID == "FHS" || segmentID == "BHS" {
             return try parseMSHLikeSegment(rawValue, segmentID: segmentID, encodingCharacters: encodingCharacters)
         }
@@ -104,11 +104,11 @@ public struct BaseSegment: HL7v2Segment, Equatable {
         return BaseSegment(segmentID: segmentID, fields: fields, encodingCharacters: encodingCharacters)
     }
     
-    /// Parse MSH, FHS, or BHS segment (special case due to encoding characters in field 2)
+    /// Parse MSH, FHS, or BHS segment (special case - encoding characters are in the second field)
     private static func parseMSHLikeSegment(_ rawValue: String, segmentID: String, encodingCharacters: EncodingCharacters) throws -> BaseSegment {
         // MSH/FHS/BHS format: MSH|^~\&|... or FHS|^~\&|... or BHS|^~\&|...
-        // Field 1 is the field separator itself
-        // Field 2 is the encoding characters (should NOT be parsed with delimiters)
+        // The first field is the field separator itself
+        // The second field contains the encoding characters (should NOT be parsed with delimiters)
         
         guard rawValue.count >= 8 else {
             throw HL7Error.parsingError("\(segmentID) segment too short")
@@ -120,12 +120,12 @@ public struct BaseSegment: HL7v2Segment, Equatable {
             throw HL7Error.parsingError("\(segmentID) field separator mismatch")
         }
         
-        // Extract encoding characters from field 2
+        // Extract encoding characters from the second field
         let encodingStart = rawValue.index(rawValue.startIndex, offsetBy: 4)
         let encodingEnd = rawValue.index(encodingStart, offsetBy: 4)
         let encodingString = String(rawValue[encodingStart..<encodingEnd])
         
-        // Parse the rest of the fields (after field 2)
+        // Parse the rest of the fields (after the second field)
         // The character after encodingEnd should be a field separator
         var remaining = String(rawValue[encodingEnd...])
         
@@ -136,18 +136,18 @@ public struct BaseSegment: HL7v2Segment, Equatable {
         
         let fieldParts = remaining.split(separator: encodingCharacters.fieldSeparator, omittingEmptySubsequences: false)
         
-        // Field 1 is the field separator, Field 2 is encoding characters
-        // Create Field 2 with a single subcomponent to avoid parsing delimiters
+        // First field is the field separator, second field is encoding characters
+        // Create the second field with a single subcomponent to avoid parsing delimiters
         let encodingSubcomponent = Subcomponent(rawValue: encodingString, encodingCharacters: encodingCharacters)
         let encodingComponent = Component(subcomponents: [encodingSubcomponent], encodingCharacters: encodingCharacters)
         let encodingField = Field(repetitions: [[encodingComponent]], encodingCharacters: encodingCharacters)
         
         var fields: [Field] = [
             Field.parse(String(fieldSeparator), encodingCharacters: encodingCharacters),
-            encodingField  // Field 2 special handling
+            encodingField  // Second field special handling
         ]
         
-        // Add remaining fields (Field 3 onward)
+        // Add remaining fields (third field onward)
         fields.append(contentsOf: fieldParts.map { Field.parse(String($0), encodingCharacters: encodingCharacters) })
         
         return BaseSegment(segmentID: segmentID, fields: fields, encodingCharacters: encodingCharacters)
