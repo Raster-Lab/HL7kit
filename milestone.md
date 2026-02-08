@@ -80,12 +80,12 @@ Build the foundation for HL7 v2.x message parsing, validation, and generation.
 **Deliverables**: Type-safe message builder API
 
 #### 1.4 Common Message Types (Week 8)
-- [ ] ADT (Admit/Discharge/Transfer) messages
-- [ ] ORM (Order) messages
-- [ ] ORU (Observation Result) messages
-- [ ] ACK (Acknowledgment) messages
-- [ ] QRY/QBP (Query) messages
-- [ ] Create message-specific validation rules
+- [x] ADT (Admit/Discharge/Transfer) messages
+- [x] ORM (Order) messages
+- [x] ORU (Observation Result) messages
+- [x] ACK (Acknowledgment) messages
+- [x] QRY/QBP (Query) messages
+- [x] Create message-specific validation rules
 
 **Deliverables**: 20+ common message type implementations
 
