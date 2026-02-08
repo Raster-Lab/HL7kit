@@ -25,6 +25,7 @@ public struct MessageInspector {
         var result = "HL7 v2.x Message Inspector\n"
         result += "=" * 50 + "\n"
         result += "Message Type: \(message.messageType())\n"
+        result += "Event Type: \(message.eventType)\n"
         result += "Version: \(message.version())\n"
         result += "Segment Count: \(message.allSegments.count)\n"
         result += "Control ID: \(message.messageControlID())\n"
