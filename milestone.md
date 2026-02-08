@@ -148,7 +148,7 @@ Add advanced capabilities and optimization for HL7 v2.x toolkit.
 **Deliverables**: >10,000 messages/second throughput on Apple Silicon (target exceeded: 15,000-25,000 msg/s)
 
 #### 2.4 Encoding Support (Week 15)
-- [ ] Support for multiple character encodings
+- [x] Support for multiple character encodings
 - [ ] Implement Z-segment support (custom segments)
 - [ ] Add batch/file processing (FHS/BHS)
 - [ ] Create streaming API for large files
