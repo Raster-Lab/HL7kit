@@ -100,12 +100,12 @@ Build the foundation for HL7 v2.x message parsing, validation, and generation.
 **Deliverables**: Comprehensive validation framework
 
 #### 1.6 Networking & Transport (Week 10)
-- [ ] Implement MLLP (Minimal Lower Layer Protocol)
-- [ ] Create Network.framework-based client/server
-- [ ] Add connection pooling
-- [ ] Implement automatic reconnection
-- [ ] Create TLS/SSL support
-- [ ] Add timeout and retry logic
+- [x] Implement MLLP (Minimal Lower Layer Protocol)
+- [x] Create Network.framework-based client/server
+- [x] Add connection pooling
+- [x] Implement automatic reconnection
+- [x] Create TLS/SSL support
+- [x] Add timeout and retry logic
 
 **Deliverables**: Production-ready HL7 v2.x network layer
 
