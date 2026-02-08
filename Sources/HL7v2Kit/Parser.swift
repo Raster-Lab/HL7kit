@@ -234,6 +234,12 @@ public struct ParserConfiguration: Sendable, Equatable {
     public let autoDetectDelimiters: Bool
     /// Error recovery strategy
     public let errorRecovery: ErrorRecoveryMode
+    /// Whether to respect MSH-18 (Character Set) field for encoding
+    /// When true, the parser will use the character set specified in MSH-18
+    /// to override the global encoding setting (if present)
+    public let respectMSH18: Bool
+    /// Whether to validate that message content matches declared encoding
+    public let validateEncoding: Bool
 
     /// Creates a parser configuration with default values
     public init(
@@ -244,7 +250,9 @@ public struct ParserConfiguration: Sendable, Equatable {
         encoding: MessageEncoding = .utf8,
         segmentTerminator: SegmentTerminator = .cr,
         autoDetectDelimiters: Bool = true,
-        errorRecovery: ErrorRecoveryMode = .strict
+        errorRecovery: ErrorRecoveryMode = .strict,
+        respectMSH18: Bool = true,
+        validateEncoding: Bool = false
     ) {
         self.strategy = strategy
         self.strictMode = strictMode
@@ -254,6 +262,8 @@ public struct ParserConfiguration: Sendable, Equatable {
         self.segmentTerminator = segmentTerminator
         self.autoDetectDelimiters = autoDetectDelimiters
         self.errorRecovery = errorRecovery
+        self.respectMSH18 = respectMSH18
+        self.validateEncoding = validateEncoding
     }
 }
 
@@ -392,6 +402,12 @@ public struct HL7v2Parser: Sendable {
         }
 
         let message = try HL7v2Message(segments: segments, encodingCharacters: encodingChars)
+        
+        // Validate encoding if requested
+        if configuration.validateEncoding {
+            validateMessageEncoding(message: message, usedEncoding: configuration.encoding, diagnostics: &diagnostics)
+        }
+        
         diagnostics.parseTime = clock.now - start
         return ParseResult(message: message, diagnostics: diagnostics)
     }
@@ -540,6 +556,58 @@ public struct HL7v2Parser: Sendable {
                     )
                 }
             }
+        }
+    }
+    
+    /// Validate message encoding against MSH-18 declaration
+    /// - Parameters:
+    ///   - message: Parsed message to validate
+    ///   - usedEncoding: Encoding that was used to parse the message
+    ///   - diagnostics: Diagnostics collector (mutated in place)
+    private func validateMessageEncoding(
+        message: HL7v2Message,
+        usedEncoding: MessageEncoding,
+        diagnostics: inout ParserDiagnostics
+    ) {
+        // Get character sets from MSH-18
+        let charsets = message.characterSets()
+        
+        guard !charsets.isEmpty else {
+            // No MSH-18 specified, no validation to perform
+            return
+        }
+        
+        // Get the primary encoding from MSH-18
+        guard let primaryCharset = charsets.first,
+              let declaredEncoding = primaryCharset.toMessageEncoding() else {
+            // Character set not mappable to MessageEncoding
+            diagnostics.warnings.append(
+                ParserWarning(
+                    message: "MSH-18 character set '\(charsets.first?.rawValue ?? "")' is not directly supported",
+                    location: ParserLocation(segmentIndex: 0, segmentID: "MSH", fieldIndex: 18)
+                )
+            )
+            return
+        }
+        
+        // Validate that the used encoding matches the declared encoding
+        if usedEncoding != .autoDetect && usedEncoding != declaredEncoding {
+            diagnostics.warnings.append(
+                ParserWarning(
+                    message: "Encoding mismatch: used \(usedEncoding) but MSH-18 declares \(declaredEncoding)",
+                    location: ParserLocation(segmentIndex: 0, segmentID: "MSH", fieldIndex: 18)
+                )
+            )
+        }
+        
+        // Check for multiple character sets
+        if charsets.count > 1 {
+            diagnostics.warnings.append(
+                ParserWarning(
+                    message: "Message declares \(charsets.count) character sets in MSH-18. Multi-encoding support is limited.",
+                    location: ParserLocation(segmentIndex: 0, segmentID: "MSH", fieldIndex: 18)
+                )
+            )
         }
     }
 }
