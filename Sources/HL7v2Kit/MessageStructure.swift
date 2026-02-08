@@ -267,11 +267,19 @@ public actor MessageStructureDatabase {
     /// Internal storage of message structures
     private var structures: [String: MessageStructure] = [:]
     
-    /// Initialize with default structures
+    /// Flag to track if default structures have been registered
+    private var defaultStructuresRegistered = false
+    
+    /// Initialize (private)
     private init() {
-        Task {
-            await registerDefaultStructures()
-        }
+        // Default structures will be lazily registered on first access
+    }
+    
+    /// Ensure default structures are registered
+    private func ensureDefaultStructures() async {
+        guard !defaultStructuresRegistered else { return }
+        defaultStructuresRegistered = true
+        await registerDefaultStructures()
     }
     
     /// Register a message structure
@@ -289,15 +297,25 @@ public actor MessageStructureDatabase {
     public func structure(
         messageType: String,
         triggerEvent: String
-    ) -> MessageStructure? {
-        let key = "\(messageType)^\(triggerEvent)"
-        return structures[key]
+    ) async -> MessageStructure? {
+        await ensureDefaultStructures()
+        
+        // Try exact match first
+        let exactKey = "\(messageType)^\(triggerEvent)"
+        if let structure = structures[exactKey] {
+            return structure
+        }
+        
+        // Try wildcard match (e.g., ACK^* matches any ACK message)
+        let wildcardKey = "\(messageType)^*"
+        return structures[wildcardKey]
     }
     
     /// Get message structure from a message
     /// - Parameter message: HL7 v2.x message
     /// - Returns: Message structure if found
-    public func structure(for message: HL7v2Message) -> MessageStructure? {
+    public func structure(for message: HL7v2Message) async -> MessageStructure? {
+        await ensureDefaultStructures()
         let msh = message.messageHeader
         let messageTypeField = msh[8]
         
@@ -310,12 +328,13 @@ public actor MessageStructureDatabase {
         let messageType = components[0].value.raw
         let triggerEvent = components[1].value.raw
         
-        return structure(messageType: messageType, triggerEvent: triggerEvent)
+        return await structure(messageType: messageType, triggerEvent: triggerEvent)
     }
     
     /// Get all registered message types
     /// - Returns: Array of all registered message structures
-    public func allStructures() -> [MessageStructure] {
+    public func allStructures() async -> [MessageStructure] {
+        await ensureDefaultStructures()
         return Array(structures.values).sorted { lhs, rhs in
             if lhs.messageType != rhs.messageType {
                 return lhs.messageType < rhs.messageType
@@ -327,7 +346,8 @@ public actor MessageStructureDatabase {
     /// Get all message types for a specific version
     /// - Parameter version: HL7 version
     /// - Returns: Array of structures valid for this version
-    public func structures(for version: HL7Version) -> [MessageStructure] {
+    public func structures(for version: HL7Version) async -> [MessageStructure] {
+        await ensureDefaultStructures()
         return structures.values.filter { $0.applies(to: version) }
     }
     
@@ -467,10 +487,13 @@ public actor MessageStructureDatabase {
     // MARK: - ACK Structures
     
     private func registerACKStructures() async {
-        // ACK - General Acknowledgment (applies to all trigger events)
+        // ACK - General Acknowledgment
+        // Note: ACK messages can acknowledge any trigger event, so we register it
+        // without a specific trigger event. The validation should match ACK messages
+        // regardless of the trigger event in MSH-9.2
         await register(MessageStructure(
             messageType: "ACK",
-            triggerEvent: "",
+            triggerEvent: "*",  // Wildcard to match any trigger event
             description: "General Acknowledgment",
             segments: [
                 StructureSegmentDefinition(segmentID: "MSH", usage: .required, description: "Message Header"),

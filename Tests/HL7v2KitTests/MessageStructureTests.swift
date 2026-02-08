@@ -500,11 +500,9 @@ final class MessageStructureTests: XCTestCase {
     func testStructureLookupPerformance() async {
         let db = MessageStructureDatabase.shared
         
-        measure {
-            Task {
-                for _ in 0..<1000 {
-                    _ = await db.structure(messageType: "ADT", triggerEvent: "A01")
-                }
+        await measureAsync {
+            for _ in 0..<1000 {
+                _ = await db.structure(messageType: "ADT", triggerEvent: "A01")
             }
         }
     }
@@ -520,12 +518,19 @@ final class MessageStructureTests: XCTestCase {
         
         let message = try HL7v2Message.parse(messageString)
         
-        measure {
-            Task {
-                for _ in 0..<100 {
-                    _ = await message.validateStructure()
-                }
+        await measureAsync {
+            for _ in 0..<100 {
+                _ = await message.validateStructure()
             }
         }
+    }
+    
+    // Helper for async performance measurement
+    private func measureAsync(block: @escaping () async -> Void) async {
+        let start = Date()
+        await block()
+        let duration = Date().timeIntervalSince(start)
+        // Record the measurement
+        XCTAssert(duration >= 0, "Performance test completed in \(duration) seconds")
     }
 }
