@@ -37,6 +37,11 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **MLLP Networking & Transport**: Full MLLP (Minimal Lower Layer Protocol) implementation including message framing/deframing, streaming parser for incremental TCP data, configurable client connections with TLS/retry/timeout support, server-side listener, connection pooling, and actor-based concurrency. Network I/O uses `Network.framework` on Apple platforms with cross-platform stubs.
 - **Character Encoding Support**: Comprehensive support for multiple character encodings with MSH-18 (Character Set) field parsing, automatic encoding detection, validation, and support for 30+ HL7 standard character sets including ASCII, UTF-8, UTF-16, Latin-1, and international encodings. Includes character set mapping, encoding mismatch detection, and platform-specific optimizations.
 - **Performance Optimizations**: String interning for common segment IDs (15-25% memory reduction), object pooling for segments/fields/components (70-80% allocation reduction), lazy parsing support, comprehensive performance benchmarks, and optimization guide. Achieves >10,000 messages/second throughput on Apple Silicon.
+- **Z-Segment Support**: Custom segment definitions with registry, builder API, field definitions, and validation against custom segment schemas. Includes pre-defined examples (ZPI, ZBE, ZOB).
+- **Batch & File Processing**: Full support for batch (BHS/BTS) and file (FHS/FTS) structures with parsing and serialization. Includes validation of batch/file message counts.
+- **Streaming API**: Memory-efficient streaming for large files using async/await. Constant memory usage regardless of file size with support for file and in-memory data sources.
+- **Compression Support**: Native compression using Foundation's Compression framework (LZFSE, LZ4, ZLIB, LZMA) for messages, batches, and files with configurable compression levels.
+- **Developer Tools**: Message inspector/debugger with tree view, diff tool, pretty printer, search functionality, and statistics. Test utilities including message generators, mock objects, and performance helpers.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
 - **High Test Coverage**: 760+ unit tests with 90%+ code coverage
 

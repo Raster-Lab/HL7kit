@@ -24,14 +24,16 @@ public struct MessageInspector {
     public func summary() -> String {
         var result = "HL7 v2.x Message Inspector\n"
         result += "=" * 50 + "\n"
-        result += "Message Type: \(message.messageType)\n"
-        result += "Event Type: \(message.triggerEvent())\n"
+        result += "Message Type: \(message.messageType())\n"
         result += "Version: \(message.version())\n"
         result += "Segment Count: \(message.allSegments.count)\n"
-        result += "Control ID: \(message.messageControlID ?? "N/A")\n"
-        result += "Sending Application: \(message.sendingApplication ?? "N/A")\n"
-        result += "Receiving Application: \(message.receivingApplication ?? "N/A")\n"
-        result += "Timestamp: \(message.timestamp ?? "N/A")\n"
+        result += "Control ID: \(message.messageControlID())\n"
+        
+        // Extract MSH fields
+        let msh = message.messageHeader
+        result += "Sending Application: \(msh[2].value.value.raw)\n"
+        result += "Receiving Application: \(msh[4].value.value.raw)\n"
+        result += "Timestamp: \(msh[6].value.value.raw)\n"
         return result
     }
     
@@ -40,7 +42,7 @@ public struct MessageInspector {
     /// - Returns: Tree structure string
     public func treeView(maxFieldLength: Int = 50) -> String {
         var result = "Message Structure:\n"
-        result += "└── \(message.messageType)^\(message.triggerEvent()) (v\(message.version()))\n"
+        result += "└── \(message.messageType()) (v\(message.version()))\n"
         
         for (index, segment) in message.allSegments.enumerated() {
             let isLast = index == message.allSegments.count - 1
@@ -177,8 +179,8 @@ public struct MessageInspector {
     public func compare(with other: HL7v2Message) -> String {
         var result = "Message Comparison\n"
         result += "=" * 50 + "\n"
-        result += "Message 1: \(message.messageType)^\(message.triggerEvent()) v\(message.version())\n"
-        result += "Message 2: \(other.messageType())^\(other.eventType) v\(other.version())\n\n"
+        result += "Message 1: \(message.messageType()) v\(message.version())\n"
+        result += "Message 2: \(other.messageType()) v\(other.version())\n\n"
         
         // Compare segment counts
         let segments1 = message.allSegments.map { $0.segmentID }
