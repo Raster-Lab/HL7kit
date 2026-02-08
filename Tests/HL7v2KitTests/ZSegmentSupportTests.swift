@@ -148,8 +148,8 @@ final class ZSegmentSupportTests: XCTestCase {
         let segment = builder.build()
         
         XCTAssertEqual(segment.fields.count, 2)
-        XCTAssertEqual(segment[0].firstValue, "Value1")
-        XCTAssertEqual(segment[1].firstValue, "Value2")
+        XCTAssertEqual(segment[0].value.value.raw, "Value1")
+        XCTAssertEqual(segment[1].value.value.raw, "Value2")
     }
     
     func testZSegmentBuilderAddFieldWithComponents() throws {
@@ -176,9 +176,9 @@ final class ZSegmentSupportTests: XCTestCase {
         let segment = builder.build()
         
         XCTAssertEqual(segment.fields.count, 3)
-        XCTAssertEqual(segment[0].firstValue, "First")
+        XCTAssertEqual(segment[0].value.value.raw, "First")
         XCTAssertTrue(segment[1].isEmpty)
-        XCTAssertEqual(segment[2].firstValue, "Third")
+        XCTAssertEqual(segment[2].value.value.raw, "Third")
     }
     
     func testZSegmentBuilderAddFields() throws {
@@ -188,9 +188,9 @@ final class ZSegmentSupportTests: XCTestCase {
         let segment = builder.build()
         
         XCTAssertEqual(segment.fields.count, 3)
-        XCTAssertEqual(segment[0].firstValue, "Field1")
-        XCTAssertEqual(segment[1].firstValue, "Field2")
-        XCTAssertEqual(segment[2].firstValue, "Field3")
+        XCTAssertEqual(segment[0].value.value.raw, "Field1")
+        XCTAssertEqual(segment[1].value.value.raw, "Field2")
+        XCTAssertEqual(segment[2].value.value.raw, "Field3")
     }
     
     func testZSegmentBuilderBuildAndSerialize() throws {
@@ -219,9 +219,9 @@ final class ZSegmentSupportTests: XCTestCase {
         
         XCTAssertEqual(segment.segmentID, "ZPI")
         XCTAssertTrue(segment.isZSegment)
-        XCTAssertEqual(segment[0].firstValue, "1")
-        XCTAssertEqual(segment[1].firstValue, "CustomType")
-        XCTAssertEqual(segment[2].firstValue, "12345")
+        XCTAssertEqual(segment[0].value.value.raw, "1")
+        XCTAssertEqual(segment[1].value.value.raw, "CustomType")
+        XCTAssertEqual(segment[2].value.value.raw, "12345")
     }
     
     func testZSegmentIsZSegment() throws {
@@ -349,9 +349,9 @@ final class ZSegmentSupportTests: XCTestCase {
         let parser = HL7v2Parser()
         let result = try parser.parse(messageString)
         
-        XCTAssertEqual(result.message.segments.count, 3)
+        XCTAssertEqual(result.message.segmentCount, 3)
         
-        let zSegment = result.message.segments[2]
+        let zSegment = result.message.allSegments[2]
         XCTAssertEqual(zSegment.segmentID, "ZPI")
         XCTAssertTrue(zSegment.isZSegment)
     }

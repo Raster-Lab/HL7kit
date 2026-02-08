@@ -124,9 +124,9 @@ final class StreamingAPITests: XCTestCase {
         }
         
         XCTAssertEqual(messages.count, 3)
-        XCTAssertEqual(messages[0].msh()?.messageControlID, "MSG001")
-        XCTAssertEqual(messages[1].msh()?.messageControlID, "MSG002")
-        XCTAssertEqual(messages[2].msh()?.messageControlID, "MSG003")
+        XCTAssertEqual(messages[0].messageControlID(), "MSG001")
+        XCTAssertEqual(messages[1].messageControlID(), "MSG002")
+        XCTAssertEqual(messages[2].messageControlID(), "MSG003")
     }
     
     func testFileStreamReaderCountMessages() async throws {

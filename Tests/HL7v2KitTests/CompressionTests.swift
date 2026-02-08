@@ -158,7 +158,7 @@ final class CompressionTests: XCTestCase {
         
         let decompressedMessage = try parser.parseCompressed(compressedMessage)
         
-        XCTAssertEqual(decompressedMessage.segments.count, parseResult.message.segments.count)
+        XCTAssertEqual(decompressedMessage.segmentCount, parseResult.message.segmentCount)
     }
     
     func testMessageCompressWithDifferentLevels() throws {
@@ -223,7 +223,7 @@ final class CompressionTests: XCTestCase {
         let parser = HL7v2Parser()
         let parsedMessage = try parser.parseCompressed(compressed, algorithm: .lzfse)
         
-        XCTAssertEqual(parsedMessage.segments.count, 2) // MSH and PID
+        XCTAssertEqual(parsedMessage.segmentCount, 2) // MSH and PID
     }
     
     func testParserParseCompressedMessage() throws {
@@ -233,11 +233,9 @@ final class CompressionTests: XCTestCase {
         let compressedMessage = try parseResult.message.compress(algorithm: .zlib)
         let decompressedMessage = try parser.parseCompressed(compressedMessage)
         
-        let originalMSH = parseResult.message.msh()
-        let decompressedMSH = decompressedMessage.msh()
-        
-        XCTAssertEqual(originalMSH?.sendingApplication, decompressedMSH?.sendingApplication)
-        XCTAssertEqual(originalMSH?.messageType, decompressedMSH?.messageType)
+        // Verify basic properties match
+        XCTAssertEqual(parseResult.message.messageControlID(), decompressedMessage.messageControlID())
+        XCTAssertEqual(parseResult.message.messageType(), decompressedMessage.messageType())
     }
     
     // MARK: - Large Message Tests
@@ -261,7 +259,7 @@ final class CompressionTests: XCTestCase {
         
         // Verify round-trip
         let decompressed = try parser.parseCompressed(compressed)
-        XCTAssertEqual(decompressed.segments.count, result.message.segments.count)
+        XCTAssertEqual(decompressed.segmentCount, result.message.segmentCount)
     }
     
     // MARK: - Error Handling Tests

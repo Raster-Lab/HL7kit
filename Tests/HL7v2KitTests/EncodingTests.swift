@@ -118,8 +118,8 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(message)
         
-        XCTAssertNotNil(result.message.msh())
-        XCTAssertEqual(result.message.msh()?.messageControlID, "MSG001")
+        XCTAssertNotNil(result.message.messageHeader)
+        XCTAssertEqual(result.message.messageControlID(), "MSG001")
     }
     
     func testParseUTF8Message() throws {
@@ -129,7 +129,7 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(message)
         
-        XCTAssertEqual(result.message.segments.count, 2)
+        XCTAssertEqual(result.message.segmentCount, 2)
     }
     
     func testParseUTF16Message() throws {
@@ -144,7 +144,7 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(utf16Data)
         
-        XCTAssertNotNil(result.message.msh())
+        XCTAssertNotNil(result.message.messageHeader)
     }
     
     func testParseWithAutoDetect() throws {
@@ -159,8 +159,8 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(data)
         
-        XCTAssertNotNil(result.message.msh())
-        XCTAssertEqual(result.message.msh()?.messageControlID, "MSG001")
+        XCTAssertNotNil(result.message.messageHeader)
+        XCTAssertEqual(result.message.messageControlID(), "MSG001")
     }
     
     // MARK: - Special Character Tests
@@ -172,9 +172,9 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(message)
         
-        XCTAssertEqual(result.message.segments.count, 2)
+        XCTAssertEqual(result.message.segmentCount, 2)
         
-        let pidSegment = result.message.segments[1]
+        let pidSegment = result.message.allSegments[1]
         XCTAssertTrue(pidSegment.serialize().contains("Müller"))
         XCTAssertTrue(pidSegment.serialize().contains("François"))
     }
@@ -186,9 +186,9 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(message)
         
-        XCTAssertEqual(result.message.segments.count, 2)
+        XCTAssertEqual(result.message.segmentCount, 2)
         
-        let pidSegment = result.message.segments[1]
+        let pidSegment = result.message.allSegments[1]
         let serialized = pidSegment.serialize()
         XCTAssertTrue(serialized.contains("张") || serialized.contains("Wei"))
     }
@@ -200,7 +200,7 @@ final class EncodingTests: XCTestCase {
         
         let result = try parser.parse(message)
         
-        XCTAssertEqual(result.message.segments.count, 2)
+        XCTAssertEqual(result.message.segmentCount, 2)
     }
     
     // MARK: - Encoding Preservation Tests
@@ -216,7 +216,7 @@ final class EncodingTests: XCTestCase {
         // Parse the serialized message again
         let reparsed = try parser.parse(serialized)
         
-        XCTAssertEqual(reparsed.message.segments.count, parseResult.message.segments.count)
+        XCTAssertEqual(reparsed.message.segmentCount, parseResult.message.segmentCount)
     }
     
     // MARK: - Mixed Encoding Tests
