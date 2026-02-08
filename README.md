@@ -45,8 +45,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v3.x Standards Analysis**: Comprehensive documentation of HL7 v3.x specifications including Reference Information Model (RIM), Clinical Document Architecture (CDA), data types, and implementation guidelines
 - **HL7 v3.x RIM Foundation**: Implementation of RIM core classes (Act, Entity, Role, Participation, ActRelationship, RoleLink) with full Swift 6.2 support including Sendable conformance, value type optimizations, and comprehensive data types (BL, INT, REAL, ST, TS, II, CD, CE, PQ, EN, AD, TEL, IVL) with null flavor support
 - **HL7 v3.x XML Parser**: Production-grade XML parser built on Foundation's XMLParser with DOM-like representation (XMLElement, XMLDocument), namespace-aware parsing, configurable depth/size limits, HL7 v3 schema validation (ClinicalDocument, required elements), XPath-like query support (absolute/relative paths, recursive search, attribute predicates), XML serialization with pretty-print support, and comprehensive diagnostics. All types are Sendable for Swift 6 strict concurrency.
+- **CDA R2 (Clinical Document Architecture)**: Complete implementation of CDA R2 with ClinicalDocument root element, comprehensive header participants (RecordTarget, Author, Custodian, LegalAuthenticator, Authenticator, DataEnterer, Informant, InformationRecipient), hierarchical section support with narrative text, structured entries (Observation, Procedure, SubstanceAdministration, Supply, Encounter, Act, Organizer), narrative blocks with HTML-like formatting (tables, lists, paragraphs, links, multimedia), template processing infrastructure with C-CDA template registry (US Realm Header, Progress Note, Consultation Note, Discharge Summary, History and Physical, Operative Note, CCD), comprehensive validation engine with template constraints and cardinality checking, CDA conformance levels (Level 1-3), and 90%+ test coverage. Includes 50+ common vocabulary codes for document types and section types.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 970+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 980+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -54,6 +55,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 HL7kit/
 ├── HL7v2Kit/          # HL7 v2.x toolkit
 ├── HL7v3Kit/          # HL7 v3.x toolkit
+│   ├── RIM/           # Reference Information Model
+│   ├── XMLParser/     # XML parsing and serialization
+│   └── CDA/           # Clinical Document Architecture R2
 ├── FHIRkit/           # HL7 FHIR toolkit
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types
@@ -65,7 +69,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (557 tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (980+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
