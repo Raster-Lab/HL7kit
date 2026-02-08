@@ -31,8 +31,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v2.x Parser Infrastructure**: Configurable parser with encoding detection, delimiter auto-detection, error recovery modes (strict, skip, best-effort), streaming support, segment validation, and diagnostic reporting
 - **HL7 v2.x Message Builder**: Fluent API for constructing HL7 v2.x messages programmatically, including MSH segment builder with named methods, generic segment builder with field/component/subcomponent/repetition support, raw segment insertion, message templates (ADT, ORU, ORM, ACK), and proper encoding/escaping
 - **Common Message Types**: Typed message wrappers for ADT (Admit/Discharge/Transfer), ORM (Order), ORU (Observation Result), ACK (Acknowledgment), QRY (Query), and QBP (Query by Parameter) with segment accessors, field convenience methods, message-specific validation rules, and structured observation results
+- **Validation Engine**: Comprehensive HL7 v2.x validation framework with conformance profile support, composable validation rules engine, required field validation, data type validation (ST, NM, DT, TM, TS, SI, etc.), cardinality checking (segment and field repetition constraints), value set validation, pattern matching, and custom validation rules support. Includes standard conformance profiles for ADT A01, ORU R01, ORM O01, and ACK messages.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 468 unit tests with 90%+ code coverage
+- **High Test Coverage**: 557 unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -51,7 +52,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (397 tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (557 tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
