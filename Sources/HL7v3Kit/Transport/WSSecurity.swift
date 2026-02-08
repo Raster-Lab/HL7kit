@@ -272,12 +272,22 @@ extension String {
 
 #if !canImport(CryptoKit)
 /// Compute SHA1 hash for platforms without CryptoKit
-/// This is a simplified implementation for testing purposes
-/// In production, use CommonCrypto on platforms that support it
+///
+/// **SECURITY WARNING**: This fallback implementation does NOT compute a proper SHA1 hash.
+/// It returns a base64-encoded version of the input data, which means password digest
+/// authentication will NOT be secure on platforms without CryptoKit.
+///
+/// For production use on Linux or other non-Apple platforms, you must:
+/// 1. Use plain text password authentication (`.text`) instead of digest
+/// 2. Ensure all connections use TLS/SSL to protect credentials in transit
+/// 3. Implement proper SHA1 using platform-specific crypto libraries (e.g., OpenSSL)
+///
+/// - Parameter data: Data to hash
+/// - Returns: Base64-encoded input (NOT a real hash)
 private func computeSHA1Fallback(_ data: Data) -> String {
-    // For platforms without CryptoKit, return a placeholder
-    // In production, this should use the platform's native crypto library
-    // For now, return a base64-encoded version of the input for basic functionality
+    print("WARNING: Using insecure SHA1 fallback. Password digest authentication is not secure on this platform.")
+    print("         Use plain text authentication over TLS/SSL instead.")
+    // Return base64-encoded input as a placeholder
     return data.base64EncodedString()
 }
 #endif

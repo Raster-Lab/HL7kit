@@ -254,9 +254,9 @@ public actor SOAPTransport: HL7v3Transport {
         let envelope = SOAPEnvelope(version: soapVersion, header: header, body: message)
         let soapXML = envelope.toXML()
         
-        // Send with retry logic
+        // Send with retry logic (1 initial attempt + maxRetries retries)
         var lastError: Error?
-        for attempt in 0...configuration.maxRetries {
+        for attempt in 0..<(configuration.maxRetries + 1) {
             do {
                 return try await sendRequest(soapXML, to: endpoint, headers: headers)
             } catch {

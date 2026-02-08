@@ -50,9 +50,9 @@ public actor RESTTransport: HL7v3Transport {
         to endpoint: URL,
         headers: [String: String] = [:]
     ) async throws -> String {
-        // Send with retry logic
+        // Send with retry logic (1 initial attempt + maxRetries retries)
         var lastError: Error?
-        for attempt in 0...configuration.maxRetries {
+        for attempt in 0..<(configuration.maxRetries + 1) {
             do {
                 return try await sendRequest(message, to: endpoint, headers: headers)
             } catch {

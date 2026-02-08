@@ -147,7 +147,7 @@ public actor MessageQueue {
     /// Process queued messages
     private func processQueue() async {
         while isProcessing && !queue.isEmpty {
-            guard var message = queue.first else { break }
+            guard let message = queue.first else { break }
             queue.removeFirst()
             
             do {
@@ -162,11 +162,13 @@ public actor MessageQueue {
                 completedCount += 1
             } catch {
                 // Failure - retry if possible
-                message.retryCount += 1
+                // Create new message with incremented retry count
+                var updatedMessage = message
+                updatedMessage.retryCount += 1
                 
-                if message.retryCount < message.maxRetries {
+                if updatedMessage.retryCount < updatedMessage.maxRetries {
                     // Re-queue for retry
-                    try? enqueue(message)
+                    try? enqueue(updatedMessage)
                 } else {
                     // Max retries exceeded
                     failedCount += 1
