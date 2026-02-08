@@ -574,7 +574,8 @@ private final class XMLParserDelegateImpl: NSObject, XMLParserDelegate {
         guard var completedElement = elementStack.popLast() else { return }
 
         // Trim whitespace-only text
-        if let text = completedElement.text, text.allSatisfy({ $0.isWhitespace }) {
+        if let text = completedElement.text,
+           text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             completedElement.text = nil
         }
 
@@ -1079,23 +1080,41 @@ public struct HL7v3XMLSerializer: Sendable {
         result += newline
     }
 
-    /// Escapes special characters in XML text content
+    /// Escapes special characters in XML text content using a single pass
     private func escapeXMLText(_ text: String) -> String {
-        var escaped = text
-        escaped = escaped.replacingOccurrences(of: "&", with: "&amp;")
-        escaped = escaped.replacingOccurrences(of: "<", with: "&lt;")
-        escaped = escaped.replacingOccurrences(of: ">", with: "&gt;")
-        return escaped
+        guard text.contains(where: { $0 == "&" || $0 == "<" || $0 == ">" }) else {
+            return text
+        }
+        var result = ""
+        result.reserveCapacity(text.count)
+        for char in text {
+            switch char {
+            case "&": result += "&amp;"
+            case "<": result += "&lt;"
+            case ">": result += "&gt;"
+            default: result.append(char)
+            }
+        }
+        return result
     }
 
-    /// Escapes special characters in XML attribute values
+    /// Escapes special characters in XML attribute values using a single pass
     private func escapeXMLAttribute(_ value: String) -> String {
-        var escaped = value
-        escaped = escaped.replacingOccurrences(of: "&", with: "&amp;")
-        escaped = escaped.replacingOccurrences(of: "<", with: "&lt;")
-        escaped = escaped.replacingOccurrences(of: ">", with: "&gt;")
-        escaped = escaped.replacingOccurrences(of: "\"", with: "&quot;")
-        escaped = escaped.replacingOccurrences(of: "'", with: "&apos;")
-        return escaped
+        guard value.contains(where: { $0 == "&" || $0 == "<" || $0 == ">" || $0 == "\"" || $0 == "'" }) else {
+            return value
+        }
+        var result = ""
+        result.reserveCapacity(value.count)
+        for char in value {
+            switch char {
+            case "&": result += "&amp;"
+            case "<": result += "&lt;"
+            case ">": result += "&gt;"
+            case "\"": result += "&quot;"
+            case "'": result += "&apos;"
+            default: result.append(char)
+            }
+        }
+        return result
     }
 }
