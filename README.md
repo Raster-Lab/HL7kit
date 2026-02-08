@@ -32,10 +32,11 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v2.x Message Builder**: Fluent API for constructing HL7 v2.x messages programmatically, including MSH segment builder with named methods, generic segment builder with field/component/subcomponent/repetition support, raw segment insertion, message templates (ADT, ORU, ORM, ACK), and proper encoding/escaping
 - **Common Message Types**: Typed message wrappers for ADT (Admit/Discharge/Transfer), ORM (Order), ORU (Observation Result), ACK (Acknowledgment), QRY (Query), and QBP (Query by Parameter) with segment accessors, field convenience methods, message-specific validation rules, and structured observation results
 - **Data Type System**: Complete implementation of HL7 v2.x primitive data types (ST, TX, FT, NM, SI, DT, TM, DTM/TS, ID, IS) and composite data types (CE, CX, XPN, XAD, XTN, EI, HD, PL) with validation, conversion utilities, and memory optimization. Includes date/time handling with timezone support.
+- **Message Structure Database**: Comprehensive database of message structures for HL7 v2.x versions 2.1-2.8, including version detection from MSH-12 field, structure validation against specifications, backward compatibility handling, and query API for accessing definitions. Includes pre-configured structures for ADT, ORM, ORU, ACK, and QRY/QBP message types.
 - **Validation Engine**: Comprehensive HL7 v2.x validation framework with conformance profile support, composable validation rules engine, required field validation, data type validation (ST, NM, DT, TM, TS, SI, etc.), cardinality checking (segment and field repetition constraints), value set validation, pattern matching, and custom validation rules support. Includes standard conformance profiles for ADT A01, ORU R01, ORM O01, and ACK messages.
 - **MLLP Networking & Transport**: Full MLLP (Minimal Lower Layer Protocol) implementation including message framing/deframing, streaming parser for incremental TCP data, configurable client connections with TLS/retry/timeout support, server-side listener, connection pooling, and actor-based concurrency. Network I/O uses `Network.framework` on Apple platforms with cross-platform stubs.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 697 unit tests with 90%+ code coverage
+- **High Test Coverage**: 728 unit tests with 90%+ code coverage
 
 ## Project Structure
 
