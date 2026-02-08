@@ -6,6 +6,22 @@
 import Foundation
 import HL7Core
 
+// MARK: - Helper Extensions
+
+private extension Field {
+    /// Get the raw string value of the first component, or nil if empty
+    var stringValue: String? {
+        let raw = self.value.value.raw
+        return raw.isEmpty ? nil : raw
+    }
+    
+    /// Get the raw string value with a default
+    func stringValue(default defaultValue: String) -> String {
+        let raw = self.value.value.raw
+        return raw.isEmpty ? defaultValue : raw
+    }
+}
+
 // MARK: - File Header Segment (FHS)
 
 /// File Header Segment (FHS) - Identifies the start of a file
@@ -16,62 +32,62 @@ public struct FHSSegment: HL7v2Segment, Equatable {
     
     /// Field 1: File Field Separator
     public var fileFieldSeparator: String {
-        self[0].firstValue ?? "|"
+        self[0].stringValue(default: "|")
     }
     
     /// Field 2: File Encoding Characters
     public var fileEncodingCharacters: String {
-        self[1].firstValue ?? "^~\\&"
+        self[1].stringValue(default: "^~\\&")
     }
     
     /// Field 3: File Sending Application
     public var fileSendingApplication: String? {
-        self[2].firstValue
+        self[2].stringValue
     }
     
     /// Field 4: File Sending Facility
     public var fileSendingFacility: String? {
-        self[3].firstValue
+        self[3].stringValue
     }
     
     /// Field 5: File Receiving Application
     public var fileReceivingApplication: String? {
-        self[4].firstValue
+        self[4].stringValue
     }
     
     /// Field 6: File Receiving Facility
     public var fileReceivingFacility: String? {
-        self[5].firstValue
+        self[5].stringValue
     }
     
     /// Field 7: File Creation Date/Time
     public var fileCreationDateTime: String? {
-        self[6].firstValue
+        self[6].stringValue
     }
     
     /// Field 8: File Security
     public var fileSecurity: String? {
-        self[7].firstValue
+        self[7].stringValue
     }
     
     /// Field 9: File Name/ID
     public var fileNameID: String? {
-        self[8].firstValue
+        self[8].stringValue
     }
     
     /// Field 10: File Header Comment
     public var fileHeaderComment: String? {
-        self[9].firstValue
+        self[9].stringValue
     }
     
     /// Field 11: File Control ID
     public var fileControlID: String? {
-        self[10].firstValue
+        self[10].stringValue
     }
     
     /// Field 12: Reference File Control ID
     public var referenceFileControlID: String? {
-        self[11].firstValue
+        self[11].stringValue
     }
     
     /// Initialize FHS segment
@@ -119,13 +135,13 @@ public struct FTSSegment: HL7v2Segment, Equatable {
     
     /// Field 1: File Batch Count
     public var fileBatchCount: Int? {
-        guard let value = self[0].firstValue else { return nil }
+        guard let value = self[0].stringValue else { return nil }
         return Int(value)
     }
     
     /// Field 2: File Trailer Comment
     public var fileTrailerComment: String? {
-        self[1].firstValue
+        self[1].stringValue
     }
     
     /// Initialize FTS segment
@@ -169,62 +185,62 @@ public struct BHSSegment: HL7v2Segment, Equatable {
     
     /// Field 1: Batch Field Separator
     public var batchFieldSeparator: String {
-        self[0].firstValue ?? "|"
+        self[0].stringValue(default: "|")
     }
     
     /// Field 2: Batch Encoding Characters
     public var batchEncodingCharacters: String {
-        self[1].firstValue ?? "^~\\&"
+        self[1].stringValue(default: "^~\\&")
     }
     
     /// Field 3: Batch Sending Application
     public var batchSendingApplication: String? {
-        self[2].firstValue
+        self[2].stringValue
     }
     
     /// Field 4: Batch Sending Facility
     public var batchSendingFacility: String? {
-        self[3].firstValue
+        self[3].stringValue
     }
     
     /// Field 5: Batch Receiving Application
     public var batchReceivingApplication: String? {
-        self[4].firstValue
+        self[4].stringValue
     }
     
     /// Field 6: Batch Receiving Facility
     public var batchReceivingFacility: String? {
-        self[5].firstValue
+        self[5].stringValue
     }
     
     /// Field 7: Batch Creation Date/Time
     public var batchCreationDateTime: String? {
-        self[6].firstValue
+        self[6].stringValue
     }
     
     /// Field 8: Batch Security
     public var batchSecurity: String? {
-        self[7].firstValue
+        self[7].stringValue
     }
     
     /// Field 9: Batch Name/ID/Type
     public var batchNameIDType: String? {
-        self[8].firstValue
+        self[8].stringValue
     }
     
     /// Field 10: Batch Comment
     public var batchComment: String? {
-        self[9].firstValue
+        self[9].stringValue
     }
     
     /// Field 11: Batch Control ID
     public var batchControlID: String? {
-        self[10].firstValue
+        self[10].stringValue
     }
     
     /// Field 12: Reference Batch Control ID
     public var referenceBatchControlID: String? {
-        self[11].firstValue
+        self[11].stringValue
     }
     
     /// Initialize BHS segment
@@ -272,18 +288,21 @@ public struct BTSSegment: HL7v2Segment, Equatable {
     
     /// Field 1: Batch Message Count
     public var batchMessageCount: Int? {
-        guard let value = self[0].firstValue else { return nil }
+        guard let value = self[0].stringValue else { return nil }
         return Int(value)
     }
     
     /// Field 2: Batch Comment
     public var batchComment: String? {
-        self[1].firstValue
+        self[1].stringValue
     }
     
     /// Field 3: Batch Totals (optional repeating field)
     public var batchTotals: [String] {
-        self[2].repetitions.compactMap { $0.first?.firstValue }
+        self[2].allRepetitions.compactMap { reps in
+            let raw = reps.first?.value.raw ?? ""
+            return raw.isEmpty ? nil : raw
+        }
     }
     
     /// Initialize BTS segment

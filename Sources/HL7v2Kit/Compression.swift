@@ -290,7 +290,8 @@ extension HL7v2Parser {
             maxSize: maxSize
         )
         
-        return try parse(messageString)
+        let result = try parse(messageString)
+        return result.message
     }
     
     /// Parse compressed data
@@ -312,7 +313,8 @@ extension HL7v2Parser {
             maxSize: maxSize
         )
         
-        return try parse(messageString)
+        let result = try parse(messageString)
+        return result.message
     }
 }
 
