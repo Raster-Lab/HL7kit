@@ -14,8 +14,14 @@ public enum MessageEncoding: Sendable, Equatable {
     case ascii
     /// UTF-8 encoding (default)
     case utf8
+    /// UTF-16 encoding (little-endian)
+    case utf16
+    /// UTF-16 encoding (big-endian)
+    case utf16BigEndian
     /// Latin-1 (ISO 8859-1) encoding
     case latin1
+    /// Windows-1252 (Western European)
+    case windows1252
     /// Auto-detect encoding from message data
     case autoDetect
 
@@ -30,12 +36,36 @@ public enum MessageEncoding: Sendable, Equatable {
            data[data.startIndex + 2] == 0xBF {
             return .utf8
         }
+        
+        // Check for UTF-16 LE BOM
+        if data.count >= 2,
+           data[data.startIndex] == 0xFF,
+           data[data.startIndex + 1] == 0xFE {
+            return .utf16
+        }
+        
+        // Check for UTF-16 BE BOM
+        if data.count >= 2,
+           data[data.startIndex] == 0xFE,
+           data[data.startIndex + 1] == 0xFF {
+            return .utf16BigEndian
+        }
 
         // Attempt UTF-8 validation
         if String(data: data, encoding: .utf8) != nil {
             // Check if all bytes are ASCII range
             let isASCII = data.allSatisfy { $0 < 0x80 }
             return isASCII ? .ascii : .utf8
+        }
+        
+        // Check for Windows-1252 specific characters (0x80-0x9F range has printable chars)
+        let hasWindows1252Chars = data.contains { byte in
+            // Windows-1252 has printable characters in this range
+            (0x80...0x9F).contains(byte) && ![0x81, 0x8D, 0x8F, 0x90, 0x9D].contains(byte)
+        }
+        
+        if hasWindows1252Chars {
+            return .windows1252
         }
 
         // Fall back to Latin-1 (always succeeds for any byte sequence)
@@ -47,7 +77,10 @@ public enum MessageEncoding: Sendable, Equatable {
         switch self {
         case .ascii: return .ascii
         case .utf8, .autoDetect: return .utf8
+        case .utf16: return .utf16LittleEndian
+        case .utf16BigEndian: return .utf16BigEndian
         case .latin1: return .isoLatin1
+        case .windows1252: return .windowsCP1252
         }
     }
 }
