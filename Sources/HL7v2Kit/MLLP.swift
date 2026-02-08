@@ -7,6 +7,10 @@
 /// - Start Block: `0x0B` (vertical tab)
 /// - Message Data: UTF-8 encoded HL7 message
 /// - End Block: `0x1C` (file separator) followed by `0x0D` (carriage return)
+///
+/// Per the MLLP specification, the `0x1C 0x0D` byte sequence is reserved
+/// exclusively as the end-of-frame marker and must not appear within the
+/// HL7 message content itself.
 
 import Foundation
 import HL7Core

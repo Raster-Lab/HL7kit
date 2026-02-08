@@ -757,9 +757,10 @@ final class MLLPTests: XCTestCase {
     }
 
     func testStreamParserWithEmbeddedEndBlock() throws {
-        // The stream parser scans for 0x1C 0x0D from the start byte forward.
-        // If the message contains 0x1C 0x0D, the parser will match it as end block
-        // before the actual end block. This is a known limitation of MLLP protocol.
+        // Per the MLLP specification, HL7 message content must not contain 0x1C (file separator).
+        // The 0x1C 0x0D sequence is reserved exclusively as the MLLP end-block marker.
+        // If a malformed message somehow contains 0x1C 0x0D, the parser treats it as the
+        // end-of-frame boundary, which is the correct behavior per the MLLP standard.
         var parser = MLLPStreamParser()
         let message = "INNER\u{1C}\u{0D}DATA"
         let framed = MLLPFramer.frame(message)
@@ -767,8 +768,8 @@ final class MLLPTests: XCTestCase {
 
         let result = try parser.nextMessage()
         XCTAssertNotNil(result)
-        // Due to the MLLP limitation, the parser returns only the content before
-        // the embedded end block sequence, truncating at the first 0x1C 0x0D.
+        // The parser correctly interprets the first 0x1C 0x0D as the end-of-frame
+        // marker per the MLLP specification.
         XCTAssertEqual(result, "INNER")
     }
 
