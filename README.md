@@ -74,6 +74,8 @@ HL7kit/
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
 ├── HL7V2X_STANDARDS.md   # HL7 v2.x standards analysis
+├── HL7V3X_STANDARDS.md   # HL7 v3.x standards analysis
+├── FHIR_STANDARDS.md     # HL7 FHIR standards analysis (R4, R5)
 ├── CONCURRENCY_MODEL.md  # Actor-based concurrency architecture
 ├── PERFORMANCE.md        # Performance optimization guide
 └── CODING_STANDARDS.md   # Development standards
@@ -223,6 +225,10 @@ TBD - Consider MIT or Apache 2.0 for maximum adoption
 - **Documentation**: Coming soon
 - **Community**: Coming soon
 - **Development Milestones**: [milestone.md](milestone.md)
+- **Standards Documentation**:
+  - [HL7 v2.x Standards](HL7V2X_STANDARDS.md)
+  - [HL7 v3.x Standards](HL7V3X_STANDARDS.md)
+  - [HL7 FHIR Standards](FHIR_STANDARDS.md)
 
 ---
 
