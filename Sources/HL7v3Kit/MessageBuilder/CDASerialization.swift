@@ -254,9 +254,12 @@ extension TS {
         if let nullFlavor = nullFlavor {
             attributes["nullFlavor"] = nullFlavor.rawValue
         } else if let value = value {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withTime, .withTimeZone]
-            attributes["value"] = formatter.string(from: value).replacingOccurrences(of: ":", with: "").replacingOccurrences(of: "-", with: "")
+            // Format as HL7 v3 timestamp: YYYYMMDDHHMMSS+ZZZZ
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyyMMddHHmmssZ"
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")
+            attributes["value"] = formatter.string(from: value)
         }
         return XMLElement(name: name, namespace: "urn:hl7-org:v3", attributes: attributes)
     }
@@ -282,58 +285,67 @@ extension INT {
 }
 
 // Placeholder implementations for complex types
-// A full implementation would recursively serialize all nested elements
+// TODO: Complete implementation - these placeholders do not serialize nested data
 
 extension RecordTarget {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of PatientRole, Patient, and nested elements
         return XMLElement(name: "recordTarget", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "RCT"])
     }
 }
 
 extension Author {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedAuthor, Person, and nested elements
         return XMLElement(name: "author", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "AUT"])
     }
 }
 
 extension Custodian {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedCustodian, Organization, and nested elements
         return XMLElement(name: "custodian", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "CST"])
     }
 }
 
 extension DataEnterer {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedEntity and nested elements
         return XMLElement(name: "dataEnterer", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "ENT"])
     }
 }
 
 extension Informant {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedEntity/RelatedEntity and nested elements
         return XMLElement(name: "informant", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "INF"])
     }
 }
 
 extension InformationRecipient {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of IntendedRecipient and nested elements
         return XMLElement(name: "informationRecipient", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "PRCP"])
     }
 }
 
 extension LegalAuthenticator {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedEntity and nested elements
         return XMLElement(name: "legalAuthenticator", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "LA"])
     }
 }
 
 extension Authenticator {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of AssignedEntity and nested elements
         return XMLElement(name: "authenticator", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "AUTHEN"])
     }
 }
 
 extension DocumentComponent {
     func toXMLElement() -> XMLElement {
+        // TODO: Implement full serialization of DocumentBody (structured/nonXML) and nested sections/entries
         return XMLElement(name: "component", namespace: "urn:hl7-org:v3", attributes: ["typeCode": "COMP"])
     }
 }

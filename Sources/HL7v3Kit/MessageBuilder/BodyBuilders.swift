@@ -153,8 +153,8 @@ public final class SectionBuilder {
     
     /// Adds a substance administration entry
     public func addSubstanceAdministration(builder: (SubstanceAdministrationBuilder) -> SubstanceAdministrationBuilder) -> Self {
-        let builder = builder(SubstanceAdministrationBuilder())
-        if let substanceAdmin = builder.build() {
+        let substanceAdminBuilder = builder(SubstanceAdministrationBuilder())
+        if let substanceAdmin = substanceAdminBuilder.build() {
             self.entries.append(Entry(clinicalStatement: .substanceAdministration(substanceAdmin)))
         }
         return self
