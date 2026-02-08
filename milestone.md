@@ -175,12 +175,12 @@ Build the foundation for HL7 v3.x XML-based message processing.
 ### Milestones
 
 #### 3.1 RIM Foundation (Weeks 17-18)
-- [ ] Implement Reference Information Model (RIM) core classes
-- [ ] Create Act, Entity, Role, and Participation hierarchies
-- [ ] Build data type system (BL, INT, REAL, TS, etc.)
-- [ ] Implement II (Instance Identifier) handling
-- [ ] Create efficient in-memory representation
-- [ ] Optimize for Swift value types where possible
+- [x] Implement Reference Information Model (RIM) core classes
+- [x] Create Act, Entity, Role, and Participation hierarchies
+- [x] Build data type system (BL, INT, REAL, TS, etc.)
+- [x] Implement II (Instance Identifier) handling
+- [x] Create efficient in-memory representation
+- [x] Optimize for Swift value types where possible
 
 **Deliverables**: HL7 v3 RIM foundation classes
 
