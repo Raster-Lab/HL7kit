@@ -30,8 +30,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v2.x Standards Analysis**: Comprehensive documentation of HL7 v2.x specifications (versions 2.1-2.8), message types, and conformance requirements
 - **HL7 v2.x Parser Infrastructure**: Configurable parser with encoding detection, delimiter auto-detection, error recovery modes (strict, skip, best-effort), streaming support, segment validation, and diagnostic reporting
 - **HL7 v2.x Message Builder**: Fluent API for constructing HL7 v2.x messages programmatically, including MSH segment builder with named methods, generic segment builder with field/component/subcomponent/repetition support, raw segment insertion, message templates (ADT, ORU, ORM, ACK), and proper encoding/escaping
+- **Common Message Types**: Typed message wrappers for ADT (Admit/Discharge/Transfer), ORM (Order), ORU (Observation Result), ACK (Acknowledgment), QRY (Query), and QBP (Query by Parameter) with segment accessors, field convenience methods, message-specific validation rules, and structured observation results
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 397 unit tests with 90%+ code coverage
+- **High Test Coverage**: 468 unit tests with 90%+ code coverage
 
 ## Project Structure
 
