@@ -145,24 +145,36 @@ public actor TemplateRegistry {
     /// Registered templates
     private var templates: [String: CDATemplate] = [:]
     
+    /// Indicates whether templates have been loaded
+    private var templatesLoaded = false
+    
     private init() {
-        // Initialize with common C-CDA templates
-        Task { await registerCommonTemplates() }
+        // Templates will be loaded on first access
+    }
+    
+    /// Ensures templates are loaded (called internally before any access)
+    private func ensureTemplatesLoaded() {
+        guard !templatesLoaded else { return }
+        registerCommonTemplates()
+        templatesLoaded = true
     }
     
     /// Registers a template
     public func register(_ template: CDATemplate) {
+        ensureTemplatesLoaded()
         templates[template.templateId] = template
     }
     
     /// Gets a template by ID
     public func template(for templateId: String) -> CDATemplate? {
-        templates[templateId]
+        ensureTemplatesLoaded()
+        return templates[templateId]
     }
     
     /// Gets all registered templates
     public func allTemplates() -> [CDATemplate] {
-        Array(templates.values)
+        ensureTemplatesLoaded()
+        return Array(templates.values)
     }
     
     /// Registers common C-CDA templates
@@ -433,7 +445,7 @@ public struct TemplateValidator {
         case "recordTarget": return !document.recordTarget.isEmpty
         case "author": return !document.author.isEmpty
         case "custodian": return true // Always present
-        case "componentOf": return false // TODO: Not yet implemented
+        case "componentOf": return false // TODO: componentOf is not yet implemented in ClinicalDocument
         default: return false
         }
     }
