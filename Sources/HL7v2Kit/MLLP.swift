@@ -58,7 +58,7 @@ public struct MLLPFramer: Sendable {
     public static func deframe(_ data: Data) throws -> String {
         let rawData = try deframeToData(data)
         guard let message = String(data: rawData, encoding: .utf8) else {
-            throw HL7Error.invalidFormat("MLLP message is not valid UTF-8")
+            throw HL7Error.invalidFormat("Failed to decode MLLP message content as UTF-8")
         }
         return message
     }

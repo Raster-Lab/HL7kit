@@ -104,6 +104,15 @@ final class MLLPTests: XCTestCase {
         }
     }
 
+    func testDeframeToDataEmptyData() {
+        XCTAssertThrowsError(try MLLPFramer.deframeToData(Data())) { error in
+            guard case HL7Error.invalidFormat = error else {
+                XCTFail("Expected invalidFormat error")
+                return
+            }
+        }
+    }
+
     func testIsCompleteFrameValid() {
         let framed = MLLPFramer.frame("MSH|^~\\&|TEST")
         XCTAssertTrue(MLLPFramer.isCompleteFrame(framed))
@@ -748,18 +757,19 @@ final class MLLPTests: XCTestCase {
     }
 
     func testStreamParserWithEmbeddedEndBlock() throws {
-        // The stream parser should only match the first valid end sequence
+        // The stream parser scans for 0x1C 0x0D from the start byte forward.
+        // If the message contains 0x1C 0x0D, the parser will match it as end block
+        // before the actual end block. This is a known limitation of MLLP protocol.
         var parser = MLLPStreamParser()
         let message = "INNER\u{1C}\u{0D}DATA"
         let framed = MLLPFramer.frame(message)
         parser.append(framed)
 
-        // The parser scans for 0x1C 0x0D from the start byte forward.
-        // If the message contains 0x1C 0x0D, the parser will match it as end block
-        // before the actual end block. This is a known limitation of MLLP.
-        // The test verifies parser behavior rather than correctness in this edge case.
         let result = try parser.nextMessage()
         XCTAssertNotNil(result)
+        // Due to the MLLP limitation, the parser returns only the content before
+        // the embedded end block sequence, truncating at the first 0x1C 0x0D.
+        XCTAssertEqual(result, "INNER")
     }
 
     func testLargeMessage() throws {
