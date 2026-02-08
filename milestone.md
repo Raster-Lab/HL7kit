@@ -119,12 +119,12 @@ Add advanced capabilities and optimization for HL7 v2.x toolkit.
 ### Milestones
 
 #### 2.1 Data Type System (Weeks 11-12)
-- [ ] Implement HL7 primitive data types (ST, TX, FT, NM, etc.)
-- [ ] Create composite data types (CE, CX, XPN, XAD, etc.)
-- [ ] Add date/time handling with proper timezone support
-- [ ] Implement data type conversion utilities
-- [ ] Create validation for each data type
-- [ ] Optimize memory usage for large text fields
+- [x] Implement HL7 primitive data types (ST, TX, FT, NM, etc.)
+- [x] Create composite data types (CE, CX, XPN, XAD, etc.)
+- [x] Add date/time handling with proper timezone support
+- [x] Implement data type conversion utilities
+- [x] Create validation for each data type
+- [x] Optimize memory usage for large text fields
 
 **Deliverables**: Complete HL7 v2.x data type library
 
