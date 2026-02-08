@@ -223,12 +223,12 @@ Build the foundation for HL7 v3.x XML-based message processing.
 **Deliverables**: Vocabulary services framework
 
 #### 3.6 Networking & Transport (Week 24)
-- [ ] Implement SOAP-based transport
-- [ ] Create REST-like transport for modern endpoints
-- [ ] Add WS-Security support
-- [ ] Implement message queuing
-- [ ] Create connection management
-- [ ] Add TLS/SSL support
+- [x] Implement SOAP-based transport
+- [x] Create REST-like transport for modern endpoints
+- [x] Add WS-Security support
+- [x] Implement message queuing
+- [x] Create connection management
+- [x] Add TLS/SSL support
 
 **Deliverables**: Production-ready HL7 v3.x network layer
 
