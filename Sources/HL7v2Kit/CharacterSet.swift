@@ -176,25 +176,32 @@ public enum CharacterSet: String, Sendable, Equatable, CaseIterable {
             
         #if canImport(CoreFoundation)
         case .iso88595, .isoIR144:
-            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatin5.rawValue)))
+            return Self.cfEncodingToSwift(.isoLatin5)
             
         case .iso88596, .isoIR127:
-            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatinArabic.rawValue)))
+            return Self.cfEncodingToSwift(.isoLatinArabic)
             
         case .iso88597, .isoIR126:
-            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatinGreek.rawValue)))
+            return Self.cfEncodingToSwift(.isoLatinGreek)
             
         case .iso88598, .isoIR138:
-            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatinHebrew.rawValue)))
+            return Self.cfEncodingToSwift(.isoLatinHebrew)
             
         case .iso88599, .isoIR148:
-            return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.isoLatin9.rawValue)))
+            return Self.cfEncodingToSwift(.isoLatin9)
         #endif
             
         default:
             return nil
         }
     }
+    
+    #if canImport(CoreFoundation)
+    /// Helper to convert CoreFoundation encoding to String.Encoding
+    private static func cfEncodingToSwift(_ cfEncoding: CFStringEncodings) -> String.Encoding {
+        return String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(cfEncoding.rawValue)))
+    }
+    #endif
     
     /// Parse character set from MSH-18 field value
     /// - Parameter value: Raw field value (e.g., "ISO IR192", "UNICODE UTF-8")

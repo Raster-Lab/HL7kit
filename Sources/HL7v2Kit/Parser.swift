@@ -581,9 +581,10 @@ public struct HL7v2Parser: Sendable {
         guard let primaryCharset = charsets.first,
               let declaredEncoding = primaryCharset.toMessageEncoding() else {
             // Character set not mappable to MessageEncoding
+            let charsetName = charsets.first?.rawValue ?? "unknown"
             diagnostics.warnings.append(
                 ParserWarning(
-                    message: "MSH-18 character set '\(charsets.first?.rawValue ?? "")' is not directly supported",
+                    message: "MSH-18 character set '\(charsetName)' is not directly supported",
                     location: ParserLocation(segmentIndex: 0, segmentID: "MSH", fieldIndex: 18)
                 )
             )
