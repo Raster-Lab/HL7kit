@@ -194,15 +194,16 @@ final class StringInterningTests: XCTestCase {
         let interner = StringInterner()
         let iterations = 10000
         
-        measure {
-            Task {
-                for _ in 0..<iterations {
-                    _ = await interner.intern("MSH")
-                    _ = await interner.intern("PID")
-                    _ = await interner.intern("OBX")
-                }
-            }
+        let start = Date()
+        for _ in 0..<iterations {
+            _ = await interner.intern("MSH")
+            _ = await interner.intern("PID")
+            _ = await interner.intern("OBX")
         }
+        let duration = Date().timeIntervalSince(start)
+        
+        print("📊 Interning Performance: \(String(format: "%.6f", duration))s for \(iterations * 3) operations")
+        XCTAssertLessThan(duration, 1.0, "Interning should complete in under 1 second")
     }
     
     func testInternedLookupPerformance() {
@@ -244,6 +245,8 @@ final class StringInterningTests: XCTestCase {
         let stats = await interner.statistics()
         print("   - Unique Strings: \(stats.internedCount)")
         print("   - Hit Rate: \(String(format: "%.1f%%", stats.hitRate * 100))")
+        
+        XCTAssertEqual(stats.internedCount, 10, "Should have 10 unique strings")
     }
     
     // MARK: - Thread Safety Tests
