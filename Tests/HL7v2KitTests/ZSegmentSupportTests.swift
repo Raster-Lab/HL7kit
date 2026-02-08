@@ -111,10 +111,12 @@ final class ZSegmentSupportTests: XCTestCase {
         let definition = try ZSegmentDefinition(segmentID: "ZTE", name: "Test")
         
         await ZSegmentRegistry.shared.register(definition)
-        XCTAssertTrue(await ZSegmentRegistry.shared.isRegistered("ZTE"))
+        let isRegisteredBefore = await ZSegmentRegistry.shared.isRegistered("ZTE")
+        XCTAssertTrue(isRegisteredBefore)
         
         await ZSegmentRegistry.shared.unregister("ZTE")
-        XCTAssertFalse(await ZSegmentRegistry.shared.isRegistered("ZTE"))
+        let isRegisteredAfter = await ZSegmentRegistry.shared.isRegistered("ZTE")
+        XCTAssertFalse(isRegisteredAfter)
     }
     
     func testZSegmentRegistryClearAll() async throws {
@@ -363,7 +365,7 @@ final class ZSegmentSupportTests: XCTestCase {
             .addField("Note")
         
         let segment = builder.build()
-        let serialized = try segment.serialize()
+        let serialized = try try segment.serialize()
         
         XCTAssertEqual(serialized, "ZPI|1|TestType|Note")
     }

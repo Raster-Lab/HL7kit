@@ -175,8 +175,8 @@ final class EncodingTests: XCTestCase {
         XCTAssertEqual(result.message.segmentCount, 2)
         
         let pidSegment = result.message.allSegments[1]
-        XCTAssertTrue(pidSegment.serialize().contains("Müller"))
-        XCTAssertTrue(pidSegment.serialize().contains("François"))
+        XCTAssertTrue(try pidSegment.serialize().contains("Müller"))
+        XCTAssertTrue(try pidSegment.serialize().contains("François"))
     }
     
     func testParseMessageWithChineseCharacters() throws {
@@ -189,7 +189,7 @@ final class EncodingTests: XCTestCase {
         XCTAssertEqual(result.message.segmentCount, 2)
         
         let pidSegment = result.message.allSegments[1]
-        let serialized = pidSegment.serialize()
+        let serialized = try pidSegment.serialize()
         XCTAssertTrue(serialized.contains("张") || serialized.contains("Wei"))
     }
     

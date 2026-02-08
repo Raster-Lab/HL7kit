@@ -9,7 +9,7 @@ import HL7Core
 // MARK: - Message Stream
 
 /// Async sequence for streaming HL7 messages from a file or data source
-public struct HL7MessageStream: AsyncSequence {
+public struct HL7MessageStream: AsyncSequence, Sendable {
     public typealias Element = Result<HL7v2Message, Error>
     
     private let source: MessageStreamSource
@@ -305,7 +305,7 @@ public actor HL7FileStreamReader {
 // MARK: - Batch Stream
 
 /// Async sequence for streaming batches from a file
-public struct HL7BatchStream: AsyncSequence {
+public struct HL7BatchStream: AsyncSequence, Sendable {
     public typealias Element = Result<BatchMessage, Error>
     
     private let source: MessageStreamSource

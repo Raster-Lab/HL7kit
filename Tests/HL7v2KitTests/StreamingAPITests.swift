@@ -69,7 +69,7 @@ final class StreamingAPITests: XCTestCase {
         for await result in stream {
             switch result {
             case .success(let message):
-                XCTAssertNotNil(message.msh())
+                XCTAssertNotNil(message.messageHeader)
                 messageCount += 1
             case .failure(let error):
                 XCTFail("Failed to parse message: \(error)")
