@@ -49,7 +49,8 @@ public struct BaseSegment: HL7v2Segment, Equatable {
     ///   - fields: Array of fields
     ///   - encodingCharacters: Encoding characters to use
     public init(segmentID: String, fields: [Field], encodingCharacters: EncodingCharacters = .standard) {
-        self.segmentID = segmentID
+        // Intern common segment IDs for memory efficiency
+        self.segmentID = InternedSegmentID.intern(segmentID)
         self.fields = fields
         self.encodingCharacters = encodingCharacters
     }
@@ -69,8 +70,9 @@ public struct BaseSegment: HL7v2Segment, Equatable {
             throw HL7Error.parsingError("Segment too short: minimum 3 characters required")
         }
         
-        // Extract segment ID (first 3 characters)
-        let segmentID = String(rawValue.prefix(3))
+        // Extract segment ID (first 3 characters) and intern common ones
+        let rawSegmentID = String(rawValue.prefix(3))
+        let segmentID = InternedSegmentID.intern(rawSegmentID)
         
         // Check if segment ID is valid (alphabetic characters)
         guard segmentID.allSatisfy({ $0.isLetter || $0.isNumber }) else {

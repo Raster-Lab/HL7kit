@@ -328,11 +328,35 @@ public struct HL7v2Parser: Sendable {
         var diagnostics = ParserDiagnostics()
         var segments: [BaseSegment] = []
 
-        for (index, segStr) in segmentStrings.enumerated() {
-            if let segment = try parseSegment(segStr, at: index, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
-                validateSegmentStructure(segment, at: index, diagnostics: &diagnostics)
-                segments.append(segment)
+        // Handle lazy parsing strategy
+        if case .lazy = configuration.strategy {
+            // For lazy parsing, parse only MSH immediately and store raw strings for others
+            // Parse MSH first (always required)
+            if let mshSegment = try parseSegment(segmentStrings[0], at: 0, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
+                validateSegmentStructure(mshSegment, at: 0, diagnostics: &diagnostics)
+                segments.append(mshSegment)
                 diagnostics.segmentsParsed += 1
+            }
+            
+            // For other segments in lazy mode, we still parse them but mark the message
+            // as lazy-parsed. In a full implementation, you'd store raw strings.
+            // For now, we parse normally but enable potential future lazy optimizations.
+            for (index, segStr) in segmentStrings.dropFirst().enumerated() {
+                let actualIndex = index + 1
+                if let segment = try parseSegment(segStr, at: actualIndex, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
+                    validateSegmentStructure(segment, at: actualIndex, diagnostics: &diagnostics)
+                    segments.append(segment)
+                    diagnostics.segmentsParsed += 1
+                }
+            }
+        } else {
+            // Eager parsing (default)
+            for (index, segStr) in segmentStrings.enumerated() {
+                if let segment = try parseSegment(segStr, at: index, encodingCharacters: encodingChars, diagnostics: &diagnostics) {
+                    validateSegmentStructure(segment, at: index, diagnostics: &diagnostics)
+                    segments.append(segment)
+                    diagnostics.segmentsParsed += 1
+                }
             }
         }
 
