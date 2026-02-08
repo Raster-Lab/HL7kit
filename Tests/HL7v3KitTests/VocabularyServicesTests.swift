@@ -423,11 +423,11 @@ final class VocabularyServicesTests: XCTestCase {
         var stats = await service.getCacheStats()
         XCTAssertEqual(stats.size, 2)
         
-        // Trigger cache eviction
+        // Trigger cache eviction (should evict "1" which was least recently used)
         _ = try await service.lookupConcept(code: "3", codeSystem: "test")
         
         stats = await service.getCacheStats()
-        XCTAssertLessThanOrEqual(stats.size, 3)
+        XCTAssertEqual(stats.size, 2) // Cache should be limited to max size of 2
         
         // Clear cache
         await service.clearCache()

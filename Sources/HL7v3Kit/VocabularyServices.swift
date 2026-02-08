@@ -270,13 +270,20 @@ public struct BasicValueSet: ValueSetProtocol, Sendable {
 public actor VocabularyService {
     private var codeSystems: [String: any CodeSystemProtocol]
     private var valueSets: [String: any ValueSetProtocol]
-    private var conceptCache: [String: Concept]
+    private var conceptCache: [String: CachedConcept]
+    private var cacheAccessOrder: [String] // LRU tracking
     private let maxCacheSize: Int
+    
+    private struct CachedConcept: Sendable {
+        let concept: Concept
+        var lastAccessTime: Date
+    }
     
     public init(maxCacheSize: Int = 10000) {
         self.codeSystems = [:]
         self.valueSets = [:]
         self.conceptCache = [:]
+        self.cacheAccessOrder = []
         self.maxCacheSize = maxCacheSize
     }
     
@@ -296,9 +303,20 @@ public actor VocabularyService {
     public func lookupConcept(code: String, codeSystem: String) async throws -> Concept? {
         let cacheKey = "\(codeSystem):\(code)"
         
-        // Check cache first
+        // Check cache first and update access time
         if let cached = conceptCache[cacheKey] {
-            return cached
+            // Update access time for LRU
+            conceptCache[cacheKey] = CachedConcept(
+                concept: cached.concept,
+                lastAccessTime: Date()
+            )
+            // Move to end of access order (most recently used)
+            if let index = cacheAccessOrder.firstIndex(of: cacheKey) {
+                cacheAccessOrder.remove(at: index)
+            }
+            cacheAccessOrder.append(cacheKey)
+            
+            return cached.concept
         }
         
         // Lookup in code system
@@ -310,15 +328,20 @@ public actor VocabularyService {
             return nil
         }
         
-        // Cache the result
+        // Cache the result with LRU eviction
         if conceptCache.count >= maxCacheSize {
-            // Simple cache eviction: remove oldest entries
-            let keysToRemove = Array(conceptCache.keys.prefix(maxCacheSize / 10))
-            for key in keysToRemove {
-                conceptCache.removeValue(forKey: key)
+            // Remove least recently used entries (from front of list)
+            let numToRemove = max(1, maxCacheSize / 10)
+            for _ in 0..<numToRemove {
+                if !cacheAccessOrder.isEmpty {
+                    let keyToRemove = cacheAccessOrder.removeFirst()
+                    conceptCache.removeValue(forKey: keyToRemove)
+                }
             }
         }
-        conceptCache[cacheKey] = concept
+        
+        conceptCache[cacheKey] = CachedConcept(concept: concept, lastAccessTime: Date())
+        cacheAccessOrder.append(cacheKey)
         
         return concept
     }
@@ -367,6 +390,7 @@ public actor VocabularyService {
     /// Clear the concept cache
     public func clearCache() {
         conceptCache.removeAll()
+        cacheAccessOrder.removeAll()
     }
     
     /// Get cache statistics
