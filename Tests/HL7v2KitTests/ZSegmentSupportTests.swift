@@ -363,7 +363,7 @@ final class ZSegmentSupportTests: XCTestCase {
             .addField("Note")
         
         let segment = builder.build()
-        let serialized = try try segment.serialize()
+        let serialized = try segment.serialize()
         
         XCTAssertEqual(serialized, "ZPI|1|TestType|Note")
     }

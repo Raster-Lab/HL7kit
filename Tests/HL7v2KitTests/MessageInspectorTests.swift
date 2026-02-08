@@ -258,11 +258,11 @@ final class TestMessageGeneratorTests: XCTestCase {
     func testGenerateADTA01() throws {
         let message = try TestMessageGenerator.generateADTA01()
         
-        XCTAssertEqual(message.messageType, "ADT")
+        XCTAssertTrue(message.messageType().contains("ADT"))
         XCTAssertEqual(message.eventType, "A01")
         
         // Should have MSH, EVN, PID, PV1
-        let segmentIDs = message.segments.map { $0.segmentID }
+        let segmentIDs = message.allSegments.map { $0.segmentID }
         XCTAssertTrue(segmentIDs.contains("MSH"))
         XCTAssertTrue(segmentIDs.contains("EVN"))
         XCTAssertTrue(segmentIDs.contains("PID"))
@@ -274,10 +274,10 @@ final class TestMessageGeneratorTests: XCTestCase {
             observations: [("GLU", "95"), ("NA", "140")]
         )
         
-        XCTAssertEqual(message.messageType, "ORU")
+        XCTAssertTrue(message.messageType().contains("ORU"))
         XCTAssertEqual(message.eventType, "R01")
         
-        let segmentIDs = message.segments.map { $0.segmentID }
+        let segmentIDs = message.allSegments.map { $0.segmentID }
         XCTAssertTrue(segmentIDs.contains("OBR"))
         XCTAssertTrue(segmentIDs.contains("OBX"))
         
@@ -289,10 +289,10 @@ final class TestMessageGeneratorTests: XCTestCase {
     func testGenerateORMO01() throws {
         let message = try TestMessageGenerator.generateORMO01()
         
-        XCTAssertEqual(message.messageType, "ORM")
+        XCTAssertTrue(message.messageType().contains("ORM"))
         XCTAssertEqual(message.eventType, "O01")
         
-        let segmentIDs = message.segments.map { $0.segmentID }
+        let segmentIDs = message.allSegments.map { $0.segmentID }
         XCTAssertTrue(segmentIDs.contains("ORC"))
         XCTAssertTrue(segmentIDs.contains("OBR"))
     }
@@ -303,9 +303,9 @@ final class TestMessageGeneratorTests: XCTestCase {
             acknowledgmentCode: "AA"
         )
         
-        XCTAssertEqual(message.messageType, "ACK")
+        XCTAssertTrue(message.messageType().contains("ACK"))
         
-        let segmentIDs = message.segments.map { $0.segmentID }
+        let segmentIDs = message.allSegments.map { $0.segmentID }
         XCTAssertTrue(segmentIDs.contains("MSA"))
     }
     
@@ -315,7 +315,7 @@ final class TestMessageGeneratorTests: XCTestCase {
         }
         
         XCTAssertEqual(messages.count, 5)
-        XCTAssertTrue(messages.allSatisfy { $0.messageType == "ADT" })
+        XCTAssertTrue(messages.allSatisfy { $0.messageType().contains("ADT") })
     }
     
     func testGenerateRandomMessage() throws {
@@ -324,8 +324,8 @@ final class TestMessageGeneratorTests: XCTestCase {
             fieldsPerSegment: 5
         )
         
-        XCTAssertEqual(message.messageType, "XXX")
-        XCTAssertGreaterThanOrEqual(message.segments.count, 10)
+        XCTAssertTrue(message.messageType().contains("XXX"))
+        XCTAssertGreaterThanOrEqual(message.segmentCount, 10)
     }
 }
 

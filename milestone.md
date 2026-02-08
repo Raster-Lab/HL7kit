@@ -149,19 +149,19 @@ Add advanced capabilities and optimization for HL7 v2.x toolkit.
 
 #### 2.4 Encoding Support (Week 15)
 - [x] Support for multiple character encodings
-- [ ] Implement Z-segment support (custom segments)
-- [ ] Add batch/file processing (FHS/BHS)
-- [ ] Create streaming API for large files
-- [ ] Implement compression support
+- [x] Implement Z-segment support (custom segments)
+- [x] Add batch/file processing (FHS/BHS)
+- [x] Create streaming API for large files
+- [x] Implement compression support
 
 **Deliverables**: Extended encoding and batch processing support
 
 #### 2.5 Developer Tools (Week 16)
-- [ ] Message debugger/inspector tool
-- [ ] Conformance profile validator
-- [ ] Message generator from templates
-- [ ] Unit test utilities and mocks
-- [ ] Performance profiling tools
+- [x] Message debugger/inspector tool
+- [x] Conformance profile validator
+- [x] Message generator from templates
+- [x] Unit test utilities and mocks
+- [x] Performance profiling tools
 
 **Deliverables**: Comprehensive developer tooling
 

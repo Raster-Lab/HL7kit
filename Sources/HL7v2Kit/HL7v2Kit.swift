@@ -135,6 +135,16 @@ public struct HL7v2Message: Sendable, Equatable {
         return msh[8].serialize()
     }
     
+    /// Get the trigger event (e.g., "A01" from "ADT^A01")
+    public var eventType: String {
+        let fullType = messageType()
+        if let caret = fullType.firstIndex(of: "^") {
+            let afterCaret = fullType.index(after: caret)
+            return String(fullType[afterCaret...])
+        }
+        return ""
+    }
+    
     /// Get message control ID from MSH-10
     /// - Returns: Message control ID
     public func messageControlID() -> String {
