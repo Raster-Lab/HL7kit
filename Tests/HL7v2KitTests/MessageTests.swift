@@ -6,21 +6,17 @@ import XCTest
 final class MessageTests: XCTestCase {
     
     // Sample ADT message for testing
-    let sampleADT = """
-    MSH|^~\\&|SendApp|SendFac|RecApp|RecFac|20240207120000||ADT^A01|MSG001|P|2.5.1
-    EVN|A01|20240207120000|||USER01
-    PID|1||12345^^^Hospital^MR||Smith^John^A||19800101|M|||123 Main St^^Boston^MA^02101
-    PV1|1|I|4E^401^B^Hospital||||1234^Doctor^Jane|||SUR||||1|||1234^Doctor^Jane||Visit001
-    """
+    let sampleADT = "MSH|^~\\&|SendApp|SendFac|RecApp|RecFac|20240207120000||ADT^A01|MSG001|P|2.5.1\r" +
+        "EVN|A01|20240207120000|||USER01\r" +
+        "PID|1||12345^^^Hospital^MR||Smith^John^A||19800101|M|||123 Main St^^Boston^MA^02101\r" +
+        "PV1|1|I|4E^401^B^Hospital||||1234^Doctor^Jane|||SUR||||1|||1234^Doctor^Jane||Visit001"
     
     // Sample ORU message for testing
-    let sampleORU = """
-    MSH|^~\\&|Lab|LabFac|EMR|Hospital|20240207120000||ORU^R01|MSG002|P|2.5.1
-    PID|1||67890^^^Hospital^MR||Jones^Jane^B||19850615|F
-    OBR|1||LAB123|CBC^Complete Blood Count|||20240207120000
-    OBX|1|NM|WBC^White Blood Count||7.5|10*3/uL|4.5-11.0|N|||F
-    OBX|2|NM|RBC^Red Blood Count||4.8|10*6/uL|4.2-5.4|N|||F
-    """
+    let sampleORU = "MSH|^~\\&|Lab|LabFac|EMR|Hospital|20240207120000||ORU^R01|MSG002|P|2.5.1\r" +
+        "PID|1||67890^^^Hospital^MR||Jones^Jane^B||19850615|F\r" +
+        "OBR|1||LAB123|CBC^Complete Blood Count|||20240207120000\r" +
+        "OBX|1|NM|WBC^White Blood Count||7.5|10*3/uL|4.5-11.0|N|||F\r" +
+        "OBX|2|NM|RBC^Red Blood Count||4.8|10*6/uL|4.2-5.4|N|||F"
     
     // MARK: - Basic Message Tests
     

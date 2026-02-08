@@ -342,11 +342,9 @@ final class ZSegmentSupportTests: XCTestCase {
     // MARK: - Integration Tests
     
     func testZSegmentWithinMessage() throws {
-        let messageString = """
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        ZPI|1|Outpatient|CustomID123|Special notes
-        """
+        let messageString = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "ZPI|1|Outpatient|CustomID123|Special notes"
         
         let parser = HL7v2Parser()
         let result = try parser.parse(messageString)

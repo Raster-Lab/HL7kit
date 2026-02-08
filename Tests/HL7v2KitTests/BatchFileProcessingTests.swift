@@ -113,14 +113,12 @@ final class BatchFileProcessingTests: XCTestCase {
     // MARK: - Batch Message Tests
     
     func testBatchMessageParsing() throws {
-        let batchString = """
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5
-        PID|1||67890||Smith^Jane
-        BTS|2|Batch complete
-        """
+        let batchString = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5\r" +
+            "PID|1||67890||Smith^Jane\r" +
+            "BTS|2|Batch complete"
         
         let batch = try parser.parseBatch(batchString)
         
@@ -168,14 +166,12 @@ final class BatchFileProcessingTests: XCTestCase {
     // MARK: - File Message Tests
     
     func testFileMessageParsing() throws {
-        let fileString = """
-        FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        BTS|1|Batch complete
-        FTS|1|File complete
-        """
+        let fileString = "FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000\r" +
+            "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130000\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "BTS|1|Batch complete\r" +
+            "FTS|1|File complete"
         
         let file = try parser.parseFile(fileString)
         
@@ -187,14 +183,12 @@ final class BatchFileProcessingTests: XCTestCase {
     }
     
     func testFileMessageWithIndividualMessages() throws {
-        let fileString = """
-        FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5
-        PID|1||12345||Doe^John
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5
-        PID|1||67890||Smith^Jane
-        FTS|2|File complete
-        """
+        let fileString = "FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130001||ADT^A01|MSG001|P|2.5\r" +
+            "PID|1||12345||Doe^John\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101130002||ADT^A01|MSG002|P|2.5\r" +
+            "PID|1||67890||Smith^Jane\r" +
+            "FTS|2|File complete"
         
         let file = try parser.parseFile(fileString)
         
@@ -222,10 +216,8 @@ final class BatchFileProcessingTests: XCTestCase {
     // MARK: - Error Handling Tests
     
     func testInvalidBatchMissingBHS() throws {
-        let invalidBatch = """
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5
-        BTS|1
-        """
+        let invalidBatch = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5\r" +
+            "BTS|1"
         
         XCTAssertThrowsError(try parser.parseBatch(invalidBatch)) { error in
             XCTAssertTrue(error is HL7Error)
@@ -233,10 +225,8 @@ final class BatchFileProcessingTests: XCTestCase {
     }
     
     func testInvalidBatchMissingBTS() throws {
-        let invalidBatch = """
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac
-        MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5
-        """
+        let invalidBatch = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac\r" +
+            "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ADT^A01|MSG001|P|2.5"
         
         XCTAssertThrowsError(try parser.parseBatch(invalidBatch)) { error in
             XCTAssertTrue(error is HL7Error)
@@ -244,11 +234,9 @@ final class BatchFileProcessingTests: XCTestCase {
     }
     
     func testInvalidFileMissingFHS() throws {
-        let invalidFile = """
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac
-        BTS|0
-        FTS|1
-        """
+        let invalidFile = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac\r" +
+            "BTS|0\r" +
+            "FTS|1"
         
         XCTAssertThrowsError(try parser.parseFile(invalidFile)) { error in
             XCTAssertTrue(error is HL7Error)
@@ -256,11 +244,9 @@ final class BatchFileProcessingTests: XCTestCase {
     }
     
     func testInvalidFileMissingFTS() throws {
-        let invalidFile = """
-        FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac
-        BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac
-        BTS|0
-        """
+        let invalidFile = "FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac\r" +
+            "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac\r" +
+            "BTS|0"
         
         XCTAssertThrowsError(try parser.parseFile(invalidFile)) { error in
             XCTAssertTrue(error is HL7Error)
