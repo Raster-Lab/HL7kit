@@ -412,11 +412,8 @@ public struct HL7v2ValidationEngine: Sendable {
         for requirement in profile.segmentRequirements {
             let count = message.segments(withID: requirement.segmentID).count
             if !requirement.cardinality.isSatisfied(by: count) {
-                let severity: ValidationSeverity = requirement.cardinality.min > 0 && count == 0
-                    ? .error
-                    : .error
-                issues.append(ValidationIssue(
-                    severity: severity,
+                    issues.append(ValidationIssue(
+                    severity: .error,
                     message: "Segment '\(requirement.segmentID)' appears \(count) time(s), expected \(requirement.cardinality.displayString)",
                     location: requirement.segmentID,
                     code: "SEGMENT_CARDINALITY"
