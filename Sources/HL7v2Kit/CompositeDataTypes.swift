@@ -364,7 +364,7 @@ public struct XAD: HL7DataType {
         if let otherDesignation = otherDesignation {
             lines.append(otherDesignation)
         }
-        var cityLine = [city, state, postalCode].compactMap { $0 }.joined(separator: " ")
+        let cityLine = [city, state, postalCode].compactMap { $0 }.joined(separator: " ")
         if !cityLine.isEmpty {
             lines.append(cityLine)
         }
@@ -397,10 +397,8 @@ public struct XAD: HL7DataType {
     }
     
     public func validate() -> ValidationResult {
-        var issues: [ValidationIssue] = []
-        
         // Address validation is flexible - no required fields
-        return makeValidationResult(issues: issues)
+        return .valid
     }
 }
 
@@ -701,10 +699,8 @@ public struct PL: HL7DataType {
     }
     
     public func validate() -> ValidationResult {
-        var issues: [ValidationIssue] = []
-        
         // Person location validation is flexible - no required fields
-        return makeValidationResult(issues: issues)
+        return .valid
     }
 }
 
