@@ -102,7 +102,7 @@ public struct CE: HL7DataType {
         
         if identifier == nil || identifier?.isEmpty == true {
             issues.append(ValidationIssue(
-                severity: .warning,
+                severity: .error,
                 message: "CE missing identifier",
                 location: "CE.1"
             ))
@@ -282,7 +282,8 @@ public struct XPN: HL7DataType {
     public func validate() -> ValidationResult {
         var issues: [ValidationIssue] = []
         
-        if isEmpty {
+        // Check if truly empty (no value at all, not just empty components)
+        if rawValue.isEmpty {
             return makeValidationResult(issues: issues)
         }
         
@@ -456,7 +457,8 @@ public struct XTN: HL7DataType {
     public func validate() -> ValidationResult {
         var issues: [ValidationIssue] = []
         
-        if isEmpty {
+        // Check if truly empty (no value at all, not just empty components)
+        if rawValue.isEmpty {
             return makeValidationResult(issues: issues)
         }
         

@@ -29,6 +29,11 @@ public enum MessageEncoding: Sendable, Equatable {
     /// - Parameter data: Raw message data
     /// - Returns: Detected encoding (never returns `.autoDetect`)
     public static func detect(from data: Data) -> MessageEncoding {
+        // Handle empty data - default to Latin-1 (most permissive)
+        if data.isEmpty {
+            return .latin1
+        }
+        
         // Check for UTF-8 BOM
         if data.count >= 3,
            data[data.startIndex] == 0xEF,
@@ -37,18 +42,35 @@ public enum MessageEncoding: Sendable, Equatable {
             return .utf8
         }
         
-        // Check for UTF-16 LE BOM
+        // Check for UTF-16 LE BOM - but validate it's actually UTF-16 content
+        // HL7 messages should start with 'M' (MSH segment), so after BOM we should see
+        // valid UTF-16 content that starts with MSH.
         if data.count >= 2,
            data[data.startIndex] == 0xFF,
            data[data.startIndex + 1] == 0xFE {
-            return .utf16
+            // For very short data or if it doesn't look like HL7, treat as invalid BOM
+            if data.count >= 6 { // BOM (2) + 'M' in UTF-16 LE (2) minimum
+                // Try to validate by decoding and checking for MSH
+                if let decoded = String(data: data, encoding: .utf16LittleEndian),
+                   decoded.hasPrefix("M") || decoded.hasPrefix("\u{FEFF}M") {
+                    return .utf16
+                }
+            }
+            // Fall through to other detection methods if BOM doesn't validate as HL7
         }
         
         // Check for UTF-16 BE BOM
         if data.count >= 2,
            data[data.startIndex] == 0xFE,
            data[data.startIndex + 1] == 0xFF {
-            return .utf16BigEndian
+            // Same validation as above
+            if data.count >= 6 {
+                if let decoded = String(data: data, encoding: .utf16BigEndian),
+                   decoded.hasPrefix("M") || decoded.hasPrefix("\u{FEFF}M") {
+                    return .utf16BigEndian
+                }
+            }
+            // Fall through if BOM doesn't validate as HL7
         }
 
         // Attempt UTF-8 validation
