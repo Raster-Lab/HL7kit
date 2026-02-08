@@ -29,7 +29,7 @@ Establish project foundation, architecture, and development infrastructure.
 
 #### 0.3 Standards Analysis
 - [x] Deep dive into HL7 v2.x specifications (versions 2.1-2.8)
-- [ ] Deep dive into HL7 v3.x specifications (RIM, CDA)
+- [x] Deep dive into HL7 v3.x specifications (RIM, CDA)
 - [ ] Deep dive into HL7 FHIR specifications (R4, R5)
 - [x] Identify common message types and use cases
 - [x] Document conformance requirements
@@ -175,12 +175,12 @@ Build the foundation for HL7 v3.x XML-based message processing.
 ### Milestones
 
 #### 3.1 RIM Foundation (Weeks 17-18)
-- [ ] Implement Reference Information Model (RIM) core classes
-- [ ] Create Act, Entity, Role, and Participation hierarchies
-- [ ] Build data type system (BL, INT, REAL, TS, etc.)
-- [ ] Implement II (Instance Identifier) handling
-- [ ] Create efficient in-memory representation
-- [ ] Optimize for Swift value types where possible
+- [x] Implement Reference Information Model (RIM) core classes
+- [x] Create Act, Entity, Role, and Participation hierarchies
+- [x] Build data type system (BL, INT, REAL, TS, etc.)
+- [x] Implement II (Instance Identifier) handling
+- [x] Create efficient in-memory representation
+- [x] Optimize for Swift value types where possible
 
 **Deliverables**: HL7 v3 RIM foundation classes
 

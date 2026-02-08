@@ -42,8 +42,10 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Streaming API**: Memory-efficient streaming for large files using async/await. Constant memory usage regardless of file size with support for file and in-memory data sources.
 - **Compression Support**: Native compression using Foundation's Compression framework (LZFSE, LZ4, ZLIB, LZMA) for messages, batches, and files with configurable compression levels.
 - **Developer Tools**: Message inspector/debugger with tree view, diff tool, pretty printer, search functionality, and statistics. Test utilities including message generators, mock objects, and performance helpers.
+- **HL7 v3.x Standards Analysis**: Comprehensive documentation of HL7 v3.x specifications including Reference Information Model (RIM), Clinical Document Architecture (CDA), data types, and implementation guidelines
+- **HL7 v3.x RIM Foundation**: Implementation of RIM core classes (Act, Entity, Role, Participation, ActRelationship, RoleLink) with full Swift 6.2 support including Sendable conformance, value type optimizations, and comprehensive data types (BL, INT, REAL, ST, TS, II, CD, CE, PQ, EN, AD, TEL, IVL) with null flavor support
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 760+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 850+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
