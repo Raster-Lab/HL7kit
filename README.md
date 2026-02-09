@@ -57,7 +57,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **FHIR Data Model Foundation**: Complete implementation of FHIR R4 data model foundation including 17 primitive data types (Boolean, Integer, Decimal, String, Uri, Url, Canonical, Code, Id, Markdown, Date, DateTime, Time, Instant, Base64Binary, Uuid) with full validation, 11 complex data types (Identifier, HumanName, Address, ContactPoint, Period, Range, Quantity, Coding, CodeableConcept, Reference, Annotation, Attachment, Signature), base protocols (Element, BackboneElement, Resource, DomainResource), Meta, Narrative, and Extension support. All types are Sendable for Swift 6.2 concurrency, with Codable conformance for JSON/XML serialization. Includes sample Patient and Observation resources. Includes 95+ unit tests with full coverage.
 - **FHIR R4 Resource Implementations**: Full implementations of 9 FHIR R4 resources (Patient, Observation, Practitioner, Organization, Condition, AllergyIntolerance, Encounter, MedicationRequest, DiagnosticReport), plus Bundle (with transaction/batch support) and OperationOutcome for error handling. Enhanced Patient with contact, communication, marital status, and practitioner fields. Enhanced Observation with value types, reference ranges, and components. All resources conform to DomainResource (Bundle to Resource), support Codable serialization, and are Sendable for concurrency safety. ResourceContainer supports polymorphic decoding/encoding of all resource types.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1435+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 1500+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -71,7 +71,8 @@ HL7kit/
 │   └── DeveloperTools/ # XML Inspector, Schema Validator, Test Utilities
 ├── FHIRkit/           # HL7 FHIR toolkit
 │   ├── DataTypes/     # Primitive and complex data types
-│   └── Foundation/    # Element, Resource, DomainResource, Extension
+│   ├── Foundation/    # Element, Resource, DomainResource, Extension
+│   └── Resources/     # FHIR R4 resource implementations
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types
 │   ├── Validation.swift       # Validation framework
@@ -82,7 +83,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (1340+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (1500+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
