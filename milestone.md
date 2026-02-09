@@ -308,13 +308,13 @@ Build the foundation for HL7 FHIR resource handling, RESTful client, and data mo
 **Deliverables**: FHIR base data model with unit tests ✓ (Implemented 17 primitive types, 11 complex types, base protocols, Meta/Narrative/Extension, 95+ unit tests with full coverage)
 
 #### 5.2 Resource Implementations (Weeks 33-34)
-- [ ] Implement Patient, Practitioner, Organization resources
-- [ ] Create Observation, Condition, AllergyIntolerance resources
-- [ ] Build Encounter, Appointment, Schedule resources
-- [ ] Implement MedicationRequest, MedicationStatement resources
-- [ ] Create DiagnosticReport, DocumentReference resources
-- [ ] Add Bundle resource with transaction/batch support
-- [ ] Implement OperationOutcome for error handling
+- [x] Implement Patient, Practitioner, Organization resources
+- [x] Create Observation, Condition, AllergyIntolerance resources
+- [x] Build Encounter, Appointment, Schedule resources
+- [x] Implement MedicationRequest, MedicationStatement resources
+- [x] Create DiagnosticReport, DocumentReference resources
+- [x] Add Bundle resource with transaction/batch support
+- [x] Implement OperationOutcome for error handling
 
 **Deliverables**: 20+ common FHIR resource implementations
 
