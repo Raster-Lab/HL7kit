@@ -6,11 +6,18 @@
 import Foundation
 import HL7Core
 
+// MARK: - Version
+
 /// Version information for FHIRkit
 public struct FHIRkitVersion {
     /// The current version of FHIRkit
     public static let version = "0.1.0"
+    
+    /// Supported FHIR version
+    public static let fhirVersion = "4.0.1"
 }
+
+// MARK: - FHIR Resource Protocol
 
 /// FHIR resource base protocol
 public protocol FHIRResource: HL7Message, Codable {
@@ -21,7 +28,9 @@ public protocol FHIRResource: HL7Message, Codable {
     var id: String? { get }
 }
 
-/// Basic FHIR resource implementation
+// MARK: - Basic Resource (for backward compatibility)
+
+/// Basic FHIR resource implementation (legacy support)
 public struct FHIRBasicResource: FHIRResource {
     public let resourceType: String
     public let id: String?
