@@ -51,8 +51,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v3.x Networking & Transport**: Production-ready transport layer for HL7 v3.x messages with SOAP 1.1/1.2 support (envelope creation, fault handling), RESTful HTTP transport (GET, POST, PUT, DELETE), WS-Security (username token, timestamp, binary security token), message queuing (priority-based, batch processing), connection management (pooling, lifecycle, timeout handling), and TLS/SSL support (configurable versions, certificate validation). Platform-aware implementation with native URLSession on Apple platforms and FoundationNetworking on Linux. Includes 22+ unit tests with full coverage.
 - **Template Engine**: Advanced template engine for CDA documents with template inheritance (parent-child relationships with property merging), template composition (TemplateComposer with circular dependency detection), constraint validation (cardinality, value constraints, data type checking), extended template library (17+ templates including C-CDA documents, IHE profiles, sections, and entries), template discovery service (search by type, status, author, text), template authoring tools (builder DSL, validation tools, export/import in JSON/XML formats), and comprehensive testing utilities. Includes 28+ unit tests with full coverage.
 - **Transformation Engine**: Bidirectional transformation framework for converting between HL7 v2.x and v3.x messages. Features include configurable validation modes (strict, lenient, skip), data loss tracking with quality metrics, actor-based async operations for thread safety, transformation builder DSL with fluent API, pre-built transformation templates (ADT demographics, ORU observations), common transformation functions (date/time formatting, phone formatting, value mapping), comprehensive error handling with severity levels, and performance metrics tracking (duration, fields mapped, data fidelity). Includes ADT<->CDA transformers, custom rule support, and 24+ unit tests with full coverage.
+- **HL7 v3.x Performance Optimization**: Comprehensive performance optimization for XML parsing and CDA processing. Includes XMLElementPool (actor-based object pooling for DOM elements with reuse tracking), InternedElementName (pre-interned constants for 50+ common CDA element names with O(1) lookup), V3StringInterner (dynamic string deduplication), XPathQueryCache (LRU cache for repeated XPath queries with hit/miss statistics), LazySectionContent (deferred parsing of CDA section entries and narrative text), streaming XML API (XMLStreamSource protocol, FileXMLStreamSource/DataXMLStreamSource, XMLElementStream AsyncSequence for constant-memory large document processing), V3PerformanceMetrics (throughput/timing tracking), XMLDocumentAnalyzer (DOM structure statistics), and V3Pools (global pool management with aggregated statistics). Includes 63+ unit tests with full coverage.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1100+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 1150+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -74,7 +75,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (980+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (1150+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides

@@ -50,38 +50,15 @@ public actor CDAToADTTransformer: Transformer {
         
         // Build ADT message using MessageBuilder
         do {
-            let messageBuilder = MessageBuilder()
-            
-            // Build MSH segment
-            messageBuilder.startSegment("MSH")
-                .setField(1, "|")  // Field separator
-                .setField(2, "^~\\&")  // Encoding characters
-                .setField(3, "CDACONV")  // Sending application
-                .setField(4, "FACILITY")  // Sending facility
-                .setField(5, "RECEIVING")  // Receiving application
-                .setField(6, "RECEIVING")  // Receiving facility
-                .setField(7, formatHL7DateTime(Date()))  // Message date/time
-                .setField(8, "")  // Security
-                .setField(9, "ADT^A08")  // Message type (update patient info)
-                .setField(10, UUID().uuidString)  // Message control ID
-                .setField(11, "P")  // Processing ID
-                .setField(12, "2.5")  // Version
-            await metricsBuilder.recordMappedField()
-            
-            // Build EVN segment
-            messageBuilder.startSegment("EVN")
-                .setField(1, "A08")  // Event type
-                .setField(2, formatHL7DateTime(Date()))  // Event date/time
-            await metricsBuilder.recordMappedField()
-            
-            // Build PID segment
-            messageBuilder.startSegment("PID")
-                .setField(1, "1")  // Set ID
+            // Extract patient info for PID segment fields
+            var pidNameField = ""
+            var pidDobField = ""
+            var pidSexField = ""
+            var pidIdField = ""
             
             // Patient ID from CDA
             if let patientId = patient.id.first {
-                let idValue = patientId.extension ?? patientId.root
-                messageBuilder.setField(3, idValue)
+                pidIdField = patientId.extension ?? patientId.root
                 await metricsBuilder.recordMappedField()
             } else {
                 warnings.append("No patient identifier found in CDA document")
@@ -90,23 +67,25 @@ public actor CDAToADTTransformer: Transformer {
             
             // Patient name from CDA
             if let patientPerson = patient.patient,
-               let name = patientPerson.name.first {
+               let name = patientPerson.name?.first {
                 
                 var nameComponents: [String] = []
                 
                 // Family name
-                if let family = name.family?.first {
+                let familyParts = name.parts.filter { $0.type == .family }
+                if let family = familyParts.first?.value {
                     nameComponents.append(family)
                 } else {
                     nameComponents.append("")
                 }
                 
                 // Given name
-                if let given = name.given?.first {
+                let givenParts = name.parts.filter { $0.type == .given }
+                if let given = givenParts.first?.value {
                     nameComponents.append(given)
                 }
                 
-                messageBuilder.setField(5, nameComponents.joined(separator: "^"))
+                pidNameField = nameComponents.joined(separator: "^")
                 await metricsBuilder.recordMappedField()
             } else {
                 warnings.append("No patient name found in CDA document")
@@ -115,8 +94,12 @@ public actor CDAToADTTransformer: Transformer {
             
             // Date of birth
             if let patientPerson = patient.patient,
-               let birthTime = patientPerson.birthTime {
-                messageBuilder.setField(7, birthTime.value)
+               let birthTime = patientPerson.birthTime,
+               let birthDate = birthTime.value {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyyMMdd"
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                pidDobField = formatter.string(from: birthDate)
                 await metricsBuilder.recordMappedField()
             } else {
                 await metricsBuilder.recordUnmappedField()
@@ -124,23 +107,47 @@ public actor CDAToADTTransformer: Transformer {
             
             // Administrative sex
             if let patientPerson = patient.patient,
-               let genderCode = patientPerson.administrativeGenderCode {
-                let v2Gender = mapGenderCodeToV2(genderCode.code)
-                messageBuilder.setField(8, v2Gender)
+               let genderCode = patientPerson.administrativeGenderCode,
+               let genderCodeValue = genderCode.code {
+                pidSexField = mapGenderCodeToV2(genderCodeValue)
                 await metricsBuilder.recordMappedField()
             } else {
                 await metricsBuilder.recordUnmappedField()
             }
             
-            // Build PV1 segment (patient visit)
-            messageBuilder.startSegment("PV1")
-                .setField(1, "1")  // Set ID
-                .setField(2, "O")  // Patient class (outpatient)
+            let messageControlId = UUID().uuidString
+            let dateTimeStr = formatHL7DateTime(Date())
+            
+            let message = try HL7v2MessageBuilder()
+                .msh { msh in
+                    msh.sendingApplication("CDACONV")
+                        .sendingFacility("FACILITY")
+                        .receivingApplication("RECEIVING")
+                        .receivingFacility("RECEIVING")
+                        .dateTime(dateTimeStr)
+                        .messageType("ADT", triggerEvent: "A08")
+                        .messageControlID(messageControlId)
+                        .processingID("P")
+                        .version("2.5")
+                }
+                .segment("EVN") { evn in
+                    evn.field(1, value: "A08")
+                        .field(2, value: dateTimeStr)
+                }
+                .segment("PID") { pid in
+                    pid.field(1, value: "1")
+                        .field(3, value: pidIdField)
+                        .field(5, value: pidNameField)
+                        .field(7, value: pidDobField)
+                        .field(8, value: pidSexField)
+                }
+                .segment("PV1") { pv1 in
+                    pv1.field(1, value: "1")
+                        .field(2, value: "O")
+                }
+                .build()
             await metricsBuilder.recordMappedField()
             
-            // Build message
-            let rawMessage = messageBuilder.build()
-            let message = try HL7v2Message.parse(rawMessage)
             let adtMessage = try ADTMessage(message: message)
             
             info.append("Successfully transformed CDA Patient Summary to ADT^A08 message")

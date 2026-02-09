@@ -52,7 +52,7 @@ final class TransformersTests: XCTestCase {
             XCTAssertNotNil(patient.patient, "Should have patient person")
             
             if let patientPerson = patient.patient {
-                XCTAssertFalse(patientPerson.name.isEmpty, "Patient should have name")
+                XCTAssertFalse(patientPerson.name?.isEmpty ?? true, "Patient should have name")
                 XCTAssertNotNil(patientPerson.administrativeGenderCode, "Should have gender")
                 XCTAssertNotNil(patientPerson.birthTime, "Should have birth time")
             }
@@ -139,16 +139,14 @@ final class TransformersTests: XCTestCase {
     func testCDAToADTBasicTransformation() async throws {
         // Create a sample CDA document
         let patientName = EN(
-            use: [.legal],
-            text: nil,
-            family: ["DOE"],
-            given: ["JOHN"],
-            prefix: nil,
-            suffix: nil,
-            validTime: nil
+            parts: [
+                EN.NamePart(value: "DOE", type: .family),
+                EN.NamePart(value: "JOHN", type: .given),
+            ],
+            use: .legal
         )
         
-        let patientPerson = Person(
+        let patientEntity = Patient(
             name: [patientName],
             administrativeGenderCode: CD(
                 code: "M",
@@ -156,31 +154,18 @@ final class TransformersTests: XCTestCase {
                 codeSystemName: "AdministrativeGender",
                 displayName: nil
             ),
-            birthTime: TS(value: "19800515"),
-            maritalStatusCode: nil,
-            religiousAffiliationCode: nil,
-            raceCode: nil,
-            ethnicGroupCode: nil
+            birthTime: TS(value: Date(timeIntervalSince1970: 327196800))
         )
         
-        let patient = Patient(
+        let patientRole = PatientRole(
             id: [II(root: "2.16.840.1.113883.19.5", extension: "12345")],
-            addr: nil,
-            telecom: nil,
-            patient: patientPerson,
-            providerOrganization: nil
+            patient: patientEntity
         )
         
-        let recordTarget = RecordTarget(patientRole: patient)
+        let recordTarget = RecordTarget(patientRole: patientRole)
         
         let authorPerson = Person(
-            name: [EN(use: [.legal], text: "TEST_FACILITY", family: nil, given: nil, prefix: nil, suffix: nil, validTime: nil)],
-            administrativeGenderCode: nil,
-            birthTime: nil,
-            maritalStatusCode: nil,
-            religiousAffiliationCode: nil,
-            raceCode: nil,
-            ethnicGroupCode: nil
+            name: [EN(parts: [EN.NamePart(value: "TEST_FACILITY", type: .given)], use: .legal)]
         )
         
         let assignedAuthor = AssignedAuthor(
@@ -198,10 +183,8 @@ final class TransformersTests: XCTestCase {
         )
         
         let custodianOrg = CustodianOrganization(
-            id: [II(root: "2.16.840.1.113883.19.5", extension: nil)],
-            name: "TEST_FACILITY",
-            telecom: nil,
-            addr: nil
+            id: [II(root: "2.16.840.1.113883.19.5")],
+            name: EN(parts: [EN.NamePart(value: "TEST_FACILITY", type: .given)])
         )
         
         let assignedCustodian = AssignedCustodian(
@@ -211,37 +194,26 @@ final class TransformersTests: XCTestCase {
         let custodian = Custodian(assignedCustodian: assignedCustodian)
         
         let section = Section(
-            id: II(root: UUID().uuidString, extension: nil),
+            id: II(root: UUID().uuidString),
             code: CD(code: "11535-2", codeSystem: "2.16.840.1.113883.6.1", codeSystemName: "LOINC", displayName: nil),
-            title: "Test Section",
-            text: "<text>Test content</text>",
-            confidentialityCode: nil,
-            languageCode: nil,
-            subject: nil,
-            author: nil,
-            informant: nil,
-            entry: nil,
-            component: nil
+            title: .value("Test Section")
         )
         
         let structuredBody = StructuredBody(
-            confidentialityCode: nil,
-            languageCode: nil,
-            component: [SectionComponent(section: section)]
+            component: [BodyComponent(section: section)]
         )
         
         let component = DocumentComponent(
-            structuredBody: structuredBody,
-            nonXMLBody: nil
+            body: .structured(structuredBody)
         )
         
         let cdaDoc = ClinicalDocument(
             realmCode: nil,
             typeId: II(root: "2.16.840.1.113883.1.3", extension: "POCD_HD000040"),
-            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1", extension: nil)],
-            id: II(root: UUID().uuidString, extension: nil),
+            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1")],
+            id: II(root: UUID().uuidString),
             code: CD(code: "34133-9", codeSystem: "2.16.840.1.113883.6.1", codeSystemName: "LOINC", displayName: nil),
-            title: "Test Document",
+            title: .value("Test Document"),
             effectiveTime: TS(value: Date()),
             confidentialityCode: CD(code: "N", codeSystem: "2.16.840.1.113883.5.25", codeSystemName: "Confidentiality", displayName: nil),
             languageCode: nil,
@@ -292,39 +264,27 @@ final class TransformersTests: XCTestCase {
     func testCDAToADTMissingRecordTarget() async throws {
         // Create CDA without recordTarget (invalid)
         let custodianOrg = CustodianOrganization(
-            id: [II(root: "2.16.840.1.113883.19.5", extension: nil)],
-            name: "TEST",
-            telecom: nil,
-            addr: nil
+            id: [II(root: "2.16.840.1.113883.19.5")],
+            name: EN(parts: [EN.NamePart(value: "TEST", type: .given)])
         )
         
         let section = Section(
-            id: II(root: UUID().uuidString, extension: nil),
+            id: II(root: UUID().uuidString),
             code: CD(code: "11535-2", codeSystem: "2.16.840.1.113883.6.1", codeSystemName: "LOINC", displayName: nil),
-            title: "Test",
-            text: "<text>Test</text>",
-            confidentialityCode: nil,
-            languageCode: nil,
-            subject: nil,
-            author: nil,
-            informant: nil,
-            entry: nil,
-            component: nil
+            title: .value("Test")
         )
         
         let structuredBody = StructuredBody(
-            confidentialityCode: nil,
-            languageCode: nil,
-            component: [SectionComponent(section: section)]
+            component: [BodyComponent(section: section)]
         )
         
         let cdaDoc = ClinicalDocument(
             realmCode: nil,
             typeId: II(root: "2.16.840.1.113883.1.3", extension: "POCD_HD000040"),
-            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1", extension: nil)],
-            id: II(root: UUID().uuidString, extension: nil),
+            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1")],
+            id: II(root: UUID().uuidString),
             code: CD(code: "34133-9", codeSystem: "2.16.840.1.113883.6.1", codeSystemName: "LOINC", displayName: nil),
-            title: "Test",
+            title: .value("Test"),
             effectiveTime: TS(value: Date()),
             confidentialityCode: CD(code: "N", codeSystem: "2.16.840.1.113883.5.25", codeSystemName: "Confidentiality", displayName: nil),
             languageCode: nil,
@@ -341,7 +301,7 @@ final class TransformersTests: XCTestCase {
             authenticator: nil,
             relatedDocument: nil,
             authorization: nil,
-            component: DocumentComponent(structuredBody: structuredBody, nonXMLBody: nil)
+            component: DocumentComponent(body: .structured(structuredBody))
         )
         
         let transformer = CDAToADTTransformer()
