@@ -145,6 +145,9 @@ public actor TemplateRegistry {
     /// Registered templates
     private var templates: [String: CDATemplate] = [:]
     
+    /// Registered enhanced templates with inheritance support
+    private var enhancedTemplates: [String: EnhancedCDATemplate] = [:]
+    
     /// Indicates whether templates have been loaded
     private var templatesLoaded = false
     
@@ -327,6 +330,24 @@ public actor TemplateRegistry {
                 )
             ]
         ))
+    }
+    
+    // MARK: - Enhanced Template Support
+    
+    /// Registers an enhanced template with inheritance support
+    public func registerEnhanced(_ template: EnhancedCDATemplate) {
+        enhancedTemplates[template.template.templateId] = template
+        register(template.template)
+    }
+    
+    /// Gets an enhanced template by ID
+    public func enhancedTemplate(for templateId: String) -> EnhancedCDATemplate? {
+        enhancedTemplates[templateId]
+    }
+    
+    /// Gets all enhanced templates
+    public func allEnhancedTemplates() -> [EnhancedCDATemplate] {
+        Array(enhancedTemplates.values)
     }
 }
 
