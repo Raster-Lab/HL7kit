@@ -393,15 +393,23 @@ public struct FHIRInstant: FHIRPrimitive {
     }
     
     public func validate() throws {
-        // Instant format: YYYY-MM-DDThh:mm:ss.sss+zz:zz (always includes timezone)
+        // Instant format: YYYY-MM-DDThh:mm:ss.sss+zz:zz or YYYY-MM-DDThh:mm:ss.sssZ (always includes timezone)
         guard !value.isEmpty else {
             throw FHIRValidationError.invalidValue("Instant cannot be empty")
         }
         guard value.contains("T") else {
             throw FHIRValidationError.invalidValue("Instant must include time component")
         }
-        guard value.contains("+") || value.contains("Z") || value.contains("-") else {
-            throw FHIRValidationError.invalidValue("Instant must include timezone")
+        // Check for timezone: Z suffix or +/-hh:mm after the time component
+        // The timezone offset must appear after the 'T' time marker
+        if let tIndex = value.firstIndex(of: "T") {
+            let afterTime = value[value.index(after: tIndex)...]
+            guard afterTime.contains("Z") || afterTime.contains("+") || 
+                  (afterTime.contains("-") && afterTime.firstIndex(of: "-")! > tIndex) else {
+                throw FHIRValidationError.invalidValue("Instant must include timezone (Z or +/-hh:mm)")
+            }
+        } else {
+            throw FHIRValidationError.invalidValue("Instant must include time component")
         }
     }
 }
