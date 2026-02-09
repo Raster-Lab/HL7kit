@@ -119,40 +119,35 @@ public actor ADTToCDATransformer: Transformer {
         
         // Create RecordTarget (patient)
         let patientName = EN(
-            use: [.legal],
-            text: nil,
-            family: [familyName],
-            given: [givenName],
-            prefix: nil,
-            suffix: nil,
-            validTime: nil
+            parts: [
+                EN.NamePart(value: familyName, type: .family),
+                EN.NamePart(value: givenName, type: .given),
+            ],
+            use: .legal
         )
         
-        let patientPerson = Person(
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd"
+        let birthDate = dateFormatter.date(from: dobString) ?? Date()
+        
+        let patientEntity = Patient(
             name: [patientName],
             administrativeGenderCode: CD(
                 code: mapGenderCode(sexCode),
-                codeSystem: "2.16.840.1.113883.5.1",  // AdministrativeGender
+                codeSystem: "2.16.840.1.113883.5.1",
                 codeSystemName: "AdministrativeGender",
                 displayName: nil
             ),
-            birthTime: TS(value: dobString),
-            maritalStatusCode: nil,
-            religiousAffiliationCode: nil,
-            raceCode: nil,
-            ethnicGroupCode: nil
+            birthTime: TS(value: birthDate)
         )
         
-        let patient = Patient(
+        let patientRole = PatientRole(
             id: [II(root: "2.16.840.1.113883.19.5", extension: patientId)],
-            addr: nil,
-            telecom: nil,
-            patient: patientPerson,
-            providerOrganization: nil
+            patient: patientEntity
         )
         
         let recordTarget = RecordTarget(
-            patientRole: patient
+            patientRole: patientRole
         )
         
         // Create Author (use system/facility from MSH)
@@ -161,13 +156,7 @@ public actor ADTToCDATransformer: Transformer {
         await metricsBuilder.recordMappedField()
         
         let authorPerson = Person(
-            name: [EN(use: [.legal], text: facilityName, family: nil, given: nil, prefix: nil, suffix: nil, validTime: nil)],
-            administrativeGenderCode: nil,
-            birthTime: nil,
-            maritalStatusCode: nil,
-            religiousAffiliationCode: nil,
-            raceCode: nil,
-            ethnicGroupCode: nil
+            name: [EN(parts: [EN.NamePart(value: facilityName, type: .given)], use: .legal)]
         )
         
         let assignedAuthor = AssignedAuthor(
@@ -186,10 +175,8 @@ public actor ADTToCDATransformer: Transformer {
         
         // Create Custodian
         let custodianOrganization = CustodianOrganization(
-            id: [II(root: "2.16.840.1.113883.19.5", extension: nil)],
-            name: facilityName,
-            telecom: nil,
-            addr: nil
+            id: [II(root: "2.16.840.1.113883.19.5")],
+            name: EN(parts: [EN.NamePart(value: facilityName, type: .given)])
         )
         
         let assignedCustodian = AssignedCustodian(
@@ -202,50 +189,39 @@ public actor ADTToCDATransformer: Transformer {
         
         // Create document body with a simple section
         let section = Section(
-            id: II(root: UUID().uuidString, extension: nil),
+            id: II(root: UUID().uuidString),
             code: CD(
                 code: "11535-2",
-                codeSystem: "2.16.840.1.113883.6.1",  // LOINC
+                codeSystem: "2.16.840.1.113883.6.1",
                 codeSystemName: "LOINC",
                 displayName: "Hospital Discharge Diagnosis"
             ),
-            title: "Admission/Transfer/Discharge Summary",
-            text: "<text>Patient \(familyName), \(givenName) - Event: \(source.triggerEvent)</text>",
-            confidentialityCode: nil,
-            languageCode: nil,
-            subject: nil,
-            author: nil,
-            informant: nil,
-            entry: nil,
-            component: nil
+            title: .value("Admission/Transfer/Discharge Summary")
         )
         
         let structuredBody = StructuredBody(
-            confidentialityCode: nil,
-            languageCode: nil,
             component: [
-                SectionComponent(section: section)
+                BodyComponent(section: section)
             ]
         )
         
         let component = DocumentComponent(
-            structuredBody: structuredBody,
-            nonXMLBody: nil
+            body: .structured(structuredBody)
         )
         
         // Create ClinicalDocument
         let document = ClinicalDocument(
             realmCode: [CD(code: "US", codeSystem: "2.16.840.1.113883.5.1114", codeSystemName: "RealmCode", displayName: nil)],
             typeId: II(root: "2.16.840.1.113883.1.3", extension: "POCD_HD000040"),
-            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1", extension: nil)],  // US Realm Header
-            id: II(root: UUID().uuidString, extension: nil),
+            templateId: [II(root: "2.16.840.1.113883.10.20.22.1.1")],
+            id: II(root: UUID().uuidString),
             code: CD(
                 code: "34133-9",
                 codeSystem: "2.16.840.1.113883.6.1",
                 codeSystemName: "LOINC",
                 displayName: "Summarization of Episode Note"
             ),
-            title: "Patient Summary from ADT",
+            title: .value("Patient Summary from ADT"),
             effectiveTime: TS(value: Date()),
             confidentialityCode: CD(
                 code: "N",
