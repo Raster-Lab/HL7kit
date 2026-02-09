@@ -54,8 +54,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **HL7 v3.x Performance Optimization**: Comprehensive performance optimization for XML parsing and CDA processing. Includes XMLElementPool (actor-based object pooling for DOM elements with reuse tracking), InternedElementName (pre-interned constants for 50+ common CDA element names with O(1) lookup), V3StringInterner (dynamic string deduplication), XPathQueryCache (LRU cache for repeated XPath queries with hit/miss statistics), LazySectionContent (deferred parsing of CDA section entries and narrative text), streaming XML API (XMLStreamSource protocol, FileXMLStreamSource/DataXMLStreamSource, XMLElementStream AsyncSequence for constant-memory large document processing), V3PerformanceMetrics (throughput/timing tracking), XMLDocumentAnalyzer (DOM structure statistics), and V3Pools (global pool management with aggregated statistics). Includes 63+ unit tests with full coverage.
 - **CDA Document Processing**: Advanced CDA document processing capabilities including document rendering (plain text and HTML output with configurable options), human-readable output generation with narrative text extraction, document comparison tools (structural diff identifying added/removed/modified sections and entries), document merging with configurable conflict strategies (keepPrimary, keepSecondary, includeBoth) and entry deduplication, and document versioning support with version chain management (RPLC/APND/XFRM relationships), document set grouping, and version ordering. Includes 86+ unit tests with full coverage.
 - **HL7 v3.x Developer Tools**: Comprehensive developer tools including XMLInspector for tree view display, statistics, and CDA-specific inspection; SchemaValidator for XML schema and conformance validation with detailed error reports; V3TestUtilities with mock CDA document builders, test data generators, assertion helpers, and performance benchmarking. Includes 110+ unit tests with full coverage.
+- **FHIR Data Model Foundation**: Complete implementation of FHIR R4 data model foundation including 17 primitive data types (Boolean, Integer, Decimal, String, Uri, Url, Canonical, Code, Id, Markdown, Date, DateTime, Time, Instant, Base64Binary, Uuid) with full validation, 11 complex data types (Identifier, HumanName, Address, ContactPoint, Period, Range, Quantity, Coding, CodeableConcept, Reference, Annotation, Attachment, Signature), base protocols (Element, BackboneElement, Resource, DomainResource), Meta, Narrative, and Extension support. All types are Sendable for Swift 6.2 concurrency, with Codable conformance for JSON/XML serialization. Includes sample Patient and Observation resources. Includes 95+ unit tests with full coverage.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1340+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 1435+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -68,6 +69,8 @@ HL7kit/
 │   ├── CDA/           # Clinical Document Architecture R2
 │   └── DeveloperTools/ # XML Inspector, Schema Validator, Test Utilities
 ├── FHIRkit/           # HL7 FHIR toolkit
+│   ├── DataTypes/     # Primitive and complex data types
+│   └── Foundation/    # Element, Resource, DomainResource, Extension
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types
 │   ├── Validation.swift       # Validation framework
