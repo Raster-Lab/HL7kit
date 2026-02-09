@@ -310,9 +310,12 @@ Build the foundation for HL7 FHIR resource handling, RESTful client, and data mo
 #### 5.2 Resource Implementations (Weeks 33-34)
 - [x] Implement Patient, Practitioner, Organization resources
 - [x] Create Observation, Condition, AllergyIntolerance resources
-- [x] Build Encounter, Appointment, Schedule resources
-- [x] Implement MedicationRequest, MedicationStatement resources
-- [x] Create DiagnosticReport, DocumentReference resources
+- [x] Build Encounter resource
+- [ ] Build Appointment, Schedule resources
+- [x] Implement MedicationRequest resource
+- [ ] Implement MedicationStatement resource
+- [x] Create DiagnosticReport resource
+- [ ] Create DocumentReference resource
 - [x] Add Bundle resource with transaction/batch support
 - [x] Implement OperationOutcome for error handling
 
