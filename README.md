@@ -53,8 +53,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Transformation Engine**: Bidirectional transformation framework for converting between HL7 v2.x and v3.x messages. Features include configurable validation modes (strict, lenient, skip), data loss tracking with quality metrics, actor-based async operations for thread safety, transformation builder DSL with fluent API, pre-built transformation templates (ADT demographics, ORU observations), common transformation functions (date/time formatting, phone formatting, value mapping), comprehensive error handling with severity levels, and performance metrics tracking (duration, fields mapped, data fidelity). Includes ADT<->CDA transformers, custom rule support, and 24+ unit tests with full coverage.
 - **HL7 v3.x Performance Optimization**: Comprehensive performance optimization for XML parsing and CDA processing. Includes XMLElementPool (actor-based object pooling for DOM elements with reuse tracking), InternedElementName (pre-interned constants for 50+ common CDA element names with O(1) lookup), V3StringInterner (dynamic string deduplication), XPathQueryCache (LRU cache for repeated XPath queries with hit/miss statistics), LazySectionContent (deferred parsing of CDA section entries and narrative text), streaming XML API (XMLStreamSource protocol, FileXMLStreamSource/DataXMLStreamSource, XMLElementStream AsyncSequence for constant-memory large document processing), V3PerformanceMetrics (throughput/timing tracking), XMLDocumentAnalyzer (DOM structure statistics), and V3Pools (global pool management with aggregated statistics). Includes 63+ unit tests with full coverage.
 - **CDA Document Processing**: Advanced CDA document processing capabilities including document rendering (plain text and HTML output with configurable options), human-readable output generation with narrative text extraction, document comparison tools (structural diff identifying added/removed/modified sections and entries), document merging with configurable conflict strategies (keepPrimary, keepSecondary, includeBoth) and entry deduplication, and document versioning support with version chain management (RPLC/APND/XFRM relationships), document set grouping, and version ordering. Includes 86+ unit tests with full coverage.
+- **HL7 v3.x Developer Tools**: Comprehensive developer tools including XMLInspector for tree view display, statistics, and CDA-specific inspection; SchemaValidator for XML schema and conformance validation with detailed error reports; V3TestUtilities with mock CDA document builders, test data generators, assertion helpers, and performance benchmarking. Includes 110+ unit tests with full coverage.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1230+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 1340+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -64,7 +65,8 @@ HL7kit/
 ├── HL7v3Kit/          # HL7 v3.x toolkit
 │   ├── RIM/           # Reference Information Model
 │   ├── XMLParser/     # XML parsing and serialization
-│   └── CDA/           # Clinical Document Architecture R2
+│   ├── CDA/           # Clinical Document Architecture R2
+│   └── DeveloperTools/ # XML Inspector, Schema Validator, Test Utilities
 ├── FHIRkit/           # HL7 FHIR toolkit
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types
@@ -76,7 +78,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (1150+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (1340+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
