@@ -526,23 +526,49 @@ public struct TemplateTestingUtilities {
     public func validateAndReport(
         document: ClinicalDocument,
         against template: CDATemplate
-    ) -> TemplateValidationReport {
+    ) async -> TemplateValidationReport {
         let validator = TemplateValidator()
         
-        // Create a temporary document with this template
-        var testDoc = document
-        testDoc.templateId.append(II(root: template.templateId))
+        // Create a new document with the template's templateId included
+        var templateIds = document.templateId
+        templateIds.append(II(root: template.templateId))
         
-        // Validate
-        let result = validator.validateTemplate(template, for: testDoc)
+        let testDoc = ClinicalDocument(
+            realmCode: document.realmCode,
+            typeId: document.typeId,
+            templateId: templateIds,  // Use the updated templateId array
+            id: document.id,
+            code: document.code,
+            title: document.title,
+            effectiveTime: document.effectiveTime,
+            confidentialityCode: document.confidentialityCode,
+            languageCode: document.languageCode,
+            setId: document.setId,
+            versionNumber: document.versionNumber,
+            copyTime: document.copyTime,
+            recordTarget: document.recordTarget,
+            author: document.author,
+            dataEnterer: document.dataEnterer,
+            informant: document.informant,
+            custodian: document.custodian,
+            informationRecipient: document.informationRecipient,
+            legalAuthenticator: document.legalAuthenticator,
+            authenticator: document.authenticator,
+            relatedDocument: document.relatedDocument,
+            authorization: document.authorization,
+            component: document.component
+        )
+        
+        // Validate using the public validate method
+        let result = await validator.validate(testDoc)
         
         // Generate report
         return TemplateValidationReport(
             templateId: template.templateId,
             templateName: template.name,
-            isValid: result.isEmpty,
-            issues: result,
-            summary: generateSummary(for: result)
+            isValid: result.isValid,
+            issues: result.issues,
+            summary: generateSummary(for: result.issues)
         )
     }
     
