@@ -3,7 +3,8 @@
 ///
 /// This file implements common FHIR R4 resources including Practitioner, Organization,
 /// Condition, AllergyIntolerance, Encounter, MedicationRequest, DiagnosticReport,
-/// Bundle, and OperationOutcome.
+/// Appointment, Schedule, MedicationStatement, DocumentReference, Bundle, and
+/// OperationOutcome.
 /// See: http://hl7.org/fhir/R4/resourcelist.html
 
 import Foundation
@@ -924,6 +925,590 @@ public struct DiagnosticReport: DomainResource {
             throw HL7Error.validationError("DiagnosticReport requires status")
         }
         // code is required (enforced by non-optional type)
+    }
+}
+
+// MARK: - Appointment
+
+/// A participant in an Appointment
+public struct AppointmentParticipant: Codable, Sendable, Hashable {
+    /// Person, Location/HealthcareService or Device
+    public let actor: Reference?
+    /// required | optional | information-only
+    public let required: String?
+    /// accepted | declined | tentative | needs-action (required)
+    public let status: String
+    /// Role of participant in the appointment
+    public let type: [CodeableConcept]?
+    /// Participation period of the actor
+    public let period: Period?
+    
+    public init(
+        actor: Reference? = nil,
+        required: String? = nil,
+        status: String,
+        type: [CodeableConcept]? = nil,
+        period: Period? = nil
+    ) {
+        self.actor = actor
+        self.required = `required`
+        self.status = status
+        self.type = type
+        self.period = period
+    }
+}
+
+/// A booking of a healthcare event among patient(s), practitioner(s), related person(s), and/or device(s)
+public struct Appointment: DomainResource {
+    public let resourceType: String = "Appointment"
+    public let messageID: String
+    public let timestamp: Date
+    public let id: String?
+    public let meta: Meta?
+    public let implicitRules: String?
+    public let language: String?
+    public let text: Narrative?
+    public let contained: [ResourceContainer]?
+    public let `extension`: [Extension]?
+    public let modifierExtension: [Extension]?
+    
+    /// External identifiers for this appointment
+    public let identifier: [Identifier]?
+    /// Status of the appointment (required)
+    public let status: String
+    /// The coded reason for the appointment being cancelled
+    public let cancelationReason: CodeableConcept?
+    /// A broad categorization of the service
+    public let serviceCategory: [CodeableConcept]?
+    /// The specific service that is to be performed
+    public let serviceType: [CodeableConcept]?
+    /// The specialty of a practitioner that would be required
+    public let specialty: [CodeableConcept]?
+    /// The style of appointment or patient that has been booked
+    public let appointmentType: CodeableConcept?
+    /// Coded reason this appointment is scheduled
+    public let reasonCode: [CodeableConcept]?
+    /// Reason the appointment is to take place (resource)
+    public let reasonReference: [Reference]?
+    /// Used to make informed decisions if needing to re-prioritize (0 = routine)
+    public let priority: Int32?
+    /// Shown on a subject line in a meeting request, or appointment list
+    public let description_: String?
+    /// When appointment is to take place
+    public let start: String?
+    /// When appointment is to conclude
+    public let end: String?
+    /// Can be less than start/end (e.g. estimate)
+    public let minutesDuration: Int32?
+    /// The slots that this appointment is filling
+    public let slot: [Reference]?
+    /// The date that this appointment was initially created
+    public let created: String?
+    /// Additional comments
+    public let comment: String?
+    /// Detailed information and instructions for the patient
+    public let patientInstruction: String?
+    /// The service request this appointment is allocated to assess
+    public let basedOn: [Reference]?
+    /// Participants involved in appointment (required, at least one)
+    public let participant: [AppointmentParticipant]
+    /// Potential date/time interval(s) requested to allocate the appointment
+    public let requestedPeriod: [Period]?
+    
+    enum CodingKeys: String, CodingKey {
+        case resourceType, messageID, timestamp, id, meta, implicitRules, language
+        case text, contained, modifierExtension
+        case `extension`
+        case identifier, status, cancelationReason, serviceCategory, serviceType
+        case specialty, appointmentType, reasonCode, reasonReference, priority
+        case description_ = "description"
+        case start, end, minutesDuration, slot, created, comment
+        case patientInstruction, basedOn, participant, requestedPeriod
+    }
+    
+    public init(
+        messageID: String = UUID().uuidString,
+        timestamp: Date = Date(),
+        id: String? = nil,
+        meta: Meta? = nil,
+        implicitRules: String? = nil,
+        language: String? = nil,
+        text: Narrative? = nil,
+        contained: [ResourceContainer]? = nil,
+        extension: [Extension]? = nil,
+        modifierExtension: [Extension]? = nil,
+        identifier: [Identifier]? = nil,
+        status: String,
+        cancelationReason: CodeableConcept? = nil,
+        serviceCategory: [CodeableConcept]? = nil,
+        serviceType: [CodeableConcept]? = nil,
+        specialty: [CodeableConcept]? = nil,
+        appointmentType: CodeableConcept? = nil,
+        reasonCode: [CodeableConcept]? = nil,
+        reasonReference: [Reference]? = nil,
+        priority: Int32? = nil,
+        description_: String? = nil,
+        start: String? = nil,
+        end: String? = nil,
+        minutesDuration: Int32? = nil,
+        slot: [Reference]? = nil,
+        created: String? = nil,
+        comment: String? = nil,
+        patientInstruction: String? = nil,
+        basedOn: [Reference]? = nil,
+        participant: [AppointmentParticipant],
+        requestedPeriod: [Period]? = nil
+    ) {
+        self.messageID = messageID
+        self.timestamp = timestamp
+        self.id = id
+        self.meta = meta
+        self.implicitRules = implicitRules
+        self.language = language
+        self.text = text
+        self.contained = contained
+        self.extension = `extension`
+        self.modifierExtension = modifierExtension
+        self.identifier = identifier
+        self.status = status
+        self.cancelationReason = cancelationReason
+        self.serviceCategory = serviceCategory
+        self.serviceType = serviceType
+        self.specialty = specialty
+        self.appointmentType = appointmentType
+        self.reasonCode = reasonCode
+        self.reasonReference = reasonReference
+        self.priority = priority
+        self.description_ = description_
+        self.start = start
+        self.end = end
+        self.minutesDuration = minutesDuration
+        self.slot = slot
+        self.created = created
+        self.comment = comment
+        self.patientInstruction = patientInstruction
+        self.basedOn = basedOn
+        self.participant = participant
+        self.requestedPeriod = requestedPeriod
+    }
+    
+    public func validate() throws {
+        guard !resourceType.isEmpty else {
+            throw HL7Error.validationError("Empty resource type")
+        }
+        guard !status.isEmpty else {
+            throw HL7Error.validationError("Appointment requires status")
+        }
+        guard !participant.isEmpty else {
+            throw HL7Error.validationError("Appointment requires at least one participant")
+        }
+    }
+}
+
+// MARK: - Schedule
+
+/// A container for slots of time that may be available for booking appointments
+public struct Schedule: DomainResource {
+    public let resourceType: String = "Schedule"
+    public let messageID: String
+    public let timestamp: Date
+    public let id: String?
+    public let meta: Meta?
+    public let implicitRules: String?
+    public let language: String?
+    public let text: Narrative?
+    public let contained: [ResourceContainer]?
+    public let `extension`: [Extension]?
+    public let modifierExtension: [Extension]?
+    
+    /// External identifiers for this schedule
+    public let identifier: [Identifier]?
+    /// Whether this schedule is in active use
+    public let active: Bool?
+    /// High-level category
+    public let serviceCategory: [CodeableConcept]?
+    /// Specific service
+    public let serviceType: [CodeableConcept]?
+    /// Type of specialty needed
+    public let specialty: [CodeableConcept]?
+    /// Resource(s) that availability information is being provided for (required, at least one)
+    public let actor: [Reference]
+    /// Period of time covered by schedule
+    public let planningHorizon: Period?
+    /// Comments on availability
+    public let comment: String?
+    
+    public init(
+        messageID: String = UUID().uuidString,
+        timestamp: Date = Date(),
+        id: String? = nil,
+        meta: Meta? = nil,
+        implicitRules: String? = nil,
+        language: String? = nil,
+        text: Narrative? = nil,
+        contained: [ResourceContainer]? = nil,
+        extension: [Extension]? = nil,
+        modifierExtension: [Extension]? = nil,
+        identifier: [Identifier]? = nil,
+        active: Bool? = nil,
+        serviceCategory: [CodeableConcept]? = nil,
+        serviceType: [CodeableConcept]? = nil,
+        specialty: [CodeableConcept]? = nil,
+        actor: [Reference],
+        planningHorizon: Period? = nil,
+        comment: String? = nil
+    ) {
+        self.messageID = messageID
+        self.timestamp = timestamp
+        self.id = id
+        self.meta = meta
+        self.implicitRules = implicitRules
+        self.language = language
+        self.text = text
+        self.contained = contained
+        self.extension = `extension`
+        self.modifierExtension = modifierExtension
+        self.identifier = identifier
+        self.active = active
+        self.serviceCategory = serviceCategory
+        self.serviceType = serviceType
+        self.specialty = specialty
+        self.actor = actor
+        self.planningHorizon = planningHorizon
+        self.comment = comment
+    }
+    
+    public func validate() throws {
+        guard !resourceType.isEmpty else {
+            throw HL7Error.validationError("Empty resource type")
+        }
+        guard !actor.isEmpty else {
+            throw HL7Error.validationError("Schedule requires at least one actor")
+        }
+    }
+}
+
+// MARK: - MedicationStatement
+
+/// A record of a medication that is being consumed by a patient
+public struct MedicationStatement: DomainResource {
+    public let resourceType: String = "MedicationStatement"
+    public let messageID: String
+    public let timestamp: Date
+    public let id: String?
+    public let meta: Meta?
+    public let implicitRules: String?
+    public let language: String?
+    public let text: Narrative?
+    public let contained: [ResourceContainer]?
+    public let `extension`: [Extension]?
+    public let modifierExtension: [Extension]?
+    
+    /// External identifiers for this medication statement
+    public let identifier: [Identifier]?
+    /// Fulfils plan, proposal or order
+    public let basedOn: [Reference]?
+    /// Part of referenced event
+    public let partOf: [Reference]?
+    /// Status of the medication statement (required)
+    public let status: String
+    /// Reason for current status
+    public let statusReason: [CodeableConcept]?
+    /// Type of medication usage
+    public let category: CodeableConcept?
+    /// What medication was taken (CodeableConcept choice)
+    public let medicationCodeableConcept: CodeableConcept?
+    /// What medication was taken (Reference choice)
+    public let medicationReference: Reference?
+    /// Who is/was taking the medication (required)
+    public let subject: Reference
+    /// Encounter / Episode associated with MedicationStatement
+    public let context: Reference?
+    /// The date/time or interval when the medication is/was/will be taken (dateTime choice)
+    public let effectiveDateTime: String?
+    /// The date/time or interval when the medication is/was/will be taken (Period choice)
+    public let effectivePeriod: Period?
+    /// When the statement was asserted
+    public let dateAsserted: String?
+    /// Person or organization that provided the information
+    public let informationSource: Reference?
+    /// Additional supporting information
+    public let derivedFrom: [Reference]?
+    /// Reason for why the medication is being/was taken
+    public let reasonCode: [CodeableConcept]?
+    /// Condition or observation that supports why the medication is being/was taken
+    public let reasonReference: [Reference]?
+    /// Further information about the statement
+    public let note: [Annotation]?
+    /// Details of how medication is/was taken or should be taken
+    public let dosage: [DosageInstruction]?
+    
+    public init(
+        messageID: String = UUID().uuidString,
+        timestamp: Date = Date(),
+        id: String? = nil,
+        meta: Meta? = nil,
+        implicitRules: String? = nil,
+        language: String? = nil,
+        text: Narrative? = nil,
+        contained: [ResourceContainer]? = nil,
+        extension: [Extension]? = nil,
+        modifierExtension: [Extension]? = nil,
+        identifier: [Identifier]? = nil,
+        basedOn: [Reference]? = nil,
+        partOf: [Reference]? = nil,
+        status: String,
+        statusReason: [CodeableConcept]? = nil,
+        category: CodeableConcept? = nil,
+        medicationCodeableConcept: CodeableConcept? = nil,
+        medicationReference: Reference? = nil,
+        subject: Reference,
+        context: Reference? = nil,
+        effectiveDateTime: String? = nil,
+        effectivePeriod: Period? = nil,
+        dateAsserted: String? = nil,
+        informationSource: Reference? = nil,
+        derivedFrom: [Reference]? = nil,
+        reasonCode: [CodeableConcept]? = nil,
+        reasonReference: [Reference]? = nil,
+        note: [Annotation]? = nil,
+        dosage: [DosageInstruction]? = nil
+    ) {
+        self.messageID = messageID
+        self.timestamp = timestamp
+        self.id = id
+        self.meta = meta
+        self.implicitRules = implicitRules
+        self.language = language
+        self.text = text
+        self.contained = contained
+        self.extension = `extension`
+        self.modifierExtension = modifierExtension
+        self.identifier = identifier
+        self.basedOn = basedOn
+        self.partOf = partOf
+        self.status = status
+        self.statusReason = statusReason
+        self.category = category
+        self.medicationCodeableConcept = medicationCodeableConcept
+        self.medicationReference = medicationReference
+        self.subject = subject
+        self.context = context
+        self.effectiveDateTime = effectiveDateTime
+        self.effectivePeriod = effectivePeriod
+        self.dateAsserted = dateAsserted
+        self.informationSource = informationSource
+        self.derivedFrom = derivedFrom
+        self.reasonCode = reasonCode
+        self.reasonReference = reasonReference
+        self.note = note
+        self.dosage = dosage
+    }
+    
+    public func validate() throws {
+        guard !resourceType.isEmpty else {
+            throw HL7Error.validationError("Empty resource type")
+        }
+        guard !status.isEmpty else {
+            throw HL7Error.validationError("MedicationStatement requires status")
+        }
+        // subject is required (enforced by non-optional type)
+    }
+}
+
+// MARK: - DocumentReference
+
+/// Content of a DocumentReference
+public struct DocumentReferenceContent: Codable, Sendable, Hashable {
+    /// Where to access the document (required)
+    public let attachment: Attachment
+    /// Format/content rules for the document
+    public let format: Coding?
+    
+    public init(
+        attachment: Attachment,
+        format: Coding? = nil
+    ) {
+        self.attachment = attachment
+        self.format = format
+    }
+}
+
+/// Clinical context of a DocumentReference
+public struct DocumentReferenceContext: Codable, Sendable, Hashable {
+    /// Context of the document content
+    public let encounter: [Reference]?
+    /// Main clinical acts documented
+    public let event: [CodeableConcept]?
+    /// Time of service that is being documented
+    public let period: Period?
+    /// Kind of facility where patient was seen
+    public let facilityType: CodeableConcept?
+    /// Additional details about where the content was created
+    public let practiceSetting: CodeableConcept?
+    /// Patient demographics from source
+    public let sourcePatientInfo: Reference?
+    /// Related identifiers or resources
+    public let related: [Reference]?
+    
+    public init(
+        encounter: [Reference]? = nil,
+        event: [CodeableConcept]? = nil,
+        period: Period? = nil,
+        facilityType: CodeableConcept? = nil,
+        practiceSetting: CodeableConcept? = nil,
+        sourcePatientInfo: Reference? = nil,
+        related: [Reference]? = nil
+    ) {
+        self.encounter = encounter
+        self.event = event
+        self.period = period
+        self.facilityType = facilityType
+        self.practiceSetting = practiceSetting
+        self.sourcePatientInfo = sourcePatientInfo
+        self.related = related
+    }
+}
+
+/// Relationship to another DocumentReference
+public struct DocumentReferenceRelatesTo: Codable, Sendable, Hashable {
+    /// replaces | transforms | signs | appends (required)
+    public let code: String
+    /// Target of the relationship (required)
+    public let target: Reference
+    
+    public init(
+        code: String,
+        target: Reference
+    ) {
+        self.code = code
+        self.target = target
+    }
+}
+
+/// A reference to a document of any kind for any purpose
+public struct DocumentReference: DomainResource {
+    public let resourceType: String = "DocumentReference"
+    public let messageID: String
+    public let timestamp: Date
+    public let id: String?
+    public let meta: Meta?
+    public let implicitRules: String?
+    public let language: String?
+    public let text: Narrative?
+    public let contained: [ResourceContainer]?
+    public let `extension`: [Extension]?
+    public let modifierExtension: [Extension]?
+    
+    /// Master version-specific identifier
+    public let masterIdentifier: Identifier?
+    /// Other identifiers for the document
+    public let identifier: [Identifier]?
+    /// Status of this document reference (required)
+    public let status: String
+    /// preliminary | final | amended | entered-in-error
+    public let docStatus: String?
+    /// Kind of document
+    public let type: CodeableConcept?
+    /// Categorization of document
+    public let category: [CodeableConcept]?
+    /// Who/what is the subject of the document
+    public let subject: Reference?
+    /// When this document reference was created
+    public let date: String?
+    /// Who and/or what authored the document
+    public let author: [Reference]?
+    /// Who/what authenticated the document
+    public let authenticator: Reference?
+    /// Organization which maintains the document
+    public let custodian: Reference?
+    /// Relationships to other documents
+    public let relatesTo: [DocumentReferenceRelatesTo]?
+    /// Human-readable description
+    public let description_: String?
+    /// Document security-tags
+    public let securityLabel: [CodeableConcept]?
+    /// Document referenced (required, at least one)
+    public let content: [DocumentReferenceContent]
+    /// Clinical context of document
+    public let context: DocumentReferenceContext?
+    
+    enum CodingKeys: String, CodingKey {
+        case resourceType, messageID, timestamp, id, meta, implicitRules, language
+        case text, contained, modifierExtension
+        case `extension`
+        case masterIdentifier, identifier, status, docStatus, type, category
+        case subject, date, author, authenticator, custodian, relatesTo
+        case description_ = "description"
+        case securityLabel, content, context
+    }
+    
+    public init(
+        messageID: String = UUID().uuidString,
+        timestamp: Date = Date(),
+        id: String? = nil,
+        meta: Meta? = nil,
+        implicitRules: String? = nil,
+        language: String? = nil,
+        text: Narrative? = nil,
+        contained: [ResourceContainer]? = nil,
+        extension: [Extension]? = nil,
+        modifierExtension: [Extension]? = nil,
+        masterIdentifier: Identifier? = nil,
+        identifier: [Identifier]? = nil,
+        status: String,
+        docStatus: String? = nil,
+        type: CodeableConcept? = nil,
+        category: [CodeableConcept]? = nil,
+        subject: Reference? = nil,
+        date: String? = nil,
+        author: [Reference]? = nil,
+        authenticator: Reference? = nil,
+        custodian: Reference? = nil,
+        relatesTo: [DocumentReferenceRelatesTo]? = nil,
+        description_: String? = nil,
+        securityLabel: [CodeableConcept]? = nil,
+        content: [DocumentReferenceContent],
+        context: DocumentReferenceContext? = nil
+    ) {
+        self.messageID = messageID
+        self.timestamp = timestamp
+        self.id = id
+        self.meta = meta
+        self.implicitRules = implicitRules
+        self.language = language
+        self.text = text
+        self.contained = contained
+        self.extension = `extension`
+        self.modifierExtension = modifierExtension
+        self.masterIdentifier = masterIdentifier
+        self.identifier = identifier
+        self.status = status
+        self.docStatus = docStatus
+        self.type = type
+        self.category = category
+        self.subject = subject
+        self.date = date
+        self.author = author
+        self.authenticator = authenticator
+        self.custodian = custodian
+        self.relatesTo = relatesTo
+        self.description_ = description_
+        self.securityLabel = securityLabel
+        self.content = content
+        self.context = context
+    }
+    
+    public func validate() throws {
+        guard !resourceType.isEmpty else {
+            throw HL7Error.validationError("Empty resource type")
+        }
+        guard !status.isEmpty else {
+            throw HL7Error.validationError("DocumentReference requires status")
+        }
+        guard !content.isEmpty else {
+            throw HL7Error.validationError("DocumentReference requires at least one content")
+        }
     }
 }
 

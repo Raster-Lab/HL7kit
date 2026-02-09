@@ -660,6 +660,588 @@ final class FHIRResourcesTests: XCTestCase {
         XCTAssertEqual(decoded.conclusion, "Normal")
     }
     
+    // MARK: - Appointment Tests
+    
+    func testAppointmentCreation() {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            appointmentType: CodeableConcept(text: "Routine"),
+            description_: "Annual checkup",
+            start: "2024-03-15T09:00:00Z",
+            end: "2024-03-15T09:30:00Z",
+            minutesDuration: 30,
+            participant: [
+                AppointmentParticipant(
+                    actor: Reference(reference: "Patient/patient-001"),
+                    status: "accepted"
+                )
+            ]
+        )
+        
+        XCTAssertEqual(appointment.resourceType, "Appointment")
+        XCTAssertEqual(appointment.id, "appt-001")
+        XCTAssertEqual(appointment.status, "booked")
+        XCTAssertEqual(appointment.description_, "Annual checkup")
+        XCTAssertEqual(appointment.start, "2024-03-15T09:00:00Z")
+        XCTAssertEqual(appointment.end, "2024-03-15T09:30:00Z")
+        XCTAssertEqual(appointment.minutesDuration, 30)
+        XCTAssertEqual(appointment.participant.count, 1)
+    }
+    
+    func testAppointmentWithMultipleParticipants() {
+        let appointment = Appointment(
+            id: "appt-002",
+            status: "proposed",
+            participant: [
+                AppointmentParticipant(
+                    actor: Reference(reference: "Patient/patient-001"),
+                    required: "required",
+                    status: "needs-action",
+                    type: [CodeableConcept(text: "Patient")]
+                ),
+                AppointmentParticipant(
+                    actor: Reference(reference: "Practitioner/pract-001"),
+                    required: "required",
+                    status: "accepted",
+                    type: [CodeableConcept(text: "Practitioner")]
+                )
+            ]
+        )
+        
+        XCTAssertEqual(appointment.participant.count, 2)
+        XCTAssertEqual(appointment.participant[0].required, "required")
+        XCTAssertEqual(appointment.participant[1].status, "accepted")
+    }
+    
+    func testAppointmentWithServiceDetails() {
+        let appointment = Appointment(
+            id: "appt-003",
+            status: "booked",
+            serviceCategory: [CodeableConcept(text: "General Practice")],
+            serviceType: [CodeableConcept(text: "Consultation")],
+            specialty: [CodeableConcept(text: "General Medicine")],
+            reasonCode: [CodeableConcept(text: "Follow-up")],
+            priority: 0,
+            slot: [Reference(reference: "Slot/slot-001")],
+            basedOn: [Reference(reference: "ServiceRequest/sr-001")],
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        
+        XCTAssertEqual(appointment.serviceCategory?.count, 1)
+        XCTAssertEqual(appointment.serviceType?.count, 1)
+        XCTAssertEqual(appointment.specialty?.count, 1)
+        XCTAssertEqual(appointment.priority, 0)
+        XCTAssertEqual(appointment.slot?.count, 1)
+        XCTAssertEqual(appointment.basedOn?.count, 1)
+    }
+    
+    func testAppointmentWithCancelation() {
+        let appointment = Appointment(
+            id: "appt-004",
+            status: "cancelled",
+            cancelationReason: CodeableConcept(text: "Patient request"),
+            comment: "Rescheduled for next week",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "declined")]
+        )
+        
+        XCTAssertEqual(appointment.status, "cancelled")
+        XCTAssertNotNil(appointment.cancelationReason)
+        XCTAssertEqual(appointment.comment, "Rescheduled for next week")
+    }
+    
+    func testAppointmentValidation() throws {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        XCTAssertNoThrow(try appointment.validate())
+    }
+    
+    func testAppointmentValidationEmptyStatus() {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        
+        XCTAssertThrowsError(try appointment.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testAppointmentValidationEmptyParticipants() {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            participant: []
+        )
+        
+        XCTAssertThrowsError(try appointment.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testAppointmentCodableWithDescriptionCodingKey() throws {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            description_: "Follow-up visit",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(appointment)
+        
+        let jsonString = String(data: data, encoding: .utf8)!
+        XCTAssertTrue(jsonString.contains("\"description\""))
+        XCTAssertFalse(jsonString.contains("\"description_\""))
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(Appointment.self, from: data)
+        
+        XCTAssertEqual(decoded.description_, "Follow-up visit")
+        XCTAssertEqual(decoded.status, "booked")
+    }
+    
+    func testAppointmentCodable() throws {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            start: "2024-03-15T09:00:00Z",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(appointment)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(Appointment.self, from: data)
+        
+        XCTAssertEqual(decoded.status, "booked")
+        XCTAssertEqual(decoded.start, "2024-03-15T09:00:00Z")
+    }
+    
+    // MARK: - Schedule Tests
+    
+    func testScheduleCreation() {
+        let schedule = Schedule(
+            id: "sched-001",
+            active: true,
+            actor: [Reference(reference: "Practitioner/pract-001")],
+            planningHorizon: Period(start: "2024-03-01", end: "2024-03-31"),
+            comment: "Dr. Smith's March schedule"
+        )
+        
+        XCTAssertEqual(schedule.resourceType, "Schedule")
+        XCTAssertEqual(schedule.id, "sched-001")
+        XCTAssertEqual(schedule.active, true)
+        XCTAssertEqual(schedule.actor.count, 1)
+        XCTAssertNotNil(schedule.planningHorizon)
+        XCTAssertEqual(schedule.comment, "Dr. Smith's March schedule")
+    }
+    
+    func testScheduleWithMultipleActors() {
+        let schedule = Schedule(
+            id: "sched-002",
+            actor: [
+                Reference(reference: "Practitioner/pract-001"),
+                Reference(reference: "Location/loc-001")
+            ]
+        )
+        
+        XCTAssertEqual(schedule.actor.count, 2)
+    }
+    
+    func testScheduleWithServiceDetails() {
+        let schedule = Schedule(
+            id: "sched-003",
+            serviceCategory: [CodeableConcept(text: "General Practice")],
+            serviceType: [CodeableConcept(text: "Consultation")],
+            specialty: [CodeableConcept(text: "Cardiology")],
+            actor: [Reference(reference: "Practitioner/pract-001")]
+        )
+        
+        XCTAssertEqual(schedule.serviceCategory?.count, 1)
+        XCTAssertEqual(schedule.serviceType?.count, 1)
+        XCTAssertEqual(schedule.specialty?.count, 1)
+    }
+    
+    func testScheduleValidation() throws {
+        let schedule = Schedule(
+            id: "sched-001",
+            actor: [Reference(reference: "Practitioner/pract-001")]
+        )
+        XCTAssertNoThrow(try schedule.validate())
+    }
+    
+    func testScheduleValidationEmptyActors() {
+        let schedule = Schedule(
+            id: "sched-001",
+            actor: []
+        )
+        
+        XCTAssertThrowsError(try schedule.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testScheduleCodable() throws {
+        let schedule = Schedule(
+            id: "sched-001",
+            active: true,
+            actor: [Reference(reference: "Practitioner/pract-001")],
+            comment: "Available Mon-Fri"
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(schedule)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(Schedule.self, from: data)
+        
+        XCTAssertEqual(decoded.active, true)
+        XCTAssertEqual(decoded.actor.count, 1)
+        XCTAssertEqual(decoded.comment, "Available Mon-Fri")
+    }
+    
+    // MARK: - MedicationStatement Tests
+    
+    func testMedicationStatementCreation() {
+        let medStatement = MedicationStatement(
+            id: "medstmt-001",
+            status: "active",
+            medicationCodeableConcept: CodeableConcept(
+                coding: [Coding(system: "http://www.nlm.nih.gov/research/umls/rxnorm", code: "1049502", display: "Lisinopril 10mg")],
+                text: "Lisinopril 10mg"
+            ),
+            subject: Reference(reference: "Patient/patient-001"),
+            effectiveDateTime: "2024-01-15",
+            dateAsserted: "2024-01-20"
+        )
+        
+        XCTAssertEqual(medStatement.resourceType, "MedicationStatement")
+        XCTAssertEqual(medStatement.id, "medstmt-001")
+        XCTAssertEqual(medStatement.status, "active")
+        XCTAssertEqual(medStatement.medicationCodeableConcept?.text, "Lisinopril 10mg")
+        XCTAssertEqual(medStatement.subject.reference, "Patient/patient-001")
+        XCTAssertEqual(medStatement.effectiveDateTime, "2024-01-15")
+    }
+    
+    func testMedicationStatementWithDosage() {
+        let dosage = DosageInstruction(
+            sequence: 1,
+            text: "Take 1 tablet by mouth once daily",
+            route: CodeableConcept(text: "Oral"),
+            doseQuantity: Quantity(value: 10, unit: "mg")
+        )
+        let medStatement = MedicationStatement(
+            id: "medstmt-002",
+            status: "active",
+            subject: Reference(reference: "Patient/patient-001"),
+            dosage: [dosage]
+        )
+        
+        XCTAssertEqual(medStatement.dosage?.count, 1)
+        XCTAssertEqual(medStatement.dosage?[0].doseQuantity?.value, 10)
+        XCTAssertEqual(medStatement.dosage?[0].text, "Take 1 tablet by mouth once daily")
+    }
+    
+    func testMedicationStatementWithMedicationReference() {
+        let medStatement = MedicationStatement(
+            id: "medstmt-003",
+            status: "active",
+            medicationReference: Reference(reference: "Medication/med-lisinopril"),
+            subject: Reference(reference: "Patient/patient-001")
+        )
+        
+        XCTAssertNotNil(medStatement.medicationReference)
+        XCTAssertNil(medStatement.medicationCodeableConcept)
+    }
+    
+    func testMedicationStatementWithContext() {
+        let medStatement = MedicationStatement(
+            id: "medstmt-004",
+            status: "active",
+            category: CodeableConcept(text: "Outpatient"),
+            subject: Reference(reference: "Patient/patient-001"),
+            context: Reference(reference: "Encounter/enc-001"),
+            informationSource: Reference(reference: "Practitioner/pract-001"),
+            reasonCode: [CodeableConcept(text: "Hypertension")],
+            note: [Annotation(text: "Patient reports good compliance")]
+        )
+        
+        XCTAssertNotNil(medStatement.context)
+        XCTAssertNotNil(medStatement.informationSource)
+        XCTAssertEqual(medStatement.reasonCode?.count, 1)
+        XCTAssertEqual(medStatement.note?.count, 1)
+    }
+    
+    func testMedicationStatementWithEffectivePeriod() {
+        let medStatement = MedicationStatement(
+            id: "medstmt-005",
+            status: "completed",
+            subject: Reference(reference: "Patient/patient-001"),
+            effectivePeriod: Period(start: "2024-01-01", end: "2024-03-01")
+        )
+        
+        XCTAssertNotNil(medStatement.effectivePeriod)
+        XCTAssertNil(medStatement.effectiveDateTime)
+    }
+    
+    func testMedicationStatementValidation() throws {
+        let medStatement = MedicationStatement(
+            id: "medstmt-001",
+            status: "active",
+            subject: Reference(reference: "Patient/patient-001")
+        )
+        XCTAssertNoThrow(try medStatement.validate())
+    }
+    
+    func testMedicationStatementValidationEmptyStatus() {
+        let medStatement = MedicationStatement(
+            id: "medstmt-001",
+            status: "",
+            subject: Reference(reference: "Patient/patient-001")
+        )
+        
+        XCTAssertThrowsError(try medStatement.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testMedicationStatementCodable() throws {
+        let medStatement = MedicationStatement(
+            id: "medstmt-001",
+            status: "active",
+            category: CodeableConcept(text: "Outpatient"),
+            subject: Reference(reference: "Patient/patient-001"),
+            dateAsserted: "2024-01-20"
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(medStatement)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(MedicationStatement.self, from: data)
+        
+        XCTAssertEqual(decoded.status, "active")
+        XCTAssertEqual(decoded.category?.text, "Outpatient")
+        XCTAssertEqual(decoded.dateAsserted, "2024-01-20")
+    }
+    
+    // MARK: - DocumentReference Tests
+    
+    func testDocumentReferenceCreation() {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            type: CodeableConcept(
+                coding: [Coding(system: "http://loinc.org", code: "34133-9", display: "Summary of episode note")],
+                text: "Summary of episode note"
+            ),
+            subject: Reference(reference: "Patient/patient-001"),
+            date: "2024-01-15T10:00:00Z",
+            description_: "Patient discharge summary",
+            content: [
+                DocumentReferenceContent(
+                    attachment: Attachment(contentType: "application/pdf", title: "Discharge Summary")
+                )
+            ]
+        )
+        
+        XCTAssertEqual(docRef.resourceType, "DocumentReference")
+        XCTAssertEqual(docRef.id, "docref-001")
+        XCTAssertEqual(docRef.status, "current")
+        XCTAssertEqual(docRef.description_, "Patient discharge summary")
+        XCTAssertEqual(docRef.content.count, 1)
+        XCTAssertEqual(docRef.content[0].attachment.contentType, "application/pdf")
+    }
+    
+    func testDocumentReferenceWithMultipleContent() {
+        let docRef = DocumentReference(
+            id: "docref-002",
+            status: "current",
+            content: [
+                DocumentReferenceContent(
+                    attachment: Attachment(contentType: "application/pdf", title: "Report.pdf"),
+                    format: Coding(system: "http://ihe.net/fhir/ValueSet/IHE.FormatCode.codesystem", code: "urn:ihe:iti:xds:2017:mimeTypeSufficient")
+                ),
+                DocumentReferenceContent(
+                    attachment: Attachment(contentType: "text/html", title: "Report.html")
+                )
+            ]
+        )
+        
+        XCTAssertEqual(docRef.content.count, 2)
+        XCTAssertNotNil(docRef.content[0].format)
+        XCTAssertNil(docRef.content[1].format)
+    }
+    
+    func testDocumentReferenceWithContext() {
+        let context = DocumentReferenceContext(
+            encounter: [Reference(reference: "Encounter/enc-001")],
+            event: [CodeableConcept(text: "Discharge")],
+            period: Period(start: "2024-01-10", end: "2024-01-15"),
+            facilityType: CodeableConcept(text: "Hospital"),
+            practiceSetting: CodeableConcept(text: "General Medicine"),
+            sourcePatientInfo: Reference(reference: "Patient/patient-001"),
+            related: [Reference(reference: "Observation/obs-001")]
+        )
+        let docRef = DocumentReference(
+            id: "docref-003",
+            status: "current",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))],
+            context: context
+        )
+        
+        XCTAssertNotNil(docRef.context)
+        XCTAssertEqual(docRef.context?.encounter?.count, 1)
+        XCTAssertNotNil(docRef.context?.facilityType)
+        XCTAssertNotNil(docRef.context?.period)
+    }
+    
+    func testDocumentReferenceWithRelatesTo() {
+        let docRef = DocumentReference(
+            id: "docref-004",
+            status: "current",
+            relatesTo: [
+                DocumentReferenceRelatesTo(code: "replaces", target: Reference(reference: "DocumentReference/docref-001")),
+                DocumentReferenceRelatesTo(code: "appends", target: Reference(reference: "DocumentReference/docref-002"))
+            ],
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        
+        XCTAssertEqual(docRef.relatesTo?.count, 2)
+        XCTAssertEqual(docRef.relatesTo?[0].code, "replaces")
+        XCTAssertEqual(docRef.relatesTo?[1].code, "appends")
+    }
+    
+    func testDocumentReferenceWithAuthoring() {
+        let docRef = DocumentReference(
+            id: "docref-005",
+            masterIdentifier: Identifier(system: "http://hospital.org/docs", value: "DOC-12345"),
+            status: "current",
+            category: [CodeableConcept(text: "Clinical Note")],
+            author: [Reference(reference: "Practitioner/pract-001")],
+            authenticator: Reference(reference: "Practitioner/pract-002"),
+            custodian: Reference(reference: "Organization/org-001"),
+            securityLabel: [CodeableConcept(text: "Restricted")],
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        
+        XCTAssertNotNil(docRef.masterIdentifier)
+        XCTAssertEqual(docRef.author?.count, 1)
+        XCTAssertNotNil(docRef.authenticator)
+        XCTAssertNotNil(docRef.custodian)
+        XCTAssertEqual(docRef.securityLabel?.count, 1)
+    }
+    
+    func testDocumentReferenceValidation() throws {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        XCTAssertNoThrow(try docRef.validate())
+    }
+    
+    func testDocumentReferenceValidationEmptyStatus() {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        
+        XCTAssertThrowsError(try docRef.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testDocumentReferenceValidationEmptyContent() {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            content: []
+        )
+        
+        XCTAssertThrowsError(try docRef.validate()) { error in
+            guard case HL7Error.validationError = error else {
+                XCTFail("Expected validation error")
+                return
+            }
+        }
+    }
+    
+    func testDocumentReferenceCodableWithDescriptionCodingKey() throws {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            description_: "Lab results document",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(docRef)
+        
+        let jsonString = String(data: data, encoding: .utf8)!
+        XCTAssertTrue(jsonString.contains("\"description\""))
+        XCTAssertFalse(jsonString.contains("\"description_\""))
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(DocumentReference.self, from: data)
+        
+        XCTAssertEqual(decoded.description_, "Lab results document")
+        XCTAssertEqual(decoded.status, "current")
+    }
+    
+    func testDocumentReferenceCodable() throws {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            docStatus: "final",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "application/pdf", title: "Report.pdf"))]
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(docRef)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(DocumentReference.self, from: data)
+        
+        XCTAssertEqual(decoded.status, "current")
+        XCTAssertEqual(decoded.docStatus, "final")
+        XCTAssertEqual(decoded.content.count, 1)
+    }
+    
     // MARK: - Bundle Tests
     
     func testBundleCreation() {
@@ -1262,6 +1844,101 @@ final class FHIRResourcesTests: XCTestCase {
         XCTAssertThrowsError(try decoder.decode(ResourceContainer.self, from: json))
     }
     
+    func testResourceContainerAppointment() throws {
+        let container = ResourceContainer.appointment(
+            Appointment(
+                id: "appt-001",
+                status: "booked",
+                participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+            )
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(container)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(ResourceContainer.self, from: data)
+        
+        if case .appointment(let appt) = decoded {
+            XCTAssertEqual(appt.id, "appt-001")
+            XCTAssertEqual(appt.status, "booked")
+        } else {
+            XCTFail("Expected appointment container")
+        }
+    }
+    
+    func testResourceContainerSchedule() throws {
+        let container = ResourceContainer.schedule(
+            Schedule(id: "sched-001", actor: [Reference(reference: "Practitioner/pract-001")])
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(container)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(ResourceContainer.self, from: data)
+        
+        if case .schedule(let sched) = decoded {
+            XCTAssertEqual(sched.id, "sched-001")
+        } else {
+            XCTFail("Expected schedule container")
+        }
+    }
+    
+    func testResourceContainerMedicationStatement() throws {
+        let container = ResourceContainer.medicationStatement(
+            MedicationStatement(
+                id: "medstmt-001",
+                status: "active",
+                subject: Reference(reference: "Patient/p1")
+            )
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(container)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(ResourceContainer.self, from: data)
+        
+        if case .medicationStatement(let medStmt) = decoded {
+            XCTAssertEqual(medStmt.id, "medstmt-001")
+            XCTAssertEqual(medStmt.status, "active")
+        } else {
+            XCTFail("Expected medicationStatement container")
+        }
+    }
+    
+    func testResourceContainerDocumentReference() throws {
+        let container = ResourceContainer.documentReference(
+            DocumentReference(
+                id: "docref-001",
+                status: "current",
+                content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+            )
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(container)
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(ResourceContainer.self, from: data)
+        
+        if case .documentReference(let docRef) = decoded {
+            XCTAssertEqual(docRef.id, "docref-001")
+            XCTAssertEqual(docRef.status, "current")
+        } else {
+            XCTFail("Expected documentReference container")
+        }
+    }
+    
     // MARK: - Sendable Conformance Tests
     
     func testPractitionerSendable() async {
@@ -1282,6 +1959,46 @@ final class FHIRResourcesTests: XCTestCase {
         let bundle = Bundle(id: "bundle-001", type: "searchset")
         await Task {
             XCTAssertEqual(bundle.resourceType, "Bundle")
+        }.value
+    }
+    
+    func testAppointmentSendable() async {
+        let appointment = Appointment(
+            id: "appt-001",
+            status: "booked",
+            participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+        )
+        await Task {
+            XCTAssertEqual(appointment.resourceType, "Appointment")
+        }.value
+    }
+    
+    func testScheduleSendable() async {
+        let schedule = Schedule(id: "sched-001", actor: [Reference(reference: "Practitioner/pract-001")])
+        await Task {
+            XCTAssertEqual(schedule.resourceType, "Schedule")
+        }.value
+    }
+    
+    func testMedicationStatementSendable() async {
+        let medStatement = MedicationStatement(
+            id: "medstmt-001",
+            status: "active",
+            subject: Reference(reference: "Patient/p1")
+        )
+        await Task {
+            XCTAssertEqual(medStatement.resourceType, "MedicationStatement")
+        }.value
+    }
+    
+    func testDocumentReferenceSendable() async {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        await Task {
+            XCTAssertEqual(docRef.resourceType, "DocumentReference")
         }.value
     }
     
@@ -1335,6 +2052,35 @@ final class FHIRResourcesTests: XCTestCase {
         measure {
             for _ in 0..<1000 {
                 try? outcome.validate()
+            }
+        }
+    }
+    
+    func testAppointmentCreationPerformance() {
+        measure {
+            for i in 0..<100 {
+                _ = Appointment(
+                    id: "appt-\(i)",
+                    status: "booked",
+                    participant: [AppointmentParticipant(actor: Reference(reference: "Patient/p1"), status: "accepted")]
+                )
+            }
+        }
+    }
+    
+    func testDocumentReferenceEncodingPerformance() throws {
+        let docRef = DocumentReference(
+            id: "docref-001",
+            status: "current",
+            description_: "Test document",
+            content: [DocumentReferenceContent(attachment: Attachment(contentType: "text/plain"))]
+        )
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        
+        measure {
+            for _ in 0..<100 {
+                _ = try? encoder.encode(docRef)
             }
         }
     }

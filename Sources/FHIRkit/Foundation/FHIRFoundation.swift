@@ -151,6 +151,10 @@ public enum ResourceContainer: Codable, Sendable {
     case encounter(Encounter)
     case medicationRequest(MedicationRequest)
     case diagnosticReport(DiagnosticReport)
+    case appointment(Appointment)
+    case schedule(Schedule)
+    case medicationStatement(MedicationStatement)
+    case documentReference(DocumentReference)
     case bundle(Bundle)
     case operationOutcome(OperationOutcome)
     
@@ -177,6 +181,14 @@ public enum ResourceContainer: Codable, Sendable {
             self = .medicationRequest(try MedicationRequest(from: decoder))
         case "DiagnosticReport":
             self = .diagnosticReport(try DiagnosticReport(from: decoder))
+        case "Appointment":
+            self = .appointment(try Appointment(from: decoder))
+        case "Schedule":
+            self = .schedule(try Schedule(from: decoder))
+        case "MedicationStatement":
+            self = .medicationStatement(try MedicationStatement(from: decoder))
+        case "DocumentReference":
+            self = .documentReference(try DocumentReference(from: decoder))
         case "Bundle":
             self = .bundle(try Bundle(from: decoder))
         case "OperationOutcome":
@@ -209,6 +221,14 @@ public enum ResourceContainer: Codable, Sendable {
         case .medicationRequest(let resource):
             try resource.encode(to: encoder)
         case .diagnosticReport(let resource):
+            try resource.encode(to: encoder)
+        case .appointment(let resource):
+            try resource.encode(to: encoder)
+        case .schedule(let resource):
+            try resource.encode(to: encoder)
+        case .medicationStatement(let resource):
+            try resource.encode(to: encoder)
+        case .documentReference(let resource):
             try resource.encode(to: encoder)
         case .bundle(let resource):
             try resource.encode(to: encoder)
