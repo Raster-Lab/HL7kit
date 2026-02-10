@@ -412,12 +412,12 @@ Add advanced capabilities, SMART on FHIR support, and optimization for FHIRkit.
 **Deliverables**: FHIR operations framework with FHIROperationsClient actor, operation registry, and 29+ unit tests
 
 #### 6.4 Subscriptions & Real-time (Week 43)
-- [ ] Implement FHIR Subscriptions (R5 topic-based)
-- [ ] Create WebSocket transport support
-- [ ] Add REST-hook notification handling
-- [ ] Build subscription management API
-- [ ] Implement event filtering
-- [ ] Create reconnection and reliability handling
+- [x] Implement FHIR Subscriptions (R5 topic-based)
+- [x] Create WebSocket transport support
+- [x] Add REST-hook notification handling
+- [x] Build subscription management API
+- [x] Implement event filtering
+- [x] Create reconnection and reliability handling
 
 **Deliverables**: Real-time FHIR subscription support
 
