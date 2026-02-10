@@ -102,6 +102,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   ├── ActorPatterns.swift    # Concurrency patterns
 │   ├── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
+│   ├── SecurityFramework.swift # Security framework (encryption, signatures, RBAC, HIPAA, certificates)
 │   └── Persistence.swift      # Message archive, storage, search/indexing, export/import
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites (1770+ tests, 90%+ coverage)
