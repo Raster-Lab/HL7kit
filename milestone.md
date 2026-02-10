@@ -526,11 +526,11 @@ Add Apple platform-specific features and create example applications.
 **Deliverables**: Production-quality macOS example app
 
 #### 8.4 Command-Line Tools (Week 55)
-- [ ] Message validator CLI
-- [ ] Format converter CLI
-- [ ] Network testing CLI
-- [ ] Conformance checker CLI
-- [ ] Batch processor CLI
+- [x] Message validator CLI
+- [x] Format converter CLI
+- [x] Network testing CLI
+- [x] Conformance checker CLI
+- [x] Batch processor CLI
 
 **Deliverables**: Complete CLI toolkit
 
