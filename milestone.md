@@ -352,14 +352,25 @@ Build the foundation for HL7 FHIR resource handling, RESTful client, and data mo
 **Deliverables**: Comprehensive FHIR search API
 
 #### 5.6 Validation Engine (Week 38)
-- [ ] Implement resource validation against StructureDefinitions
-- [ ] Build cardinality and required field validation
-- [ ] Create value set and code system validation
-- [ ] Add FHIRPath expression evaluation
-- [ ] Implement profile validation
-- [ ] Create custom validation rules support
+- [x] Implement resource validation against StructureDefinitions
+- [x] Build cardinality and required field validation
+- [x] Create value set and code system validation
+- [x] Add FHIRPath expression evaluation
+- [x] Implement profile validation
+- [x] Create custom validation rules support
 
-**Deliverables**: Comprehensive FHIR validation framework
+**Deliverables**: Comprehensive FHIR validation framework ✓
+
+Implemented features:
+- StructureDefinition/ElementDefinition models
+- Cardinality validator with min/max/prohibited constraints
+- Terminology validator with binding strength enforcement (required/extensible/preferred/example)
+- FHIRPath evaluator with tokenizer/parser supporting path navigation, existence, boolean logic, string operations, and comparisons
+- Profile validator with constraint/fixed value/pattern/must-support checking
+- Custom validation rules (RequiredFields, CoOccurrence, ValueConstraint, Closure) with registry
+- FHIRValidator main entry point with OperationOutcome conversion
+- Standard profiles for Patient/Observation/US Core Patient
+- 124+ unit tests with full coverage
 
 ---
 
