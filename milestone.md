@@ -451,11 +451,10 @@ Build shared services and integration capabilities across all toolkits.
 **Deliverables**: Shared services library
 
 #### 7.2 Persistence Layer (Week 47)
-- [ ] Message archive/retrieval system
-- [ ] Core Data integration for local storage
-- [ ] CloudKit integration for sync
-- [ ] Export/import utilities
-- [ ] Search and indexing
+- [x] Message archive/retrieval system
+- [x] In-memory persistence store (Core Data/CloudKit planned as future platform-specific implementations)
+- [x] Export/import utilities
+- [x] Search and indexing
 
 **Deliverables**: Persistence framework
 

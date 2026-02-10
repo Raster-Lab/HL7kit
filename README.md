@@ -67,6 +67,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **FHIR Performance Optimization**: Comprehensive performance toolkit including OptimizedJSONParser and OptimizedXMLParser with benchmarking, FHIRResourceCache actor with LRU eviction and TTL-based expiration, StreamingBundleProcessor for memory-efficient large Bundle handling, ConnectionPool actor for HTTP session reuse, FHIRBenchmark harness with comparison support, FHIRPerformanceMetrics actor for operation timing, and MemoryPressureMonitor for runtime memory tracking. All types are public and Sendable for Swift 6 strict concurrency. Includes 44 unit tests.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
 - **High Test Coverage**: 1770+ unit tests with 90%+ code coverage
+- **Persistence Layer**: Message archive/retrieval system with `MessageArchive` actor for thread-safe storage, `PersistenceStore` protocol with `InMemoryStore` actor for key-value persistence, `DataExporter`/`DataImporter` for JSON export/import with round-trip fidelity, `ArchiveIndex` actor for full-text search and field-based indexing with TF-IDF relevance scoring, date range queries, tag-based filtering, and archive statistics. All types are public and Sendable for Swift 6 strict concurrency. Includes 80 unit tests.
 
 ## Project Structure
 
@@ -100,7 +101,8 @@ HL7kit/
 │   ├── Benchmarking.swift     # Performance benchmarking
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   ├── ActorPatterns.swift    # Concurrency patterns
-│   └── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
+│   ├── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
+│   └── Persistence.swift      # Message archive, storage, search/indexing, export/import
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites (1770+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
