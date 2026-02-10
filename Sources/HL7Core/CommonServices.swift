@@ -302,7 +302,8 @@ public actor SecurityService {
 
     // MARK: - Secure Random Generation
 
-    /// Generates cryptographically secure random bytes
+    /// Generates cryptographically secure random bytes using Swift's `SystemRandomNumberGenerator`,
+    /// which delegates to platform CSPRNG (`arc4random_buf` on macOS, `/dev/urandom` on Linux)
     /// - Parameter count: Number of bytes to generate
     /// - Returns: Data containing random bytes
     public func generateSecureRandomBytes(_ count: Int) -> Data {
@@ -1059,7 +1060,7 @@ public actor MetricsCollector {
 
     private func percentile(_ sorted: [Double], _ p: Double) -> Double {
         guard !sorted.isEmpty else { return 0 }
-        let index = max(0, Int(Double(sorted.count) * p) - 1)
+        let index = Int(Double(sorted.count - 1) * p)
         return sorted[min(index, sorted.count - 1)]
     }
 }
