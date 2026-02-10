@@ -332,12 +332,12 @@ Build the foundation for HL7 FHIR resource handling, RESTful client, and data mo
 **Deliverables**: Complete FHIR serialization/deserialization support ✓ (Implemented JSON/XML serializers with actor-based thread safety, streaming Bundle parser, configuration options, 28+ unit tests)
 
 #### 5.4 RESTful Client (Week 36)
-- [ ] Design FHIR RESTful client using URLSession/async-await
-- [ ] Implement CRUD operations (create, read, update, delete)
-- [ ] Add search with FHIR search parameter support
-- [ ] Implement history and version read operations
-- [ ] Create batch/transaction Bundle support
-- [ ] Add pagination support for search results
+- [x] Design FHIR RESTful client using URLSession/async-await
+- [x] Implement CRUD operations (create, read, update, delete)
+- [x] Add search with FHIR search parameter support
+- [x] Implement history and version read operations
+- [x] Create batch/transaction Bundle support
+- [x] Add pagination support for search results
 
 **Deliverables**: Production-ready FHIR RESTful client
 
