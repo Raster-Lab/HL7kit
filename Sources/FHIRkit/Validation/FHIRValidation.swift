@@ -381,7 +381,11 @@ public struct FHIRValidationOutcome: Sendable {
 
 // MARK: - Issue Collector
 
-/// Collects validation issues during validation
+/// Collects validation issues during validation.
+///
+/// Thread safety: Uses `NSLock` to protect the `_issues` array.
+/// Marked `@unchecked Sendable` because `NSLock` does not conform to `Sendable`
+/// but provides the required thread-safe synchronization.
 public final class ValidationIssueCollector: @unchecked Sendable {
     private var _issues: [FHIRValidationIssue] = []
     private let lock = NSLock()

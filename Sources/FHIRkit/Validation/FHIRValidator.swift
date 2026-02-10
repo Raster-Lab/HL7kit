@@ -13,6 +13,10 @@ import HL7Core
 
 /// Main entry point for FHIR resource validation
 ///
+/// Thread safety: Uses `NSLock` to protect mutable state (`profiles` array).
+/// Marked `@unchecked Sendable` because `NSLock` does not conform to `Sendable`
+/// but provides the required thread-safe synchronization.
+///
 /// Usage:
 /// ```swift
 /// let validator = FHIRValidator()

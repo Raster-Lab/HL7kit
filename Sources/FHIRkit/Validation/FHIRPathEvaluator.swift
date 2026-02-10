@@ -534,9 +534,9 @@ struct FHIRPathParser {
         case .where:
             advance()
             _ = expect(.openParen)
-            let filterExpr = savePosition()
+            let filterExprPosition = savePosition()
             _ = expect(.closeParen)
-            return filterCollection(context, position: filterExpr)
+            return filterCollection(context, position: filterExprPosition)
 
         case .all:
             advance()
@@ -653,9 +653,10 @@ struct FHIRPathParser {
         return .string(String(describing: value))
     }
 
+    /// Wrap a dictionary for path navigation.
+    /// Note: This is a simplified implementation that converts to string representation.
+    /// Full FHIRPath would require preserving dictionary structure for nested navigation.
     func wrapDict(_ dict: [String: Any]) -> FHIRPathValue {
-        // Create a collection-like value from a dictionary
-        // This is used to navigate nested paths
         return .string(String(describing: dict))
     }
 
@@ -701,8 +702,9 @@ struct FHIRPathParser {
         return pos
     }
 
+    /// Simplified collection filter. Full `.where()` expression evaluation
+    /// is not yet implemented; returns the context as-is if truthy.
     func filterCollection(_ context: FHIRPathValue, position: Int) -> FHIRPathValue {
-        // Simplified filter: returns the context as-is if it's truthy
         return context.isTruthy ? context : .empty
     }
 
