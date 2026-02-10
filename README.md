@@ -59,8 +59,9 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **FHIR JSON/XML Serialization**: Complete serialization and deserialization for FHIR R4 resources with actor-based thread safety. JSON serializer using Foundation's JSONEncoder/JSONDecoder with configurable output formatting (compact/pretty-printed), date strategies, and validation modes. XML serializer with FHIR namespace support for both encoding and decoding. Streaming Bundle parser for memory-efficient processing of large bundles. Support for polymorphic resources via ResourceContainer, contained resources, and references. Configuration options including validation modes (strict/lenient/none), nesting depth limits, and choice type validation. Includes 28+ unit tests with comprehensive coverage.
 - **FHIR RESTful Client**: Production-ready FHIR RESTful client using URLSession with async/await. Actor-based FHIRClient for thread-safe HTTP operations. CRUD operations (create, read, update, delete) with proper Content-Type and Accept headers. Search support via GET and POST with FHIR search parameters. History and version read (vread) operations. Batch and transaction Bundle support. Pagination for search results (next/previous page navigation). Comprehensive error handling with OperationOutcome parsing, HTTP status code mapping (404 Not Found, 410 Gone, 422 Validation Error, etc.), and retry logic with exponential backoff. Configurable client with base URL, authorization, timeout, retry settings, and custom headers. FHIRURLSession protocol for dependency injection and testability. Includes 40+ unit tests with mock session support.
 - **FHIR Search & Query**: Type-safe FHIR search API with SearchParamType enum (string, token, reference, date, number, quantity, composite, uri, special), SearchParameterValue typed union, fluent FHIRSearchQuery builder with chained/reverse-chained search (_has), _include/_revinclude support with iterate, compartment-based search (CompartmentSearch), SearchResult<T> for typed Bundle result handling, sort/pagination/summary/elements control, and SearchParameterValidator with known parameter registries for common resource types. All types are Sendable for Swift 6 strict concurrency. Includes 88 unit tests with comprehensive coverage.
+- **FHIR Validation Engine**: Comprehensive FHIR resource validation framework with StructureDefinition and ElementDefinition models, cardinality validator (min/max/prohibited constraints), terminology validator with binding strength enforcement (required/extensible/preferred/example), FHIRPath expression evaluator with tokenizer and recursive descent parser supporting path navigation, existence checks, boolean logic, string operations, and comparisons, profile validator with constraint/fixed value/pattern/must-support checking, custom validation rules (RequiredFields, CoOccurrence, ValueConstraint, Closure-based rules with registry), FHIRValidator main entry point returning FHIRValidationOutcome (convertible to OperationOutcome), standard profiles for Patient/Observation/US Core Patient, and LocalTerminologyService with pre-registered standard value sets. Includes 124+ unit tests with full coverage.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1650+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 1770+ unit tests with 90%+ code coverage
 
 ## Project Structure
 
@@ -78,7 +79,8 @@ HL7kit/
 │   ├── Resources/     # FHIR R4 resource implementations
 │   ├── Serialization/ # JSON/XML serialization
 │   ├── RESTClient/    # FHIR RESTful client
-│   └── Search/        # Type-safe FHIR search & query API
+│   ├── Search/        # Type-safe FHIR search & query API
+│   └── Validation/    # FHIR validation engine (profiles, FHIRPath, terminology)
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types
 │   ├── Validation.swift       # Validation framework
@@ -89,7 +91,7 @@ HL7kit/
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
 │   └── ActorPatterns.swift    # Concurrency patterns
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (1500+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (1770+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
