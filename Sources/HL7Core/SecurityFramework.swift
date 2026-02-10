@@ -241,8 +241,8 @@ public struct EncryptedPayload: Sendable {
 
 /// Provides message encryption and decryption services
 ///
-/// Uses a repeating-key XOR cipher combined with an initialization vector
-/// for symmetric encryption of HL7 messages and healthcare data.
+/// Uses a SHA256-based stream cipher that derives keystream blocks from
+/// the key, IV, and a counter for symmetric encryption of HL7 messages.
 ///
 /// > Important: This is a simplified cipher for cross-platform demonstration.
 /// > Production healthcare systems must use AES-256-GCM or equivalent via

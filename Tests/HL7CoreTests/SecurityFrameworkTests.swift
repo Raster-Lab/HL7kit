@@ -618,12 +618,12 @@ final class SecurityFrameworkTests: XCTestCase {
 
     func testDeidentifyMultiplePHI() {
         let hipaa = HIPAACompliance()
-        let text = "Patient SSN: 123-45-6789, Phone: 555-123-4567, Email: test@test.com"
+        let text = "SSN: 123-45-6789, Email: test@test.com, IP: 10.0.0.1"
         let result = hipaa.deidentify(text)
 
         XCTAssertTrue(result.contains("[SSN-REDACTED]"))
-        XCTAssertTrue(result.contains("[PHONE-REDACTED]") || result.contains("[SSN-REDACTED]"))
         XCTAssertTrue(result.contains("[EMAIL-REDACTED]"))
+        XCTAssertTrue(result.contains("[IP-REDACTED]"))
     }
 
     func testDeidentifyCleanText() {
