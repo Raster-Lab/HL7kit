@@ -270,8 +270,7 @@ struct PerformanceDemoView: View {
             + Double(elapsed.components.attoseconds) / 1e18
         let msgPerSec = totalSeconds > 0 ? Double(successCount) / totalSeconds : 0
 
-        // Estimate memory: each parsed message is roughly 2-4 KB
-        let estimatedBytes = successCount * 3072
+        let estimatedBytes = successCount * BenchmarkResult.estimatedBytesPerMessage
 
         progress = 1.0
         benchmarkResult = BenchmarkResult(
@@ -383,6 +382,11 @@ struct MetricCard: View {
 
 /// Results from a single benchmark run.
 struct BenchmarkResult: Sendable {
+    /// Estimated bytes consumed per parsed message (approx. 3 KB).
+    static let estimatedBytesPerMessage = 3072
+    /// Memory budget used for the progress bar (100 MB).
+    static let memoryBudgetBytes = 100 * 1024 * 1024
+
     let messageCount: Int
     let totalSeconds: Double
     let messagesPerSecond: Double
@@ -398,9 +402,9 @@ struct BenchmarkResult: Sendable {
         return String(format: "%.1f MB", kb / 1024)
     }
 
-    /// Fraction of a 100 MB budget used (for the progress bar).
+    /// Fraction of the memory budget used (for the progress bar).
     var memoryFraction: Double {
-        Double(estimatedMemoryBytes) / (100 * 1024 * 1024)
+        Double(estimatedMemoryBytes) / Double(Self.memoryBudgetBytes)
     }
 }
 

@@ -76,7 +76,8 @@ struct ValidationShowcaseView: View {
                     v2Results = []
                 }
 
-                Text(appState.currentMessageText.prefix(200) + "…")
+                let previewLimit = 200
+                Text(appState.currentMessageText.prefix(previewLimit) + "…")
                     .font(.system(.caption2, design: .monospaced))
                     .lineLimit(5)
                     .padding(8)

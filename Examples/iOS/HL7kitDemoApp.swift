@@ -127,34 +127,28 @@ struct LogEntry: Identifiable, Sendable {
 /// Pre-built HL7 v2.x sample messages for quick demos.
 enum SampleMessages {
     /// ADT^A01 – Admit/Visit Notification.
-    static let adtA01: String = """
-        MSH|^~\\&|ADT|HOSPITAL|RCV|FACILITY|20240115120000||ADT^A01^ADT_A01|MSG00001|P|2.5.1
-        EVN|A01|20240115120000
-        PID|1||12345^^^HOSP^MR||Doe^John^A||19800101|M|||123 Main St^^Springfield^IL^62701||555-555-1234
-        PV1|1|I|ICU^101^A|E|||1234^Smith^Jane^^^Dr|||MED||||1|||1234^Smith^Jane^^^Dr|IN||||||||||||||||||||||20240115120000
-        """
-        .trimmingCharacters(in: .whitespaces)
-        .replacingOccurrences(of: "        ", with: "")
+    static let adtA01: String = [
+        "MSH|^~\\&|ADT|HOSPITAL|RCV|FACILITY|20240115120000||ADT^A01^ADT_A01|MSG00001|P|2.5.1",
+        "EVN|A01|20240115120000",
+        "PID|1||12345^^^HOSP^MR||Doe^John^A||19800101|M|||123 Main St^^Springfield^IL^62701||555-555-1234",
+        "PV1|1|I|ICU^101^A|E|||1234^Smith^Jane^^^Dr|||MED||||1|||1234^Smith^Jane^^^Dr|IN||||||||||||||||||||||20240115120000",
+    ].joined(separator: "\r")
 
     /// ORU^R01 – Observation Result.
-    static let oruR01: String = """
-        MSH|^~\\&|LAB|HOSPITAL|RCV|FACILITY|20240115130000||ORU^R01^ORU_R01|MSG00002|P|2.5.1
-        PID|1||67890^^^HOSP^MR||Smith^Jane^B||19901215|F
-        OBR|1|ORD001|LAB001|CBC^Complete Blood Count^LN|||20240115100000
-        OBX|1|NM|WBC^White Blood Cell Count^LN||7.5|10*3/uL|4.5-11.0|N|||F
-        OBX|2|NM|RBC^Red Blood Cell Count^LN||4.8|10*6/uL|4.0-5.5|N|||F
-        OBX|3|NM|HGB^Hemoglobin^LN||14.2|g/dL|12.0-16.0|N|||F
-        """
-        .trimmingCharacters(in: .whitespaces)
-        .replacingOccurrences(of: "        ", with: "")
+    static let oruR01: String = [
+        "MSH|^~\\&|LAB|HOSPITAL|RCV|FACILITY|20240115130000||ORU^R01^ORU_R01|MSG00002|P|2.5.1",
+        "PID|1||67890^^^HOSP^MR||Smith^Jane^B||19901215|F",
+        "OBR|1|ORD001|LAB001|CBC^Complete Blood Count^LN|||20240115100000",
+        "OBX|1|NM|WBC^White Blood Cell Count^LN||7.5|10*3/uL|4.5-11.0|N|||F",
+        "OBX|2|NM|RBC^Red Blood Cell Count^LN||4.8|10*6/uL|4.0-5.5|N|||F",
+        "OBX|3|NM|HGB^Hemoglobin^LN||14.2|g/dL|12.0-16.0|N|||F",
+    ].joined(separator: "\r")
 
     /// A deliberately malformed message for validation demos.
-    static let invalidMessage: String = """
-        MSH|^~\\&|SRC||||||BAD_TYPE|CTL001|P|2.5.1
-        PID|1||^^^HOSP^MR||^John||INVALID_DATE|X
-        """
-        .trimmingCharacters(in: .whitespaces)
-        .replacingOccurrences(of: "        ", with: "")
+    static let invalidMessage: String = [
+        "MSH|^~\\&|SRC||||||BAD_TYPE|CTL001|P|2.5.1",
+        "PID|1||^^^HOSP^MR||^John||INVALID_DATE|X",
+    ].joined(separator: "\r")
 }
 
 // MARK: - Shared UI Components
