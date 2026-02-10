@@ -335,6 +335,21 @@ public actor FHIRClient {
         return try await execute(request: request)
     }
 
+    /// Search using a typed FHIRSearchQuery (GET [base]/[type]?parameters)
+    ///
+    /// Provides type-safe search parameter construction via the FHIRSearchQuery builder.
+    ///
+    /// - Parameters:
+    ///   - type: The resource type to search
+    ///   - query: A typed search query built with FHIRSearchQuery
+    /// - Returns: A Bundle containing search results
+    public func search<T: Resource & Codable & Sendable>(
+        _ type: T.Type, query: FHIRSearchQuery
+    ) async throws -> FHIRResponse<Bundle> {
+        let params = query.toQueryParameters()
+        return try await search(type, parameters: params)
+    }
+
     /// Search using POST (POST [base]/[type]/_search)
     ///
     /// Useful when search parameters are too long for URL query strings.
@@ -352,6 +367,44 @@ public actor FHIRClient {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         let formBody = parameters.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
         request.httpBody = formBody.data(using: .utf8)
+        return try await execute(request: request)
+    }
+
+    /// Search using POST with a typed FHIRSearchQuery (POST [base]/[type]/_search)
+    ///
+    /// Useful when search parameters are too long for URL query strings.
+    ///
+    /// - Parameters:
+    ///   - type: The resource type to search
+    ///   - query: A typed search query built with FHIRSearchQuery
+    /// - Returns: A Bundle containing search results
+    public func searchPost<T: Resource & Codable & Sendable>(
+        _ type: T.Type, query: FHIRSearchQuery
+    ) async throws -> FHIRResponse<Bundle> {
+        let params = query.toQueryParameters()
+        return try await searchPost(type, parameters: params)
+    }
+
+    /// Compartment-based search (GET [base]/[compartmentType]/[id]/[resourceType]?parameters)
+    ///
+    /// Searches for resources within a specific compartment (e.g., all Observations for a Patient).
+    ///
+    /// - Parameters:
+    ///   - compartment: The compartment search definition
+    ///   - parameters: Additional search parameters
+    /// - Returns: A Bundle containing search results
+    public func compartmentSearch<T: Resource & Codable & Sendable>(
+        _ type: T.Type,
+        compartment: CompartmentSearch,
+        parameters: [String: String] = [:]
+    ) async throws -> FHIRResponse<Bundle> {
+        let url = try buildURL(
+            resourceType: compartment.compartmentType,
+            id: compartment.compartmentId,
+            additionalPath: compartment.resourceType,
+            queryParameters: parameters
+        )
+        let request = try buildRequest(url: url, method: "GET")
         return try await execute(request: request)
     }
 
