@@ -80,6 +80,7 @@ HL7kit/
 │   ├── Serialization/ # JSON/XML serialization
 │   ├── RESTClient/    # FHIR RESTful client
 │   ├── Search/        # Type-safe FHIR search & query API
+│   ├── SMARTAuth/     # SMART on FHIR OAuth 2.0 authentication
 │   └── Validation/    # FHIR validation engine (profiles, FHIRPath, terminology)
 ├── HL7Core/           # Shared utilities and protocols
 │   ├── HL7Core.swift          # Base protocols and types

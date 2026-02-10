@@ -382,12 +382,12 @@ Add advanced capabilities, SMART on FHIR support, and optimization for FHIRkit.
 ### Milestones
 
 #### 6.1 SMART on FHIR Authentication (Weeks 39-40)
-- [ ] Implement OAuth 2.0 authorization flow
-- [ ] Create SMART App Launch Framework support
-- [ ] Add standalone and EHR launch sequences
-- [ ] Implement token management and refresh
-- [ ] Create scope handling and permission management
-- [ ] Add PKCE support for public clients
+- [x] Implement OAuth 2.0 authorization flow
+- [x] Create SMART App Launch Framework support
+- [x] Add standalone and EHR launch sequences
+- [x] Implement token management and refresh
+- [x] Create scope handling and permission management
+- [x] Add PKCE support for public clients
 
 **Deliverables**: Complete SMART on FHIR authentication
 
