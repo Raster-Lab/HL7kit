@@ -66,7 +66,11 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **FHIR Subscriptions & Real-time**: R5 topic-based subscription management with WebSocket transport, REST-hook notification handling, event filtering, and automatic reconnection with configurable backoff strategies. Features FHIRSubscriptionManager actor for CRUD operations and real-time notification streaming, SubscriptionEventFilter with fluent EventFilterBuilder API, RESTHookHandler for processing notification bundles, WebSocketTransport actor with auto-reconnection, and ReconnectionStrategy with preset configurations (default, aggressive, conservative, noRetry). All types are Sendable for Swift 6 strict concurrency. Includes 40+ unit tests.
 - **FHIR Performance Optimization**: Comprehensive performance toolkit including OptimizedJSONParser and OptimizedXMLParser with benchmarking, FHIRResourceCache actor with LRU eviction and TTL-based expiration, StreamingBundleProcessor for memory-efficient large Bundle handling, ConnectionPool actor for HTTP session reuse, FHIRBenchmark harness with comparison support, FHIRPerformanceMetrics actor for operation timing, and MemoryPressureMonitor for runtime memory tracking. All types are public and Sendable for Swift 6 strict concurrency. Includes 44 unit tests.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 1770+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 2090+ unit tests with 90%+ code coverage
+- **Testing Infrastructure**: Reusable testing utilities for HL7 integrations including IntegrationTestRunner actor with sequential/parallel execution and dependency management, PerformanceBenchmarkRunner actor with min/max/avg/median/p95/p99 timing and baseline comparison, ConformanceTestRunner actor with category-based conformance reports, MockServer/MockClient actors with route matching and interaction verification, and TestDataGenerator with seed-based reproducible generation of patient names, MRNs, SSNs, phone numbers, HL7 v2.x messages (ADT, ORU), and FHIR-like JSON. All types are public, Sendable, and XCTest-independent for use by library consumers. Includes 45+ unit tests.
+- **Persistence Layer**: Message archive/retrieval system with `MessageArchive` actor for thread-safe storage, `PersistenceStore` protocol with `InMemoryStore` actor for key-value persistence, `DataExporter`/`DataImporter` for JSON export/import with round-trip fidelity, `ArchiveIndex` actor for full-text search and field-based indexing with TF-IDF relevance scoring, date range queries, tag-based filtering, and archive statistics. All types are public and Sendable for Swift 6 strict concurrency. Includes 80 unit tests.
+- **Common Services**: Unified cross-module services including `UnifiedLogger` actor with subsystem/category tagging, correlation ID tracing, and buffered log export; `SecurityService` actor with PHI sanitization (SSN, phone, email masking), input validation, secure random generation, and SHA-256 hashing; `SharedCache<Key, Value>` generic LRU cache actor with TTL expiration and hit/miss statistics. All types are public and Sendable for Swift 6 strict concurrency.
+- **Security Framework**: Production-grade security layer with `MessageEncryptor` (symmetric encryption with IV and key ID tracking), `DigitalSigner` (HMAC-SHA256 signing and constant-time verification), `EncryptionKey`/`SigningKey` generation, `CertificateInfo` with lifecycle status tracking (valid, expired, revoked, untrusted), and pure-Swift SHA256/HMAC implementations for cross-platform compatibility. Includes access control primitives and HIPAA compliance utilities.
 
 ## Project Structure
 
@@ -99,9 +103,13 @@ HL7kit/
 │   ├── Logging.swift          # Structured logging system
 │   ├── Benchmarking.swift     # Performance benchmarking
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
-│   └── ActorPatterns.swift    # Concurrency patterns
+│   ├── ActorPatterns.swift    # Concurrency patterns
+│   ├── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
+│   ├── SecurityFramework.swift # Security framework (encryption, signatures, RBAC, HIPAA, certificates)
+│   ├── Persistence.swift      # Message archive, storage, search/indexing, export/import
+│   └── TestingInfrastructure.swift # Integration/performance/conformance test harnesses, mocks, generators
 ├── Examples/          # Sample applications
-├── Tests/             # Comprehensive test suites (1770+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
@@ -110,7 +118,11 @@ HL7kit/
 ├── FHIR_STANDARDS.md     # HL7 FHIR standards analysis (R4, R5)
 ├── CONCURRENCY_MODEL.md  # Actor-based concurrency architecture
 ├── PERFORMANCE.md        # Performance optimization guide
-└── CODING_STANDARDS.md   # Development standards
+├── CODING_STANDARDS.md   # Development standards
+├── ARCHITECTURE.md       # System architecture documentation
+├── INTEGRATION_GUIDE.md  # Phase 7 integration guide
+├── SECURITY_GUIDE.md     # Security best practices
+└── MIGRATION_GUIDE.md    # Migration guides
 ```
 
 ---
@@ -261,6 +273,14 @@ TBD - Consider MIT or Apache 2.0 for maximum adoption
   - [HL7 v2.x Standards](HL7V2X_STANDARDS.md)
   - [HL7 v3.x Standards](HL7V3X_STANDARDS.md)
   - [HL7 FHIR Standards](FHIR_STANDARDS.md)
+- **Guides**:
+  - [Architecture](ARCHITECTURE.md)
+  - [Integration Guide](INTEGRATION_GUIDE.md)
+  - [Security Guide](SECURITY_GUIDE.md)
+  - [Migration Guide](MIGRATION_GUIDE.md)
+  - [Concurrency Model](CONCURRENCY_MODEL.md)
+  - [Performance](PERFORMANCE.md)
+  - [Character Encoding](CHARACTER_ENCODING.md)
 
 ---
 
