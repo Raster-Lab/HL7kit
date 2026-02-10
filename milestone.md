@@ -392,12 +392,12 @@ Add advanced capabilities, SMART on FHIR support, and optimization for FHIRkit.
 **Deliverables**: Complete SMART on FHIR authentication
 
 #### 6.2 Terminology Services (Week 41)
-- [ ] Implement CodeSystem operations ($lookup, $validate-code)
-- [ ] Create ValueSet expansion and validation
-- [ ] Add ConceptMap translation support
-- [ ] Build local terminology cache
-- [ ] Support for SNOMED CT, LOINC, ICD, RxNorm
-- [ ] Integrate with external terminology servers
+- [x] Implement CodeSystem operations ($lookup, $validate-code)
+- [x] Create ValueSet expansion and validation
+- [x] Add ConceptMap translation support
+- [x] Build local terminology cache
+- [x] Support for SNOMED CT, LOINC, ICD, RxNorm
+- [x] Integrate with external terminology servers
 
 **Deliverables**: FHIR terminology services framework
 
