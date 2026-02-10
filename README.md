@@ -99,7 +99,8 @@ HL7kit/
 │   ├── Logging.swift          # Structured logging system
 │   ├── Benchmarking.swift     # Performance benchmarking
 │   ├── ParsingStrategies.swift # Memory-efficient parsing
-│   └── ActorPatterns.swift    # Concurrency patterns
+│   ├── ActorPatterns.swift    # Concurrency patterns
+│   └── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites (1770+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation

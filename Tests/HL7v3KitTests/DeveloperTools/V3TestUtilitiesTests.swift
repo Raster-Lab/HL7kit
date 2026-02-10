@@ -402,14 +402,16 @@ final class V3TestUtilitiesTests: XCTestCase {
             text: "Parent text"
         )
         
-        XCTAssertTrue(await V3TestUtilities.elementsEqual(element1, element2))
+        let result1 = await V3TestUtilities.elementsEqual(element1, element2)
+        XCTAssertTrue(result1)
     }
     
     func testElementsNotEqual() async throws {
         let element1 = XMLElement(name: "test", attributes: ["id": "123"])
         let element2 = XMLElement(name: "test", attributes: ["id": "456"])
         
-        XCTAssertFalse(await V3TestUtilities.elementsEqual(element1, element2))
+        let result = await V3TestUtilities.elementsEqual(element1, element2)
+        XCTAssertFalse(result)
     }
     
     func testElementsEqualIgnoreOrder() async throws {
@@ -429,8 +431,10 @@ final class V3TestUtilitiesTests: XCTestCase {
             ]
         )
         
-        XCTAssertFalse(await V3TestUtilities.elementsEqual(element1, element2, ignoreOrder: false))
-        XCTAssertTrue(await V3TestUtilities.elementsEqual(element1, element2, ignoreOrder: true))
+        let resultNoOrder = await V3TestUtilities.elementsEqual(element1, element2, ignoreOrder: false)
+        XCTAssertFalse(resultNoOrder)
+        let resultWithOrder = await V3TestUtilities.elementsEqual(element1, element2, ignoreOrder: true)
+        XCTAssertTrue(resultWithOrder)
     }
     
     // MARK: - XMLElement Extension Tests

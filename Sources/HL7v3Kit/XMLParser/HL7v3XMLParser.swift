@@ -188,6 +188,16 @@ public struct XMLElement: Sendable, Equatable {
         }
         return result
     }
+
+    /// Returns whether this element has a direct child with the given name
+    public func hasChild(named name: String) -> Bool {
+        children.contains { $0.name == name }
+    }
+
+    /// Returns all direct children with the given name
+    public func allChildren(named name: String) -> [XMLElement] {
+        children.filter { $0.name == name }
+    }
 }
 
 // MARK: - XMLDocument
