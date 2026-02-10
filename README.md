@@ -110,7 +110,8 @@ HL7kit/
 │   ├── Persistence.swift      # Message archive, storage, search/indexing, export/import
 │   └── TestingInfrastructure.swift # Integration/performance/conformance test harnesses, mocks, generators
 ├── Examples/          # Sample applications
-│   └── iOS/           # SwiftUI iOS demo app (message viewer, network testing, validation, performance)
+│   ├── iOS/           # SwiftUI iOS demo app (message viewer, network testing, validation, performance)
+│   └── macOS/         # AppKit/SwiftUI macOS workstation (message processing, batch tools, dev tools, interface testing)
 ├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
