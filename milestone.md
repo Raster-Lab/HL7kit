@@ -526,13 +526,13 @@ Add Apple platform-specific features and create example applications.
 **Deliverables**: Production-quality macOS example app
 
 #### 8.4 Command-Line Tools (Week 55)
-- [ ] Message validator CLI
-- [ ] Format converter CLI
-- [ ] Network testing CLI
-- [ ] Conformance checker CLI
-- [ ] Batch processor CLI
+- [x] Message validator CLI
+- [x] Format converter CLI
+- [x] Conformance checker CLI
+- [x] Batch processor CLI
+- [x] Message inspector/debugger CLI
 
-**Deliverables**: Complete CLI toolkit
+**Deliverables**: Complete CLI toolkit ✓ (Implemented `hl7` executable with validate, convert, inspect, batch, and conformance subcommands. Native argument parsing, JSON/text output formats, auto-detected conformance profiles. 89 unit tests.)
 
 #### 8.5 Sample Code & Tutorials (Week 56)
 - [ ] Quick start guides
