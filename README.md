@@ -72,6 +72,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Common Services**: Unified cross-module services including `UnifiedLogger` actor with subsystem/category tagging, correlation ID tracing, and buffered log export; `SecurityService` actor with PHI sanitization (SSN, phone, email masking), input validation, secure random generation, and SHA-256 hashing; `SharedCache<Key, Value>` generic LRU cache actor with TTL expiration and hit/miss statistics. All types are public and Sendable for Swift 6 strict concurrency.
 - **Security Framework**: Production-grade security layer with `MessageEncryptor` (symmetric encryption with IV and key ID tracking), `DigitalSigner` (HMAC-SHA256 signing and constant-time verification), `EncryptionKey`/`SigningKey` generation, `CertificateInfo` with lifecycle status tracking (valid, expired, revoked, untrusted), and pure-Swift SHA256/HMAC implementations for cross-platform compatibility. Includes access control primitives and HIPAA compliance utilities.
 - **Platform Integrations**: Protocols and abstractions for Apple platform integration including `HealthDataProvider` (HealthKit bridge with measurement read/write/observe), `CareDataProvider` (CareKit bridge with tasks and outcomes), `ResearchDataProvider` (ResearchKit bridge with surveys and consent), `CloudSyncProvider` (iCloud sync with conflict resolution), `HandoffProvider` (device-to-device activity handoff), and `ShortcutsProvider` (Siri shortcuts and App Intents). Includes `PlatformIntegrationManager` actor for centralized provider management, `HealthDataMapper` utility with LOINC/UCUM mappings, and data types for vital signs, care tasks, survey questions, sync records, and shortcut actions. All types are Sendable and platform-agnostic. Includes 87 unit tests.
+- **Command-Line Tools**: Complete CLI toolkit (`hl7` executable) with five subcommands: `validate` (structural and profile-based validation), `convert` (format conversion including HL7 v2.x round-trip and v2→v3 CDA), `inspect` (message tree view, statistics, and search), `batch` (multi-file processing with validate/inspect/convert operations), and `conformance` (profile-based conformance checking against ADT_A01, ORU_R01, ORM_O01, ACK profiles). Supports text and JSON output formats, auto-detected conformance profiles, and native argument parsing with no external dependencies. Includes 89 unit tests.
 
 ## Project Structure
 
@@ -110,6 +111,8 @@ HL7kit/
 │   ├── Persistence.swift      # Message archive, storage, search/indexing, export/import
 │   ├── PlatformIntegrations.swift # Platform integration protocols (HealthKit, CareKit, ResearchKit, iCloud, Handoff, Siri)
 │   └── TestingInfrastructure.swift # Integration/performance/conformance test harnesses, mocks, generators
+├── HL7CLI/            # CLI core library (argument parsing, command logic)
+├── HL7CLIEntry/       # CLI executable entry point
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
@@ -198,6 +201,85 @@ let result = try parser.parse(messageString)
 ```
 
 For comprehensive performance tuning, see the [Performance Guide](PERFORMANCE.md).
+
+---
+
+## 🔧 Command-Line Tools
+
+HL7kit includes a CLI tool (`hl7`) for processing HL7 messages from the command line.
+
+### Installation
+
+```bash
+# Build the CLI tool
+swift build --product hl7
+
+# Run directly
+swift run hl7 --help
+```
+
+### Commands
+
+#### Validate Messages
+
+```bash
+# Validate a single message
+hl7 validate message.hl7
+
+# Validate with strict mode
+hl7 validate --strict message.hl7
+
+# Validate multiple files
+hl7 validate file1.hl7 file2.hl7 file3.hl7
+
+# JSON output
+hl7 validate --format json message.hl7
+```
+
+#### Inspect Messages
+
+```bash
+# Inspect message structure
+hl7 inspect message.hl7
+
+# Show statistics
+hl7 inspect message.hl7 --stats
+
+# Search for values
+hl7 inspect message.hl7 --search "Doe"
+```
+
+#### Convert Formats
+
+```bash
+# Re-serialize (normalize) an HL7 v2.x message
+hl7 convert message.hl7 --from hl7v2 --to hl7v2
+
+# Convert to CDA XML
+hl7 convert message.hl7 --from hl7v2 --to hl7v3 --pretty -o output.xml
+```
+
+#### Batch Processing
+
+```bash
+# Batch validate multiple files
+hl7 batch *.hl7
+
+# Batch inspect with output directory
+hl7 batch --operation inspect --output-dir results/ *.hl7
+```
+
+#### Conformance Checking
+
+```bash
+# Auto-detect profile and check conformance
+hl7 conformance message.hl7
+
+# Check against a specific profile
+hl7 conformance message.hl7 --profile ADT_A01
+
+# Available profiles: ADT_A01, ORU_R01, ORM_O01, ACK
+```
 
 ---
 
