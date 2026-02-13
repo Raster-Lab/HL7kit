@@ -535,13 +535,13 @@ Add Apple platform-specific features and create example applications.
 **Deliverables**: Complete CLI toolkit ✓ (Implemented `hl7` executable with validate, convert, inspect, batch, and conformance subcommands. Native argument parsing, JSON/text output formats, auto-detected conformance profiles. 89 unit tests.)
 
 #### 8.5 Sample Code & Tutorials (Week 56)
-- [ ] Quick start guides
-- [ ] Common use case examples
-- [ ] Integration examples
-- [ ] Performance optimization examples
+- [x] Quick start guides
+- [x] Common use case examples
+- [x] Integration examples
+- [x] Performance optimization examples
 - [ ] Video tutorials
 
-**Deliverables**: 20+ code examples and tutorials
+**Deliverables**: 20+ code examples and tutorials ✓ (Implemented QuickStart guide with parsing/building/validating/inspecting, CommonUseCases with ADT/ORU/ORM/ACK workflows and batch processing, IntegrationExamples with v2→v3 CDA transformation, FHIR resources, and CLI usage, PerformanceOptimization with parser config, benchmarking, streaming, and compression. 20+ example functions/code blocks with 12 matching unit tests.)
 
 ---
 
