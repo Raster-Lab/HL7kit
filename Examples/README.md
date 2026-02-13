@@ -28,6 +28,26 @@ try message.validate()
 | [CommonUseCases.swift](CommonUseCases.swift) | ADT workflows, ORU lab results, ORM orders, ACK responses, batch processing |
 | [IntegrationExamples.swift](IntegrationExamples.swift) | v2→v3 CDA transformation, FHIR resources, JSON/XML serialization, CLI usage |
 | [PerformanceOptimization.swift](PerformanceOptimization.swift) | Object pooling, string interning, streaming, compression, benchmarking |
+| [iOSExamples.swift](iOSExamples.swift) | SwiftUI/UIKit views, notifications, background processing, local storage |
+| [macOSExamples.swift](macOSExamples.swift) | AppKit windows, menu bar, AppleScript, batch processing, CLI integration |
+
+## Platform-Specific Examples
+
+### iOS (iOSExamples.swift)
+- **SwiftUI Components**: `HL7MessageView`, `FHIRPatientCard`, `MessageListView`
+- **UIKit Controllers**: `HL7MessageViewController` with table view
+- **Notifications**: Background processing notifications with `NotificationManager`
+- **Background Tasks**: `BackgroundMessageProcessor` for processing while app is not active
+- **Local Storage**: `iOSMessageStorage` for document directory file management
+
+### macOS (macOSExamples.swift)
+- **AppKit Windows**: `HL7MessageWindowController` with split view and table view
+- **Menu Bar**: `HL7MenuBarManager` for status bar integration
+- **AppleScript**: `AppleScriptSupport` for automation
+- **Service Menu**: `HL7ServiceProvider` for system-wide services
+- **Batch Processing**: `BatchFileProcessor` with progress reporting
+- **Document-Based**: `HL7Document` class for document-based applications
+- **CLI Integration**: `CLIIntegration` for running command-line tools
 
 ## Modules
 
