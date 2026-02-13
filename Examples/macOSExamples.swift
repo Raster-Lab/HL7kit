@@ -77,12 +77,12 @@ open class HL7MessageWindowController: NSWindowController {
 @available(macOS 11.0, *)
 extension HL7MessageWindowController: NSTableViewDataSource {
     public func numberOfRows(in tableView: NSTableView) -> Int {
-        return message.segments.count
+        return message.segmentCount
     }
     
     public func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        let segment = message.segments[row]
-        return "\(segment.id) (\(segment.fields.count) fields)"
+        let segment = message.allSegments[row]
+        return "\(segment.segmentID) (\(segment.fields.count) fields)"
     }
 }
 
@@ -93,7 +93,7 @@ extension HL7MessageWindowController: NSTableViewDelegate {
         let row = tableView.selectedRow
         guard row >= 0 else { return }
         
-        let segment = message.segments[row]
+        let segment = message.allSegments[row]
         let details = segment.fields.enumerated()
             .map { "Field \($0): \($1)" }
             .joined(separator: "\n")
@@ -176,7 +176,8 @@ public class HL7MenuBarManager: NSObject {
         do {
             let data = try Data(contentsOf: url)
             let parser = HL7v2Parser()
-            let message = try parser.parse(data)
+            let result = try parser.parse(data)
+            let message = result.message
             
             let windowController = HL7MessageWindowController(message: message)
             windowController.showWindow(nil)
@@ -189,7 +190,8 @@ public class HL7MenuBarManager: NSObject {
         do {
             let data = try Data(contentsOf: url)
             let parser = HL7v2Parser()
-            let message = try parser.parse(data)
+            let result = try parser.parse(data)
+            let message = result.message
             try message.validate()
             
             showSuccess("Message is valid!")
@@ -297,7 +299,8 @@ public class HL7ServiceProvider: NSObject {
         
         do {
             let parser = HL7v2Parser()
-            let message = try parser.parse(messageString)
+            let result = try parser.parse(messageString)
+            let message = result.message
             try message.validate()
             
             pasteboard.clearContents()
@@ -315,12 +318,14 @@ public class HL7ServiceProvider: NSObject {
         
         do {
             let parser = HL7v2Parser()
-            let message = try parser.parse(messageString)
+            let result = try parser.parse(messageString)
+            let message = result.message
             
             // Format with line breaks
-            let formatted = message.segments
+            let formatted = message.allSegments
                 .map { segment in
-                    "\(segment.id)|\(segment.fields.joined(separator: "|"))"
+                    let serializedFields = segment.fields.compactMap { try? $0.serialize() }
+                    return "\(segment.segmentID)|\(serializedFields.joined(separator: "|"))"
                 }
                 .joined(separator: "\n")
             
@@ -413,7 +418,8 @@ public actor BatchFileProcessor {
     private func processFile(_ url: URL, operation: Operation) async throws {
         let data = try Data(contentsOf: url)
         let parser = HL7v2Parser()
-        let message = try parser.parse(data)
+        let result = try parser.parse(data)
+        let message = result.message
         
         switch operation {
         case .validate:
@@ -487,7 +493,8 @@ open class HL7Document: NSDocument {
     
     open override func read(from data: Data, ofType typeName: String) throws {
         let parser = HL7v2Parser()
-        message = try parser.parse(data)
+        let result = try parser.parse(data)
+        message = result.message
     }
 }
 
@@ -505,10 +512,10 @@ public struct SpotlightMetadata {
     
     public init(from message: HL7v2Message) {
         // Extract MSH fields
-        if let msh = message.segments.first(where: { $0.id == "MSH" }), msh.fields.count > 10 {
-            self.sendingApplication = msh.fields[2]
-            self.messageType = msh.fields[8]
-            self.messageControlID = msh.fields[9]
+        if let msh = message.segments(withID: "MSH").first, msh.fields.count > 10 {
+            self.sendingApplication = try? msh.fields[2].serialize() ?? ""
+            self.messageType = try? msh.fields[8].serialize() ?? ""
+            self.messageControlID = try? msh.fields[9].serialize() ?? ""
         } else {
             self.sendingApplication = ""
             self.messageType = ""
@@ -516,8 +523,8 @@ public struct SpotlightMetadata {
         }
         
         // Extract patient ID from PID segment
-        if let pid = message.segments.first(where: { $0.id == "PID" }), pid.fields.count > 3 {
-            self.patientID = pid.fields[3]
+        if let pid = message.segments(withID: "PID").first, pid.fields.count > 3 {
+            self.patientID = try? pid.fields[3].serialize()
         } else {
             self.patientID = nil
         }
