@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a parsed command-line invocation
-enum Command: Sendable {
+public enum Command: Sendable {
     case validate(ValidateOptions)
     case convert(ConvertOptions)
     case inspect(InspectOptions)
@@ -19,7 +19,7 @@ enum Command: Sendable {
 }
 
 /// Exit codes for the CLI
-enum ExitCode: Int32 {
+public enum ExitCode: Int32 {
     case success = 0
     case validationFailure = 1
     case inputError = 2
@@ -28,13 +28,13 @@ enum ExitCode: Int32 {
 }
 
 /// Options for the validate command
-struct ValidateOptions: Sendable {
-    let inputFiles: [String]
-    let readStdin: Bool
-    let strict: Bool
-    let format: OutputFormat
+public struct ValidateOptions: Sendable {
+    public let inputFiles: [String]
+    public let readStdin: Bool
+    public let strict: Bool
+    public let format: OutputFormat
 
-    init(inputFiles: [String], readStdin: Bool = false, strict: Bool = false, format: OutputFormat = .text) {
+    public init(inputFiles: [String], readStdin: Bool = false, strict: Bool = false, format: OutputFormat = .text) {
         self.inputFiles = inputFiles
         self.readStdin = readStdin
         self.strict = strict
@@ -43,14 +43,14 @@ struct ValidateOptions: Sendable {
 }
 
 /// Options for the convert command
-struct ConvertOptions: Sendable {
-    let inputFile: String
-    let outputFile: String?
-    let fromFormat: MessageFormat
-    let toFormat: MessageFormat
-    let pretty: Bool
+public struct ConvertOptions: Sendable {
+    public let inputFile: String
+    public let outputFile: String?
+    public let fromFormat: MessageFormat
+    public let toFormat: MessageFormat
+    public let pretty: Bool
 
-    init(inputFile: String, outputFile: String? = nil, fromFormat: MessageFormat = .hl7v2,
+    public init(inputFile: String, outputFile: String? = nil, fromFormat: MessageFormat = .hl7v2,
          toFormat: MessageFormat = .hl7v2, pretty: Bool = false) {
         self.inputFile = inputFile
         self.outputFile = outputFile
@@ -61,14 +61,14 @@ struct ConvertOptions: Sendable {
 }
 
 /// Options for the inspect command
-struct InspectOptions: Sendable {
-    let inputFile: String
-    let showTree: Bool
-    let showStats: Bool
-    let searchTerm: String?
-    let format: OutputFormat
+public struct InspectOptions: Sendable {
+    public let inputFile: String
+    public let showTree: Bool
+    public let showStats: Bool
+    public let searchTerm: String?
+    public let format: OutputFormat
 
-    init(inputFile: String, showTree: Bool = true, showStats: Bool = false,
+    public init(inputFile: String, showTree: Bool = true, showStats: Bool = false,
          searchTerm: String? = nil, format: OutputFormat = .text) {
         self.inputFile = inputFile
         self.showTree = showTree
@@ -79,14 +79,14 @@ struct InspectOptions: Sendable {
 }
 
 /// Options for the batch command
-struct BatchOptions: Sendable {
-    let inputFiles: [String]
-    let outputDir: String?
-    let operation: BatchOperation
-    let continueOnError: Bool
-    let format: OutputFormat
+public struct BatchOptions: Sendable {
+    public let inputFiles: [String]
+    public let outputDir: String?
+    public let operation: BatchOperation
+    public let continueOnError: Bool
+    public let format: OutputFormat
 
-    init(inputFiles: [String], outputDir: String? = nil,
+    public init(inputFiles: [String], outputDir: String? = nil,
          operation: BatchOperation = .validate, continueOnError: Bool = true,
          format: OutputFormat = .text) {
         self.inputFiles = inputFiles
@@ -98,12 +98,12 @@ struct BatchOptions: Sendable {
 }
 
 /// Options for the conformance command
-struct ConformanceOptions: Sendable {
-    let inputFile: String
-    let profile: String?
-    let format: OutputFormat
+public struct ConformanceOptions: Sendable {
+    public let inputFile: String
+    public let profile: String?
+    public let format: OutputFormat
 
-    init(inputFile: String, profile: String? = nil, format: OutputFormat = .text) {
+    public init(inputFile: String, profile: String? = nil, format: OutputFormat = .text) {
         self.inputFile = inputFile
         self.profile = profile
         self.format = format
@@ -111,13 +111,13 @@ struct ConformanceOptions: Sendable {
 }
 
 /// Output formats
-enum OutputFormat: String, Sendable {
+public enum OutputFormat: String, Sendable {
     case text
     case json
 }
 
 /// Message formats for conversion
-enum MessageFormat: String, Sendable {
+public enum MessageFormat: String, Sendable {
     case hl7v2
     case hl7v3
     case fhirJson = "fhir-json"
@@ -125,17 +125,17 @@ enum MessageFormat: String, Sendable {
 }
 
 /// Batch operations
-enum BatchOperation: String, Sendable {
+public enum BatchOperation: String, Sendable {
     case validate
     case inspect
     case convert
 }
 
 /// Parses command-line arguments into a Command
-enum CLIParser {
+public enum CLIParser {
 
     /// Parse command-line arguments into a Command
-    static func parse(_ arguments: [String]) -> Result<Command, CLIError> {
+    public static func parse(_ arguments: [String]) -> Result<Command, CLIError> {
         // arguments[0] is the executable name
         let args = Array(arguments.dropFirst())
 
@@ -407,7 +407,7 @@ enum CLIParser {
 }
 
 /// CLI-specific errors
-enum CLIError: Error, CustomStringConvertible, Sendable {
+public enum CLIError: Error, CustomStringConvertible, Sendable {
     case unknownCommand(String)
     case unknownOption(String)
     case missingArgument(String)
@@ -416,7 +416,7 @@ enum CLIError: Error, CustomStringConvertible, Sendable {
     case readError(String)
     case processingError(String)
 
-    var description: String {
+    public var description: String {
         switch self {
         case .unknownCommand(let cmd):
             return "Unknown command: '\(cmd)'. Run 'hl7 help' for usage information."

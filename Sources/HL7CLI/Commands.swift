@@ -11,13 +11,13 @@ import HL7v2Kit
 // MARK: - File I/O Utilities
 
 /// Creates a parser configured to accept any segment terminator style
-func createParser() -> HL7v2Parser {
+public func createParser() -> HL7v2Parser {
     let config = ParserConfiguration(segmentTerminator: .any)
     return HL7v2Parser(configuration: config)
 }
 
 /// Reads the contents of a file at the given path
-func readFile(at path: String) throws -> String {
+public func readFile(at path: String) throws -> String {
     let url = URL(fileURLWithPath: path)
     guard FileManager.default.fileExists(atPath: url.path) else {
         throw CLIError.fileNotFound(path)
@@ -30,7 +30,7 @@ func readFile(at path: String) throws -> String {
 }
 
 /// Reads all available input from standard input
-func readStandardInput() -> String {
+public func readStandardInput() -> String {
     var lines: [String] = []
     while let line = readLine(strippingNewline: false) {
         lines.append(line)
@@ -39,7 +39,7 @@ func readStandardInput() -> String {
 }
 
 /// Writes content to a file or stdout
-func writeOutput(_ content: String, to path: String?) throws {
+public func writeOutput(_ content: String, to path: String?) throws {
     if let path = path {
         let url = URL(fileURLWithPath: path)
         do {
@@ -55,7 +55,7 @@ func writeOutput(_ content: String, to path: String?) throws {
 // MARK: - Validate Command
 
 /// Executes the validate command
-func runValidate(_ options: ValidateOptions) -> ExitCode {
+public func runValidate(_ options: ValidateOptions) -> ExitCode {
     var allValid = true
     var results: [[String: Any]] = []
 
@@ -237,7 +237,7 @@ private func printValidationResult(_ result: MessageValidationResult, name: Stri
 // MARK: - Inspect Command
 
 /// Executes the inspect command
-func runInspect(_ options: InspectOptions) -> ExitCode {
+public func runInspect(_ options: InspectOptions) -> ExitCode {
     let content: String
     do {
         content = try readFile(at: options.inputFile)
@@ -329,7 +329,7 @@ private func printInspectionJSON(_ inspector: MessageInspector, options: Inspect
 // MARK: - Convert Command
 
 /// Executes the convert command
-func runConvert(_ options: ConvertOptions) -> ExitCode {
+public func runConvert(_ options: ConvertOptions) -> ExitCode {
     let content: String
     do {
         content = try readFile(at: options.inputFile)
@@ -474,7 +474,7 @@ private func escapeXML(_ string: String) -> String {
 // MARK: - Batch Command
 
 /// Executes the batch command
-func runBatch(_ options: BatchOptions) -> ExitCode {
+public func runBatch(_ options: BatchOptions) -> ExitCode {
     var totalFiles = 0
     var successCount = 0
     var failureCount = 0
@@ -657,7 +657,7 @@ private func printBatchResult(_ result: BatchFileResult) {
 // MARK: - Conformance Command
 
 /// Executes the conformance command
-func runConformance(_ options: ConformanceOptions) -> ExitCode {
+public func runConformance(_ options: ConformanceOptions) -> ExitCode {
     let content: String
     do {
         content = try readFile(at: options.inputFile)
@@ -805,13 +805,13 @@ private func printConformanceJSON(
 // MARK: - Output Helpers
 
 /// Prints an error message to stderr
-func printError(_ message: String) {
+public func printError(_ message: String) {
     let stderr = FileHandle.standardError
     stderr.write(Data("Error: \(message)\n".utf8))
 }
 
 /// Prints a dictionary as JSON to stdout
-func printJSON(_ dict: [String: Any]) {
+public func printJSON(_ dict: [String: Any]) {
     do {
         let data = try JSONSerialization.data(withJSONObject: dict, options: [.prettyPrinted, .sortedKeys])
         if let str = String(data: data, encoding: .utf8) {

@@ -6,9 +6,9 @@
 import Foundation
 
 /// Provides help text for all CLI commands
-enum HelpText {
+public enum HelpText {
     /// Main help text shown when no command is specified
-    static let main = """
+    public static let main = """
         HL7kit CLI - Command-line tools for HL7 message processing
 
         USAGE:
@@ -36,7 +36,7 @@ enum HelpText {
         """
 
     /// Help text for the validate command
-    static let validate = """
+    public static let validate = """
         USAGE:
             hl7 validate [options] <file> [<file> ...]
 
@@ -61,7 +61,7 @@ enum HelpText {
         """
 
     /// Help text for the convert command
-    static let convert = """
+    public static let convert = """
         USAGE:
             hl7 convert [options] <file>
 
@@ -86,7 +86,7 @@ enum HelpText {
         """
 
     /// Help text for the inspect command
-    static let inspect = """
+    public static let inspect = """
         USAGE:
             hl7 inspect [options] <file>
 
@@ -112,7 +112,7 @@ enum HelpText {
         """
 
     /// Help text for the batch command
-    static let batch = """
+    public static let batch = """
         USAGE:
             hl7 batch [options] <file> [<file> ...]
 
@@ -138,7 +138,7 @@ enum HelpText {
         """
 
     /// Help text for the conformance command
-    static let conformance = """
+    public static let conformance = """
         USAGE:
             hl7 conformance [options] <file>
 
@@ -163,5 +163,5 @@ enum HelpText {
         """
 
     /// Version string
-    static let version = "HL7kit CLI v1.0.0"
+    public static let version = "HL7kit CLI v1.0.0"
 }

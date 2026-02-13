@@ -4,6 +4,7 @@
 // Entry point for the HL7kit command-line tools.
 
 import Foundation
+import HL7CLICore
 
 /// Main entry point
 let result = CLIParser.parse(CommandLine.arguments)
