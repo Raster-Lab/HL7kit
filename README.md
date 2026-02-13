@@ -71,6 +71,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Persistence Layer**: Message archive/retrieval system with `MessageArchive` actor for thread-safe storage, `PersistenceStore` protocol with `InMemoryStore` actor for key-value persistence, `DataExporter`/`DataImporter` for JSON export/import with round-trip fidelity, `ArchiveIndex` actor for full-text search and field-based indexing with TF-IDF relevance scoring, date range queries, tag-based filtering, and archive statistics. All types are public and Sendable for Swift 6 strict concurrency. Includes 80 unit tests.
 - **Common Services**: Unified cross-module services including `UnifiedLogger` actor with subsystem/category tagging, correlation ID tracing, and buffered log export; `SecurityService` actor with PHI sanitization (SSN, phone, email masking), input validation, secure random generation, and SHA-256 hashing; `SharedCache<Key, Value>` generic LRU cache actor with TTL expiration and hit/miss statistics. All types are public and Sendable for Swift 6 strict concurrency.
 - **Security Framework**: Production-grade security layer with `MessageEncryptor` (symmetric encryption with IV and key ID tracking), `DigitalSigner` (HMAC-SHA256 signing and constant-time verification), `EncryptionKey`/`SigningKey` generation, `CertificateInfo` with lifecycle status tracking (valid, expired, revoked, untrusted), and pure-Swift SHA256/HMAC implementations for cross-platform compatibility. Includes access control primitives and HIPAA compliance utilities.
+- **Platform Integrations**: Protocols and abstractions for Apple platform integration including `HealthDataProvider` (HealthKit bridge with measurement read/write/observe), `CareDataProvider` (CareKit bridge with tasks and outcomes), `ResearchDataProvider` (ResearchKit bridge with surveys and consent), `CloudSyncProvider` (iCloud sync with conflict resolution), `HandoffProvider` (device-to-device activity handoff), and `ShortcutsProvider` (Siri shortcuts and App Intents). Includes `PlatformIntegrationManager` actor for centralized provider management, `HealthDataMapper` utility with LOINC/UCUM mappings, and data types for vital signs, care tasks, survey questions, sync records, and shortcut actions. All types are Sendable and platform-agnostic. Includes 87 unit tests.
 
 ## Project Structure
 
@@ -107,6 +108,7 @@ HL7kit/
 │   ├── CommonServices.swift   # Shared services (logging, security, caching, config, metrics, audit)
 │   ├── SecurityFramework.swift # Security framework (encryption, signatures, RBAC, HIPAA, certificates)
 │   ├── Persistence.swift      # Message archive, storage, search/indexing, export/import
+│   ├── PlatformIntegrations.swift # Platform integration protocols (HealthKit, CareKit, ResearchKit, iCloud, Handoff, Siri)
 │   └── TestingInfrastructure.swift # Integration/performance/conformance test harnesses, mocks, generators
 ├── Examples/          # Sample applications
 ├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
