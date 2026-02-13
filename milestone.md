@@ -541,7 +541,7 @@ Add Apple platform-specific features and create example applications.
 - [x] Performance optimization examples
 - [ ] Video tutorials
 
-**Deliverables**: 20+ code examples and tutorials ✓ (Implemented QuickStart guide with parsing/building/validating/inspecting, CommonUseCases with ADT/ORU/ORM/ACK workflows and batch processing, IntegrationExamples with v2→v3 CDA transformation, FHIR resources, and CLI usage, PerformanceOptimization with parser config, benchmarking, streaming, and compression. 10+ compilable example functions with matching unit tests.)
+**Deliverables**: 20+ code examples and tutorials ✓ (Implemented QuickStart guide with parsing/building/validating/inspecting, CommonUseCases with ADT/ORU/ORM/ACK workflows and batch processing, IntegrationExamples with v2→v3 CDA transformation, FHIR resources, and CLI usage, PerformanceOptimization with parser config, benchmarking, streaming, and compression. 20+ example functions/code blocks with 12 matching unit tests.)
 
 ---
 

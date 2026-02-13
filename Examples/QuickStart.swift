@@ -73,16 +73,16 @@ func buildHL7v2Message() throws {
                .version("2.5.1")
         }
         .segment("EVN") { evn in
-            evn.field(0, value: "A01")
-               .field(1, value: "20240115120000")
+            evn.field(0, value: "A01")             // EVN-1: Event Type Code
+               .field(1, value: "20240115120000")  // EVN-2: Recorded Date/Time
         }
         .segment("PID") { pid in
-            pid.field(0, value: "1")
-               .field(2, value: "98765^^^MyHospital^MR")
-               .field(4, value: "Doe^Jane^M^^^")
-               .field(6, value: "19900515")
-               .field(7, value: "F")
-               .field(10, value: "456 Oak Ave^^Springfield^IL^62704")
+            pid.field(0, value: "1")                                      // PID-1: Set ID
+               .field(2, value: "98765^^^MyHospital^MR")                  // PID-3: Patient Identifier
+               .field(4, value: "Doe^Jane^M^^^")                         // PID-5: Patient Name
+               .field(6, value: "19900515")                               // PID-7: Date of Birth
+               .field(7, value: "F")                                      // PID-8: Sex
+               .field(10, value: "456 Oak Ave^^Springfield^IL^62704")     // PID-11: Address
         }
         .segment("PV1") { pv1 in
             pv1.field(0, value: "1")

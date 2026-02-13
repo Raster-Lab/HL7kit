@@ -140,15 +140,15 @@ func buildLabOrder() throws {
                .field(7, value: "F")
         }
         .segment("ORC") { orc in
-            orc.field(0, value: "NW")      // New order
-               .field(1, value: "ORD-100") // Placer order number
+            orc.field(0, value: "NW")      // ORC-1: Order Control (NW = New Order)
+               .field(1, value: "ORD-100") // ORC-2: Placer Order Number
         }
         .segment("OBR") { obr in
-            obr.field(0, value: "1")
-               .field(1, value: "ORD-100")
-               .field(3, value: "58410-2^CBC^LN")
-               .field(6, value: "20240201160000")        // Requested date/time
-               .field(15, value: "1234^Johnson^Robert^A^^^MD")  // Ordering provider
+            obr.field(0, value: "1")                                           // OBR-1: Set ID
+               .field(1, value: "ORD-100")                                     // OBR-2: Placer Order Number
+               .field(3, value: "58410-2^CBC^LN")                              // OBR-4: Universal Service ID
+               .field(6, value: "20240201160000")                              // OBR-7: Observation Date/Time
+               .field(15, value: "1234^Johnson^Robert^A^^^MD")                 // OBR-16: Ordering Provider
         }
         .build()
 
