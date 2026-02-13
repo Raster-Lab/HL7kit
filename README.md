@@ -73,6 +73,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Security Framework**: Production-grade security layer with `MessageEncryptor` (symmetric encryption with IV and key ID tracking), `DigitalSigner` (HMAC-SHA256 signing and constant-time verification), `EncryptionKey`/`SigningKey` generation, `CertificateInfo` with lifecycle status tracking (valid, expired, revoked, untrusted), and pure-Swift SHA256/HMAC implementations for cross-platform compatibility. Includes access control primitives and HIPAA compliance utilities.
 - **Platform Integrations**: Protocols and abstractions for Apple platform integration including `HealthDataProvider` (HealthKit bridge with measurement read/write/observe), `CareDataProvider` (CareKit bridge with tasks and outcomes), `ResearchDataProvider` (ResearchKit bridge with surveys and consent), `CloudSyncProvider` (iCloud sync with conflict resolution), `HandoffProvider` (device-to-device activity handoff), and `ShortcutsProvider` (Siri shortcuts and App Intents). Includes `PlatformIntegrationManager` actor for centralized provider management, `HealthDataMapper` utility with LOINC/UCUM mappings, and data types for vital signs, care tasks, survey questions, sync records, and shortcut actions. All types are Sendable and platform-agnostic. Includes 87 unit tests.
 - **Command-Line Tools**: Complete CLI toolkit (`hl7` executable) with five subcommands: `validate` (structural and profile-based validation), `convert` (format conversion including HL7 v2.x round-trip and v2→v3 CDA), `inspect` (message tree view, statistics, and search), `batch` (multi-file processing with validate/inspect/convert operations), and `conformance` (profile-based conformance checking against ADT_A01, ORU_R01, ORM_O01, ACK profiles). Supports text and JSON output formats, auto-detected conformance profiles, and native argument parsing with no external dependencies. Includes 89 unit tests.
+- **Sample Code & Tutorials**: Comprehensive examples covering quick start (parsing, building, validating, inspecting), common use cases (ADT admissions, ORU lab results, ORM orders, ACK responses, batch processing), integration patterns (v2→v3 CDA transformation, FHIR resources, JSON/XML serialization, CLI usage), and performance optimization (parser configuration, streaming, compression, benchmarking). All examples are compilable with matching unit tests.
 
 ## Project Structure
 
@@ -113,7 +114,12 @@ HL7kit/
 │   └── TestingInfrastructure.swift # Integration/performance/conformance test harnesses, mocks, generators
 ├── HL7CLI/            # CLI core library (argument parsing, command logic)
 ├── HL7CLIEntry/       # CLI executable entry point
-├── Examples/          # Sample applications
+├── Examples/          # Sample code and tutorials
+│   ├── QuickStart.swift           # Getting started guide
+│   ├── CommonUseCases.swift       # ADT, ORU, ORM workflows
+│   ├── IntegrationExamples.swift  # Cross-module integration
+│   ├── PerformanceOptimization.swift # High-throughput techniques
+│   └── README.md                  # Examples index
 ├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
@@ -283,6 +289,41 @@ hl7 conformance message.hl7 --profile ADT_A01
 
 ---
 
+## 📖 Examples & Tutorials
+
+The [Examples/](Examples/) directory contains ready-to-use sample code for common healthcare integration scenarios.
+
+| Example | Description |
+|---------|-------------|
+| [Quick Start](Examples/QuickStart.swift) | Parse, build, validate, and inspect HL7 v2.x messages |
+| [Common Use Cases](Examples/CommonUseCases.swift) | ADT admission workflows, ORU lab results, ORM orders, ACK responses, batch processing |
+| [Integration](Examples/IntegrationExamples.swift) | v2→v3 CDA transformation, FHIR resources, JSON/XML serialization, CLI usage |
+| [Performance](Examples/PerformanceOptimization.swift) | Object pooling, streaming, compression, parser configuration, benchmarking |
+
+### Quick Example
+
+```swift
+import HL7v2Kit
+
+// Parse
+let message = try HL7v2Message.parse("MSH|^~\\&|App|Fac|App|Fac|20240101||ADT^A01|CTL001|P|2.5.1\rPID|1||MRN001||Smith^John")
+
+// Build
+let built = try HL7v2MessageBuilder()
+    .msh { $0.sendingApplication("App").messageType("ADT", triggerEvent: "A01").messageControlID("ID1").processingID("P").version("2.5.1") }
+    .segment("PID") { $0.field(2, value: "MRN001^^^Hosp^MR").field(4, value: "Smith^John") }
+    .build()
+
+// Validate
+try message.validate()
+
+// Inspect
+let inspector = MessageInspector(message: message)
+print(inspector.treeView())
+```
+
+---
+
 ## Development
 
 ### Building and Testing
@@ -358,6 +399,7 @@ TBD - Consider MIT or Apache 2.0 for maximum adoption
   - [HL7 v3.x Standards](HL7V3X_STANDARDS.md)
   - [HL7 FHIR Standards](FHIR_STANDARDS.md)
 - **Guides**:
+  - [Examples & Tutorials](Examples/README.md)
   - [Architecture](ARCHITECTURE.md)
   - [Integration Guide](INTEGRATION_GUIDE.md)
   - [Security Guide](SECURITY_GUIDE.md)
