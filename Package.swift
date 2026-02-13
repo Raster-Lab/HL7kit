@@ -33,6 +33,11 @@ let package = Package(
             name: "HL7Core",
             targets: ["HL7Core"]
         ),
+        // Command-line tools
+        .executable(
+            name: "hl7",
+            targets: ["HL7CLI"]
+        ),
     ],
     dependencies: [
         // No external dependencies - native Swift only
@@ -84,6 +89,18 @@ let package = Package(
             name: "FHIRkitTests",
             dependencies: ["FHIRkit", "HL7Core"],
             path: "Tests/FHIRkitTests"
+        ),
+        
+        // MARK: - CLI Executable
+        .executableTarget(
+            name: "HL7CLI",
+            dependencies: ["HL7Core", "HL7v2Kit"],
+            path: "Sources/HL7CLI"
+        ),
+        .testTarget(
+            name: "HL7CLITests",
+            dependencies: ["HL7Core", "HL7v2Kit"],
+            path: "Tests/HL7CLITests"
         ),
     ],
     swiftLanguageModes: [.v6]
