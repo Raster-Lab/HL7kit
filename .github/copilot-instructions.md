@@ -20,6 +20,14 @@ When completing any task in the HL7kit project, ensure the following requirement
 - Document any blockers or risks in the appropriate sections
 - Keep the next steps section current
 
+#### CLI Tool (`hl7`)
+- When a feature is completed in any library module (HL7Core, HL7v2Kit, HL7v3Kit, FHIRkit), update the CLI tool to expose and support the new functionality
+- Add new subcommands or options to the `hl7` CLI executable as appropriate
+- Ensure CLI commands provide both text and JSON output formats (`--format text|json`)
+- Update CLI help text in `Sources/HL7CLI/HelpText.swift` to document new commands and options
+- Add corresponding CLI tests in `Tests/HL7CLITests/`
+- Verify the CLI tool builds and runs correctly with `swift build` and `swift run hl7`
+
 ### 2. Code Coverage Requirements
 
 #### Target: 90% Code Coverage
@@ -53,6 +61,7 @@ Before completing any task:
 - [ ] Documentation is updated
 - [ ] milestone.md reflects current progress
 - [ ] README.md is accurate and current
+- [ ] CLI tool updated to expose new features (if applicable)
 - [ ] No compiler warnings
 - [ ] Code follows Swift 6.2 best practices
 - [ ] Sendable and concurrency safety verified
@@ -142,6 +151,7 @@ For every completed task:
 - [x] Documentation updated (inline and external)
 - [x] README.md updated if needed
 - [x] milestone.md updated with task status
+- [x] CLI tool updated to expose new features (if applicable)
 - [x] CI/CD pipeline passing
 - [x] Code reviewed (if applicable)
 - [x] No security vulnerabilities introduced
@@ -157,12 +167,15 @@ HL7kit/
 │   ├── HL7Core/          # Shared utilities and protocols
 │   ├── HL7v2Kit/         # HL7 v2.x implementation
 │   ├── HL7v3Kit/         # HL7 v3.x implementation
-│   └── FHIRkit/          # FHIR implementation
+│   ├── FHIRkit/          # FHIR implementation
+│   ├── HL7CLI/           # CLI tool core logic (commands, help text)
+│   └── HL7CLIEntry/      # CLI executable entry point
 ├── Tests/
 │   ├── HL7CoreTests/
 │   ├── HL7v2KitTests/
 │   ├── HL7v3KitTests/
-│   └── FHIRkitTests/
+│   ├── FHIRkitTests/
+│   └── HL7CLITests/
 ├── .github/
 │   ├── workflows/        # CI/CD pipelines
 │   └── copilot-instructions.md
