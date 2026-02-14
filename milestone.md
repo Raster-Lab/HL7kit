@@ -532,7 +532,7 @@ Add Apple platform-specific features and create example applications.
 - [x] Batch processor CLI
 - [x] Message inspector/debugger CLI
 
-**Deliverables**: Complete CLI toolkit ✓ (Implemented `hl7` executable with validate, convert, inspect, batch, and conformance subcommands. Native argument parsing, JSON/text output formats, auto-detected conformance profiles. 89 unit tests.)
+**Deliverables**: Complete CLI toolkit ✓ (Implemented `hl7` executable with validate, convert, inspect, batch, conformance, and benchmark subcommands. Native argument parsing, JSON/text output formats, auto-detected conformance profiles. 101 unit tests.)
 
 #### 8.5 Sample Code & Tutorials (Week 56)
 - [x] Quick start guides

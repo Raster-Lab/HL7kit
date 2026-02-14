@@ -72,7 +72,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **Common Services**: Unified cross-module services including `UnifiedLogger` actor with subsystem/category tagging, correlation ID tracing, and buffered log export; `SecurityService` actor with PHI sanitization (SSN, phone, email masking), input validation, secure random generation, and SHA-256 hashing; `SharedCache<Key, Value>` generic LRU cache actor with TTL expiration and hit/miss statistics. All types are public and Sendable for Swift 6 strict concurrency.
 - **Security Framework**: Production-grade security layer with `MessageEncryptor` (symmetric encryption with IV and key ID tracking), `DigitalSigner` (HMAC-SHA256 signing and constant-time verification), `EncryptionKey`/`SigningKey` generation, `CertificateInfo` with lifecycle status tracking (valid, expired, revoked, untrusted), and pure-Swift SHA256/HMAC implementations for cross-platform compatibility. Includes access control primitives and HIPAA compliance utilities.
 - **Platform Integrations**: Protocols and abstractions for Apple platform integration including `HealthDataProvider` (HealthKit bridge with measurement read/write/observe), `CareDataProvider` (CareKit bridge with tasks and outcomes), `ResearchDataProvider` (ResearchKit bridge with surveys and consent), `CloudSyncProvider` (iCloud sync with conflict resolution), `HandoffProvider` (device-to-device activity handoff), and `ShortcutsProvider` (Siri shortcuts and App Intents). Includes `PlatformIntegrationManager` actor for centralized provider management, `HealthDataMapper` utility with LOINC/UCUM mappings, and data types for vital signs, care tasks, survey questions, sync records, and shortcut actions. All types are Sendable and platform-agnostic. Includes 87 unit tests.
-- **Command-Line Tools**: Complete CLI toolkit (`hl7` executable) with five subcommands: `validate` (structural and profile-based validation), `convert` (format conversion including HL7 v2.x round-trip and v2→v3 CDA), `inspect` (message tree view, statistics, and search), `batch` (multi-file processing with validate/inspect/convert operations), and `conformance` (profile-based conformance checking against ADT_A01, ORU_R01, ORM_O01, ACK profiles). Supports text and JSON output formats, auto-detected conformance profiles, and native argument parsing with no external dependencies. Includes 89 unit tests.
+- **Command-Line Tools**: Complete CLI toolkit (`hl7` executable) with six subcommands: `validate` (structural and profile-based validation), `convert` (format conversion including HL7 v2.x round-trip and v2→v3 CDA), `inspect` (message tree view, statistics, and search), `batch` (multi-file processing with validate/inspect/convert operations), `conformance` (profile-based conformance checking against ADT_A01, ORU_R01, ORM_O01, ACK profiles), and `benchmark` (performance benchmarking with throughput/latency metrics). Supports text and JSON output formats, auto-detected conformance profiles, and native argument parsing with no external dependencies. Includes 101 unit tests.
 - **Sample Code & Tutorials**: Comprehensive examples covering quick start (parsing, building, validating, inspecting), common use cases (ADT admissions, ORU lab results, ORM orders, ACK responses, batch processing), integration patterns (v2→v3 CDA transformation, FHIR resources, JSON/XML serialization, CLI usage), and performance optimization (parser configuration, streaming, compression, benchmarking). All examples are compilable with matching unit tests.
 
 ## Project Structure
@@ -287,6 +287,19 @@ hl7 conformance message.hl7
 hl7 conformance message.hl7 --profile ADT_A01
 
 # Available profiles: ADT_A01, ORU_R01, ORM_O01, ACK
+```
+
+#### Performance Benchmarking
+
+```bash
+# Run built-in benchmark (ADT^A01)
+hl7 benchmark
+
+# Benchmark a specific file
+hl7 benchmark message.hl7
+
+# Custom iterations with JSON output
+hl7 benchmark --iterations 1000 --format json
 ```
 
 ---
