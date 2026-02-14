@@ -14,6 +14,8 @@ A comprehensive, production-ready Swift 6.2 framework for working with HL7 v2.x,
 
 HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from the ground up to leverage Apple platform capabilities. Given the fundamental differences between HL7 v2.x (pipe-delimited messaging), v3.x (XML-based messaging), and FHIR (RESTful API-based), this framework is architected as separate but complementary toolkits.
 
+> 📊 **Comparing HL7 Tools?** See our comprehensive [**Comparison Guide**](COMPARISON.md) to understand when to choose HL7kit vs HAPI, NHapi, Firely, and other HL7 frameworks.
+
 ### Key Features
 
 - **Native Swift 6.2**: Full utilization of modern Swift features including concurrency, actors, and strict typing
