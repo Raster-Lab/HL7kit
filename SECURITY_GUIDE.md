@@ -514,4 +514,357 @@ Use this checklist before deploying HL7kit to production:
 
 ---
 
+## Security Audit Findings & Recommendations
+
+### Phase 9.2 Security Assessment (February 2026)
+
+A comprehensive security vulnerability assessment was conducted on the HL7kit security framework. This section summarizes key findings and provides guidance for production deployments.
+
+#### Executive Summary
+
+- **Assessment Scope**: `SecurityFramework.swift` and `CommonServices.swift`
+- **Issues Identified**: 2 Critical, 4 High, 5 Medium, 4 Low severity vulnerabilities
+- **Status**: Demonstration-grade security suitable for development; production hardening required
+
+#### Critical Findings
+
+**1. Non-Standard Encryption Algorithm (XOR-SHA256-STREAM)**
+
+- **Issue**: Custom stream cipher provides limited security compared to industry-standard AES
+- **Impact**: Vulnerable to bit-flipping attacks; no integrity protection
+- **Status**: DOCUMENTED - Production deployments must use AES-256-GCM or equivalent
+- **Remediation**: See [Production Encryption Requirements](#production-encryption-requirements)
+
+**2. Missing Authenticated Encryption**
+
+- **Issue**: Encrypted payloads lack authentication tags (not AEAD-compliant)
+- **Impact**: Ciphertext can be modified without detection
+- **Status**: DOCUMENTED - Production deployments must add integrity protection
+- **Remediation**: Use AES-GCM or add HMAC-based authentication layer
+
+#### High Severity Findings
+
+**3. Timing Attack in Signature Verification**
+
+- **Issue**: Early exit on length mismatch leaked timing information
+- **Status**: ✅ FIXED (February 2026)
+- **Fix**: Implemented constant-time comparison for all signature lengths
+- **Test Coverage**: Added 3 test cases validating timing attack mitigation
+
+**4. Insufficient Key Size Validation**
+
+- **Issue**: No enforcement of minimum key size requirements
+- **Status**: ✅ FIXED (February 2026)  
+- **Fix**: Added preconditions enforcing 16-256 byte key sizes
+- **Test Coverage**: Added 6 test cases for key size boundaries
+
+**5. Input Validation Gaps**
+
+- **Issue**: Missing validation for empty data and size limits
+- **Status**: ✅ FIXED (February 2026)
+- **Fix**: Added preconditions for non-empty data and 100MB maximum
+- **Test Coverage**: Added 4 test cases for input validation
+
+**6. HMAC vs Asymmetric Signatures**
+
+- **Issue**: HMAC-SHA256 provides authentication but not non-repudiation
+- **Status**: DOCUMENTED - Consider asymmetric signatures for legal compliance
+- **Recommendation**: Implement ECDSA/RSA for scenarios requiring non-repudiation
+
+#### Medium Severity Findings
+
+- **IV Reuse Risk**: Random IV generation may collide under high load
+- **No Key Rotation**: Keys lack expiration and versioning mechanisms
+- **Certificate Validation**: No CRL/OCSP integration for real-time revocation checking
+- **Access Control Logic**: Policy evaluation uses "any allows" vs. "all must allow"
+- **Credential Storage**: No integration with platform Keychain/SecureEnclave
+
+See [SECURITY_VULNERABILITY_ASSESSMENT.md](SECURITY_VULNERABILITY_ASSESSMENT.md) for complete details.
+
+---
+
+### Production Encryption Requirements
+
+For production healthcare deployments, the current encryption implementation **MUST** be replaced with industry-standard cryptography:
+
+#### Apple Platforms (iOS, macOS, tvOS, watchOS)
+
+Use **CryptoKit** with AES-256-GCM:
+
+```swift
+import CryptoKit
+
+// Encryption
+let key = SymmetricKey(size: .bits256)
+let nonce = AES.GCM.Nonce()
+let sealedBox = try AES.GCM.seal(plaintext, using: key, nonce: nonce)
+
+// Decryption with authentication
+let decrypted = try AES.GCM.open(sealedBox, using: key)
+```
+
+**Benefits:**
+- Hardware-accelerated encryption (SecureEnclave)
+- Authenticated encryption (AEAD)
+- FIPS 140-2 compliant
+- Memory-safe implementation
+
+#### Linux / Cross-Platform
+
+Use **OpenSSL** with AES-256-GCM:
+
+```swift
+import OpenSSL
+
+// Example using openssl wrapper
+let encrypted = AES256GCM.encrypt(
+    plaintext: data,
+    key: key,
+    authenticatedData: additionalData
+)
+
+let decrypted = try AES256GCM.decrypt(
+    ciphertext: encrypted.ciphertext,
+    tag: encrypted.tag,
+    key: key,
+    authenticatedData: additionalData
+)
+```
+
+**Migration Strategy:**
+
+1. Create `ProductionEncryptor` protocol compatible with existing API
+2. Implement platform-specific versions using CryptoKit/OpenSSL
+3. Use conditional compilation for platform-specific code:
+   ```swift
+   #if canImport(CryptoKit)
+   import CryptoKit
+   // iOS/macOS implementation
+   #else
+   import OpenSSL
+   // Linux implementation
+   #endif
+   ```
+4. Maintain demonstration implementation for testing only
+
+---
+
+### Production Digital Signature Requirements
+
+For scenarios requiring **non-repudiation** (legal records, audit trails), replace HMAC-SHA256 with asymmetric signatures:
+
+#### Recommended Approach (ECDSA with P-256)
+
+```swift
+import CryptoKit
+
+// Key generation
+let privateKey = P256.Signing.PrivateKey()
+let publicKey = privateKey.publicKey
+
+// Signing
+let signature = try privateKey.signature(for: data)
+
+// Verification
+guard publicKey.isValidSignature(signature, for: data) else {
+    throw SignatureError.invalid
+}
+```
+
+**When to Use:**
+- Legal health records requiring audit trails
+- Multi-party transactions (hospital ↔ clinic ↔ pharmacy)
+- Compliance requirements for digital signatures (e.g., 21 CFR Part 11)
+
+**When HMAC is Sufficient:**
+- Internal system authentication
+- Message integrity checks within trusted boundaries
+- Development and testing environments
+
+---
+
+### Security Hardening Checklist
+
+Before deploying HL7kit in a production healthcare environment:
+
+#### Cryptography
+- [ ] Replace XOR-SHA256 cipher with AES-256-GCM
+- [ ] Implement authenticated encryption (AEAD) for all encrypted data
+- [ ] Add asymmetric signatures if non-repudiation required
+- [ ] Integrate platform-native key storage (Keychain/SecureEnclave)
+- [ ] Implement key rotation and expiration policies
+
+#### Access Control
+- [ ] Review and harden access control policy evaluation logic
+- [ ] Implement role-based access control (RBAC) for all resources
+- [ ] Add audit logging for all access decisions
+- [ ] Enforce least privilege principle
+- [ ] Test with conflicting policy scenarios
+
+#### PHI Protection
+- [ ] Extend PHI sanitization to cover all 18 HIPAA identifier types
+- [ ] Validate all user inputs before processing
+- [ ] Implement secure data erasure for sensitive memory
+- [ ] Enable PHI sanitization in all log outputs
+- [ ] Configure retention policies for archived data
+
+#### Network Security
+- [ ] Enable TLS 1.3+ for all network communications
+- [ ] Validate all TLS certificates (no self-signed in production)
+- [ ] Implement certificate pinning for critical endpoints
+- [ ] Add network timeout and retry logic with exponential backoff
+- [ ] Monitor for certificate expiration
+
+#### Compliance
+- [ ] Conduct HIPAA compliance review
+- [ ] Document data flows and trust boundaries
+- [ ] Implement audit trail for all PHI access
+- [ ] Create incident response procedures
+- [ ] Schedule regular security audits
+
+#### Testing
+- [ ] Run all security tests in CI/CD pipeline
+- [ ] Perform penetration testing on deployed systems
+- [ ] Conduct third-party security audit
+- [ ] Test disaster recovery procedures
+- [ ] Validate backup encryption
+
+---
+
+### Threat Model Summary
+
+#### Assets
+
+1. **Patient Health Information (PHI)** - Critical asset requiring confidentiality and integrity
+2. **Encryption/Signing Keys** - High-value targets for attackers
+3. **System Credentials** - Access to healthcare systems and databases
+4. **Audit Logs** - Compliance evidence and forensic data
+
+#### Threat Actors
+
+1. **External Attackers** - Cybercriminals seeking PHI for financial gain
+2. **Malicious Insiders** - Employees with excessive access privileges
+3. **Nation-State Actors** - Advanced persistent threats targeting healthcare
+4. **Accidental Disclosure** - Unintentional data leaks from misconfigurations
+
+#### Attack Vectors
+
+1. **Network Attacks**
+   - Man-in-the-middle (MITM) interception of HL7 messages
+   - TLS downgrade attacks
+   - Network eavesdropping on unencrypted channels
+
+2. **Cryptographic Attacks**
+   - Known-plaintext attacks on weak ciphers
+   - Timing attacks on signature verification
+   - IV reuse enabling keystream recovery
+   - Brute-force attacks on weak keys
+
+3. **Application Attacks**
+   - Injection attacks (HL7 message injection, SQL injection)
+   - Authentication bypass
+   - Authorization flaws (privilege escalation)
+   - Input validation failures
+
+4. **Physical Attacks**
+   - Memory dumps to extract keys
+   - Disk access to read archived data
+   - Device theft or compromise
+
+#### Mitigations
+
+| Threat | Current Mitigation | Production Required |
+|--------|-------------------|---------------------|
+| Network eavesdropping | TLS support | TLS 1.3+ mandatory |
+| Weak encryption | XOR cipher (demo) | AES-256-GCM required |
+| Timing attacks | ✅ Fixed | Maintain constant-time |
+| Weak keys | ✅ Size validation | Add key rotation |
+| Key theft | In-memory storage | Use Keychain/SecureEnclave |
+| PHI disclosure | Basic sanitization | Complete 18 identifiers |
+| Privilege escalation | RBAC framework | Harden policy evaluation |
+| Data tampering | HMAC signatures | Add AEAD/asymmetric sigs |
+
+---
+
+### Compliance Mapping
+
+#### HIPAA Security Rule
+
+| Requirement | Section | HL7kit Implementation | Status |
+|-------------|---------|----------------------|---------|
+| Access Control | §164.312(a)(1) | Role-based access control | ✅ Implemented |
+| Audit Controls | §164.312(b) | Audit trail logging | ✅ Implemented |
+| Integrity Controls | §164.312(c)(1) | Digital signatures | ⚠️ HMAC only |
+| Transmission Security | §164.312(e)(1) | TLS/encryption | ⚠️ Needs hardening |
+| Encryption | §164.312(a)(2)(iv) | XOR cipher | ❌ Prod upgrade needed |
+
+#### Recommendations for HIPAA Compliance
+
+1. **Upgrade encryption to AES-256-GCM** before handling real PHI
+2. **Implement authenticated encryption** to meet integrity requirements
+3. **Add asymmetric signatures** for non-repudiation where required
+4. **Enable comprehensive audit logging** for all PHI access
+5. **Document security policies** and incident response procedures
+
+---
+
+### Security Testing Requirements
+
+All production deployments must pass:
+
+#### Unit Tests
+- [x] Timing attack mitigation tests (3 tests)
+- [x] Key size validation tests (6 tests)
+- [x] Input validation tests (4 tests)
+- [x] Encryption/decryption round-trip tests (10+ tests)
+- [x] Signature verification tests (8+ tests)
+- [x] Access control tests (15+ tests)
+
+#### Integration Tests
+- [ ] End-to-end TLS communication tests
+- [ ] Multi-party message exchange tests
+- [ ] Key rotation and expiration tests
+- [ ] Failure recovery and error handling tests
+
+#### Security Tests
+- [ ] Penetration testing by qualified security firm
+- [ ] Vulnerability scanning (OWASP Top 10, CWE Top 25)
+- [ ] Fuzzing of parsers and validators
+- [ ] Side-channel attack testing (timing, cache)
+- [ ] Compliance testing (HIPAA, HL7 conformance)
+
+#### Performance Tests
+- [ ] Encryption throughput under load
+- [ ] Signature verification latency
+- [ ] Concurrent access handling
+- [ ] Memory usage profiling
+- [ ] CPU utilization analysis
+
+---
+
+### Reporting Security Issues
+
+If you discover a security vulnerability in HL7kit:
+
+1. **DO NOT** open a public GitHub issue
+2. Email security details to: security@hl7kit.example.com (or contact repository maintainers)
+3. Include:
+   - Vulnerability description
+   - Steps to reproduce
+   - Potential impact assessment
+   - Suggested fixes (if available)
+4. Allow 90 days for patching before public disclosure
+
+---
+
+### Security Updates
+
+- **February 2026**: Phase 9.2 security audit completed
+  - Fixed timing attack vulnerability in signature verification
+  - Added key size validation (16-256 bytes enforced)
+  - Added input validation for encryption/signing operations
+  - Documented critical/high severity findings requiring production hardening
+
+---
+
 *See also: [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for service usage, [ARCHITECTURE.md](ARCHITECTURE.md) for system design, [CONCURRENCY_MODEL.md](CONCURRENCY_MODEL.md) for thread safety details.*

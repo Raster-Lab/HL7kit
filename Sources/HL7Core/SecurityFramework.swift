@@ -200,7 +200,11 @@ public struct EncryptionKey: Sendable {
     ///
     /// - Parameter size: Key size in bytes (default: 32 for 256-bit)
     /// - Returns: A new randomly generated encryption key
+    /// - Precondition: size must be between 16 and 256 bytes
     public static func generate(size: Int = 32) -> EncryptionKey {
+        precondition(size >= 16, "Encryption key size must be at least 16 bytes (128 bits)")
+        precondition(size <= 256, "Encryption key size must not exceed 256 bytes (2048 bits)")
+        
         var bytes = [UInt8](repeating: 0, count: size)
         for i in 0..<size {
             bytes[i] = UInt8.random(in: 0...255)
@@ -213,6 +217,12 @@ public struct EncryptionKey: Sendable {
 ///
 /// Stores the result of an encryption operation along with the initialization
 /// vector and metadata needed for decryption.
+///
+/// > Warning: This encrypted payload does NOT include authentication/integrity
+/// > protection. For production healthcare systems, use authenticated encryption
+/// > (AEAD) such as AES-256-GCM which provides both confidentiality and integrity.
+/// > Without authentication, encrypted data can be modified by attackers without
+/// > detection, potentially causing data corruption or security breaches.
 public struct EncryptedPayload: Sendable {
     /// The encrypted data
     public let ciphertext: Data
@@ -268,7 +278,13 @@ public struct MessageEncryptor: Sendable {
     ///   - data: The plaintext data to encrypt
     ///   - key: The encryption key to use
     /// - Returns: An encrypted payload containing ciphertext and metadata
+    /// - Precondition: data must not be empty and must not exceed 100MB
+    /// - Precondition: key must be at least 16 bytes
     public func encrypt(data: Data, key: EncryptionKey) -> EncryptedPayload {
+        precondition(!data.isEmpty, "Cannot encrypt empty data")
+        precondition(data.count <= 100_000_000, "Data size exceeds maximum allowed (100MB)")
+        precondition(key.keyData.count >= 16, "Encryption key must be at least 16 bytes")
+        
         // Generate random IV
         var ivBytes = [UInt8](repeating: 0, count: 16)
         for i in 0..<16 {
@@ -291,8 +307,10 @@ public struct MessageEncryptor: Sendable {
     ///   - payload: The encrypted payload to decrypt
     ///   - key: The encryption key (must match the key used for encryption)
     /// - Returns: The decrypted plaintext data
+    /// - Precondition: key must be at least 16 bytes
     public func decrypt(payload: EncryptedPayload, key: EncryptionKey) -> Data {
-        xorCipher(data: payload.ciphertext, key: key.keyData, iv: payload.iv)
+        precondition(key.keyData.count >= 16, "Decryption key must be at least 16 bytes")
+        return xorCipher(data: payload.ciphertext, key: key.keyData, iv: payload.iv)
     }
 
     /// Encrypts a string using the provided key
@@ -380,7 +398,11 @@ public struct SigningKey: Sendable {
     ///
     /// - Parameter size: Key size in bytes (default: 32)
     /// - Returns: A new randomly generated signing key
+    /// - Precondition: size must be between 16 and 256 bytes
     public static func generate(size: Int = 32) -> SigningKey {
+        precondition(size >= 16, "Signing key size must be at least 16 bytes (128 bits)")
+        precondition(size <= 256, "Signing key size must not exceed 256 bytes (2048 bits)")
+        
         var bytes = [UInt8](repeating: 0, count: size)
         for i in 0..<size {
             bytes[i] = UInt8.random(in: 0...255)
@@ -447,7 +469,12 @@ public struct DigitalSigner: Sendable {
     ///   - data: The data to sign
     ///   - key: The signing key
     /// - Returns: A message signature
+    /// - Precondition: data must not be empty
+    /// - Precondition: key must be at least 16 bytes
     public func sign(data: Data, key: SigningKey) -> MessageSignature {
+        precondition(!data.isEmpty, "Cannot sign empty data")
+        precondition(key.keyData.count >= 16, "Signing key must be at least 16 bytes")
+        
         let sigBytes = HMACSHA256.authenticate(data: data, key: key.keyData)
         let sigHex = sigBytes.map { String(format: "%02x", $0) }.joined()
         return MessageSignature(
@@ -470,6 +497,8 @@ public struct DigitalSigner: Sendable {
 
     /// Verifies a signature against the provided data and key
     ///
+    /// Uses constant-time comparison to prevent timing attacks.
+    ///
     /// - Parameters:
     ///   - data: The original data that was signed
     ///   - signature: The signature to verify
@@ -478,11 +507,16 @@ public struct DigitalSigner: Sendable {
     public func verify(data: Data, signature: MessageSignature, key: SigningKey) -> Bool {
         let expected = HMACSHA256.authenticate(data: data, key: key.keyData)
         let actual = Array(signature.signatureData)
-        guard expected.count == actual.count else { return false }
+        
         // Constant-time comparison to prevent timing attacks
-        var result: UInt8 = 0
-        for i in 0..<expected.count {
-            result |= expected[i] ^ actual[i]
+        // Include length difference in result to avoid early exit timing leak
+        let maxLen = max(expected.count, actual.count)
+        var result: UInt8 = UInt8(expected.count ^ actual.count)
+        
+        for i in 0..<maxLen {
+            let e = i < expected.count ? expected[i] : 0
+            let a = i < actual.count ? actual[i] : 0
+            result |= e ^ a
         }
         return result == 0
     }
@@ -922,11 +956,18 @@ public actor AccessControlManager {
 
     /// Checks if a principal has access to a resource for a given action
     ///
+    /// Implements a deny-by-default access control policy. If multiple policies
+    /// match a resource, the principal must satisfy at least one policy's
+    /// requirements to gain access. Admin permission always grants access.
+    ///
     /// - Parameters:
     ///   - principal: The principal requesting access
     ///   - resource: The resource being accessed
     ///   - action: The permission/action being requested
     /// - Returns: The access decision
+    /// - Note: For production deployments requiring maximum security, consider
+    ///         implementing a "deny takes precedence" or "all policies must allow"
+    ///         strategy by modifying this method.
     public func checkAccess(principal: String, resource: String, action: Permission) -> AccessDecision {
         let permissions = getEffectivePermissions(for: principal)
 
@@ -942,6 +983,8 @@ public actor AccessControlManager {
         }
 
         // Check if principal has required permissions for any matching policy
+        // Note: This implements "any policy allows" semantics. For stricter
+        // security, consider requiring all policies to allow access.
         for policy in matchingPolicies {
             if policy.requiredPermissions.contains(action) && permissions.contains(action) {
                 return .allowed
