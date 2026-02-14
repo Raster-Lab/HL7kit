@@ -489,6 +489,17 @@ The [Examples/](Examples/) directory contains ready-to-use sample code for commo
 | [Integration](Examples/IntegrationExamples.swift) | v2→v3 CDA transformation, FHIR resources, JSON/XML serialization, CLI usage |
 | [Performance](Examples/PerformanceOptimization.swift) | Object pooling, streaming, compression, parser configuration, benchmarking |
 
+### 🎥 Video Tutorials
+
+For visual learners, we provide comprehensive video tutorial scripts covering all aspects of HL7kit. See [VIDEO_TUTORIALS.md](VIDEO_TUTORIALS.md) for detailed outlines and scripts for:
+
+- **Introduction Series** (3 videos): What is HL7kit, setup, and architecture
+- **HL7 v2.x Mastery** (4 videos): Parsing, building, validation, and MLLP transport
+- **HL7 v3.x & CDA** (3 videos): CDA documents, RIM model, and transformations
+- **FHIR Integration** (3 videos): Resources, REST API, and validation
+- **Platform-Specific** (3 videos): iOS, macOS, and CLI tool usage
+- **Advanced Topics** (3 videos): Performance, security, and testing
+
 ### Quick Example
 
 ```swift
