@@ -70,12 +70,12 @@ let package = Package(
         // MARK: - HL7 v3.x Module
         .target(
             name: "HL7v3Kit",
-            dependencies: ["HL7Core"],
+            dependencies: ["HL7Core", "HL7v2Kit"],
             path: "Sources/HL7v3Kit"
         ),
         .testTarget(
             name: "HL7v3KitTests",
-            dependencies: ["HL7v3Kit", "HL7Core"],
+            dependencies: ["HL7v3Kit", "HL7Core", "HL7v2Kit"],
             path: "Tests/HL7v3KitTests"
         ),
         
