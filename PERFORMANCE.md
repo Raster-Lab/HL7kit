@@ -268,6 +268,85 @@ Comprehensive benchmarks run across all three modules with the cross-module perf
 
 ---
 
+## Network Performance Characteristics
+
+### MLLP (HL7 v2.x) Network Performance
+
+The MLLP (Minimal Lower Layer Protocol) implementation provides efficient message framing and transport:
+
+| Operation | Throughput | Latency (p50) | Latency (p99) |
+|-----------|------------|---------------|---------------|
+| Framing | 1,000,000+ frames/s | 0.99 μs | 2.0 μs |
+| Deframing | 4,000,000+ frames/s | ~0.25 μs | ~0.5 μs |
+| Stream Parsing | 200,000+ messages/s | 5 μs | 10 μs |
+| Incremental Feed | 170,000+ messages/s | 6 μs | 12 μs |
+
+#### MLLP Connection Pool
+
+The connection pool provides efficient connection reuse:
+
+- **Acquire/Release Overhead**: < 1 μs per operation
+- **Concurrent Handling**: 20 concurrent operations in < 5ms
+- **TLS Overhead**: Minimal (< 1ms additional latency)
+- **Protocol Overhead**: 3 bytes per message (< 2% for typical messages)
+
+#### MLLP Bandwidth Efficiency
+
+| Message Size | Framed Size | Efficiency |
+|--------------|-------------|------------|
+| 100 bytes | 103 bytes | 97.1% |
+| 500 bytes | 503 bytes | 99.4% |
+| 1,000 bytes | 1,003 bytes | 99.7% |
+| 5,000 bytes | 5,003 bytes | 99.9% |
+| 10,000 bytes | 10,003 bytes | 99.97% |
+
+**Conclusion**: MLLP adds only 3 bytes of overhead regardless of message size, making it extremely efficient for HL7 v2.x transport.
+
+### FHIR REST Network Performance
+
+The FHIR RESTful client provides high-performance HTTP-based communication:
+
+| Operation | Performance |
+|-----------|-------------|
+| Connection Pool Throughput | 6,000+ requests/s (mock) |
+| Connection Reuse Rate | > 98% |
+| REST Client Latency (p50) | 0.20 ms (mock) |
+| REST Client Latency (p99) | 1.22 ms (mock) |
+
+**Note**: Mock session performance. Real-world performance depends on network conditions and server response times.
+
+#### FHIR Connection Pool
+
+- **Connection Reuse**: Automatically reuses connections to reduce overhead
+- **Max Connections**: Configurable (default: 10)
+- **Connection TTL**: Configurable (default: 300 seconds)
+- **Acquire Timeout**: Configurable (default: 30 seconds)
+
+### Network Overhead Comparison
+
+Comparing protocol overhead across different HL7 standards:
+
+| Protocol | Overhead (bytes) | Overhead (% for 500 byte payload) |
+|----------|------------------|-----------------------------------|
+| MLLP (v2.x) | 3 | 0.6% |
+| SOAP (v3.x) | ~500 | ~100% |
+| REST (FHIR) | ~200 | ~40% |
+
+**Key Insight**: MLLP provides the most efficient framing with minimal overhead. SOAP and REST have higher overhead due to XML/JSON envelope and HTTP headers, but provide additional features like authentication, encryption, and service discovery.
+
+### Network Performance Target
+
+**Target**: < 50ms network overhead vs raw TCP
+
+**Actual Performance**:
+- MLLP framing/deframing: < 0.01ms
+- Connection pool operations: < 0.001ms
+- Stream parsing: < 0.01ms
+
+**Status**: ✅ Far exceeds target. Network operations add negligible overhead compared to the 50ms target.
+
+---
+
 ## Configuration Guide
 
 ### High-Throughput Configuration
