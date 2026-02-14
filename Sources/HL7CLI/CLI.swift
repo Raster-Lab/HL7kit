@@ -14,6 +14,7 @@ public enum Command: Sendable {
     case inspect(InspectOptions)
     case batch(BatchOptions)
     case conformance(ConformanceOptions)
+    case benchmark(BenchmarkOptions)
     case help
     case version
 }
@@ -110,6 +111,19 @@ public struct ConformanceOptions: Sendable {
     }
 }
 
+/// Options for the benchmark command
+public struct BenchmarkOptions: Sendable {
+    public let inputFile: String?
+    public let iterations: Int
+    public let format: OutputFormat
+
+    public init(inputFile: String? = nil, iterations: Int = 100, format: OutputFormat = .text) {
+        self.inputFile = inputFile
+        self.iterations = iterations
+        self.format = format
+    }
+}
+
 /// Output formats
 public enum OutputFormat: String, Sendable {
     case text
@@ -154,6 +168,8 @@ public enum CLIParser {
             return parseBatch(Array(args.dropFirst()))
         case "conformance":
             return parseConformance(Array(args.dropFirst()))
+        case "benchmark":
+            return parseBenchmark(Array(args.dropFirst()))
         case "help", "--help", "-h":
             return .success(.help)
         case "version", "--version", "-v":
@@ -402,6 +418,46 @@ public enum CLIParser {
 
         return .success(.conformance(ConformanceOptions(
             inputFile: input, profile: profile, format: format
+        )))
+    }
+
+    private static func parseBenchmark(_ args: [String]) -> Result<Command, CLIError> {
+        var inputFile: String?
+        var iterations = 100
+        var format: OutputFormat = .text
+
+        var i = 0
+        while i < args.count {
+            switch args[i] {
+            case "--iterations", "-n":
+                i += 1
+                guard i < args.count, let n = Int(args[i]), n > 0 else {
+                    return .failure(.invalidArgument("--iterations requires a positive integer"))
+                }
+                iterations = n
+            case "--format":
+                i += 1
+                guard i < args.count, let f = OutputFormat(rawValue: args[i]) else {
+                    return .failure(.invalidArgument("--format requires 'text' or 'json'"))
+                }
+                format = f
+            case "--help", "-h":
+                return .success(.help)
+            default:
+                if args[i].hasPrefix("-") {
+                    return .failure(.unknownOption(args[i]))
+                }
+                if inputFile == nil {
+                    inputFile = args[i]
+                } else {
+                    return .failure(.invalidArgument("Unexpected argument: \(args[i])"))
+                }
+            }
+            i += 1
+        }
+
+        return .success(.benchmark(BenchmarkOptions(
+            inputFile: inputFile, iterations: iterations, format: format
         )))
     }
 }

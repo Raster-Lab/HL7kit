@@ -20,6 +20,7 @@ public enum HelpText {
             inspect       Inspect and debug HL7 messages
             batch         Batch process multiple HL7 message files
             conformance   Check message conformance against profiles
+            benchmark     Run performance benchmarks on HL7 parsing
 
         OPTIONS:
             --help, -h    Show help information
@@ -31,6 +32,7 @@ public enum HelpText {
             hl7 convert message.hl7 --from hl7v2 --to hl7v3
             hl7 batch *.hl7 --operation validate
             hl7 conformance message.hl7 --profile ADT_A01
+            hl7 benchmark message.hl7 --iterations 1000
 
         Run 'hl7 <command> --help' for more information on a specific command.
         """
@@ -160,6 +162,31 @@ public enum HelpText {
             hl7 conformance message.hl7
             hl7 conformance message.hl7 --profile ADT_A01
             hl7 conformance message.hl7 --format json
+        """
+
+    /// Help text for the benchmark command
+    public static let benchmark = """
+        USAGE:
+            hl7 benchmark [options] [<file>]
+
+        DESCRIPTION:
+            Runs performance benchmarks on HL7 v2.x message parsing.
+            If a file is provided, benchmarks parsing that specific file.
+            Otherwise, runs a built-in benchmark with a sample ADT^A01 message.
+
+        ARGUMENTS:
+            <file>                  Optional HL7 message file to benchmark
+
+        OPTIONS:
+            --iterations, -n <num>  Number of parsing iterations (default: 100)
+            --format <fmt>          Output format: 'text' (default) or 'json'
+            --help, -h              Show help information
+
+        EXAMPLES:
+            hl7 benchmark
+            hl7 benchmark message.hl7
+            hl7 benchmark --iterations 1000
+            hl7 benchmark message.hl7 -n 500 --format json
         """
 
     /// Version string

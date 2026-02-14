@@ -821,3 +821,139 @@ public func printJSON(_ dict: [String: Any]) {
         printError("Failed to serialize JSON: \(error)")
     }
 }
+
+// MARK: - Benchmark Command
+
+/// Executes the benchmark command
+public func runBenchmark(_ options: BenchmarkOptions) -> ExitCode {
+    let iterations = options.iterations
+
+    // If a file is provided, benchmark that specific file
+    if let inputFile = options.inputFile {
+        return benchmarkFile(inputFile, iterations: iterations, format: options.format)
+    }
+
+    // Otherwise, run a built-in benchmark suite
+    return benchmarkBuiltIn(iterations: iterations, format: options.format)
+}
+
+/// Benchmarks parsing of a specific HL7 v2.x file
+private func benchmarkFile(_ path: String, iterations: Int, format: OutputFormat) -> ExitCode {
+    let content: String
+    do {
+        content = try readFile(at: path)
+    } catch {
+        printError("\(error)")
+        return .inputError
+    }
+
+    let parser = createParser()
+
+    // Warmup
+    for _ in 0..<min(10, iterations) {
+        _ = try? parser.parse(content)
+    }
+
+    // Measured run
+    var durations: [TimeInterval] = []
+    for _ in 0..<iterations {
+        let start = Date()
+        _ = try? parser.parse(content)
+        durations.append(Date().timeIntervalSince(start))
+    }
+
+    durations.sort()
+    let totalTime = durations.reduce(0, +)
+    let throughput = Double(iterations) / totalTime
+    let p50 = durations[Int(Double(iterations) * 0.50)]
+    let p95 = durations[Int(Double(iterations) * 0.95)]
+    let p99 = durations[max(0, Int(Double(iterations) * 0.99) - 1)]
+
+    switch format {
+    case .text:
+        print("HL7kit Benchmark Results")
+        print("═══════════════════════════════════════")
+        print("  File:         \(path)")
+        print("  Iterations:   \(iterations)")
+        print("  Total Time:   \(String(format: "%.3f", totalTime))s")
+        print("  Throughput:   \(String(format: "%.0f", throughput)) msg/s")
+        print("  Latency p50:  \(String(format: "%.0f", p50 * 1_000_000)) μs")
+        print("  Latency p95:  \(String(format: "%.0f", p95 * 1_000_000)) μs")
+        print("  Latency p99:  \(String(format: "%.0f", p99 * 1_000_000)) μs")
+        print("═══════════════════════════════════════")
+    case .json:
+        printJSON([
+            "file": path,
+            "iterations": iterations,
+            "totalTimeSeconds": totalTime,
+            "throughputMsgPerSec": throughput,
+            "latencyMicroseconds": [
+                "p50": p50 * 1_000_000,
+                "p95": p95 * 1_000_000,
+                "p99": p99 * 1_000_000
+            ] as [String: Any]
+        ])
+    }
+
+    return .success
+}
+
+/// Runs a built-in benchmark suite with a sample ADT message
+private func benchmarkBuiltIn(iterations: Int, format: OutputFormat) -> ExitCode {
+    let sampleMessage = [
+        "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECEIVING_APP|RECEIVING_FAC|20231115120000||ADT^A01|MSG00001|P|2.5.1",
+        "EVN|A01|20231115120000",
+        "PID|1||12345^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^ANYTOWN^CA^12345^USA|||||||12345678",
+        "PV1|1|I|2000^2012^01||||004777^SMITH^JOHN^A|||SUR||||ADM|A0|"
+    ].joined(separator: "\r")
+
+    let parser = createParser()
+
+    // Warmup
+    for _ in 0..<min(10, iterations) {
+        _ = try? parser.parse(sampleMessage)
+    }
+
+    // Measured run
+    var durations: [TimeInterval] = []
+    for _ in 0..<iterations {
+        let start = Date()
+        _ = try? parser.parse(sampleMessage)
+        durations.append(Date().timeIntervalSince(start))
+    }
+
+    durations.sort()
+    let totalTime = durations.reduce(0, +)
+    let throughput = Double(iterations) / totalTime
+    let p50 = durations[Int(Double(iterations) * 0.50)]
+    let p95 = durations[Int(Double(iterations) * 0.95)]
+    let p99 = durations[max(0, Int(Double(iterations) * 0.99) - 1)]
+
+    switch format {
+    case .text:
+        print("HL7kit Benchmark Results (Built-in ADT^A01)")
+        print("═══════════════════════════════════════")
+        print("  Iterations:   \(iterations)")
+        print("  Total Time:   \(String(format: "%.3f", totalTime))s")
+        print("  Throughput:   \(String(format: "%.0f", throughput)) msg/s")
+        print("  Latency p50:  \(String(format: "%.0f", p50 * 1_000_000)) μs")
+        print("  Latency p95:  \(String(format: "%.0f", p95 * 1_000_000)) μs")
+        print("  Latency p99:  \(String(format: "%.0f", p99 * 1_000_000)) μs")
+        print("═══════════════════════════════════════")
+    case .json:
+        printJSON([
+            "builtIn": true,
+            "messageType": "ADT^A01",
+            "iterations": iterations,
+            "totalTimeSeconds": totalTime,
+            "throughputMsgPerSec": throughput,
+            "latencyMicroseconds": [
+                "p50": p50 * 1_000_000,
+                "p95": p95 * 1_000_000,
+                "p99": p99 * 1_000_000
+            ] as [String: Any]
+        ])
+    }
+
+    return .success
+}
