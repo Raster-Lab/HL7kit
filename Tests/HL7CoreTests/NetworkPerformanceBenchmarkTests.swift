@@ -123,7 +123,7 @@ final class NetworkPerformanceBenchmarkTests: XCTestCase {
         var parser = MLLPStreamParser()
         parser.append(combined)
         var parsedCount = 0
-        while let _ = try? parser.nextMessage() {
+        while (try? parser.nextMessage()) != nil {
             parsedCount += 1
         }
         let duration = ContinuousClock.now - startTime
@@ -156,7 +156,7 @@ final class NetworkPerformanceBenchmarkTests: XCTestCase {
                 parser.append(msgData[offset..<end])
                 
                 // Try to parse any complete messages
-                while let _ = try? parser.nextMessage() {
+                while (try? parser.nextMessage()) != nil {
                     parsedCount += 1
                 }
             }
