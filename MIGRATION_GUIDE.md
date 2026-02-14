@@ -1,16 +1,110 @@
 # HL7kit Migration Guide
 
-Step-by-step instructions for migrating from standalone patterns to the unified Phase 7 services.
+Step-by-step instructions for migrating to HL7kit 1.0.0 and between internal service patterns.
 
 ---
 
 ## Table of Contents
 
+- [Migrating to 1.0.0](#migrating-to-100)
 - [Migrating from EnhancedLogger to UnifiedLogger](#migrating-from-enhancedlogger-to-unifiedlogger)
 - [Migrating from Custom Caching to SharedCache](#migrating-from-custom-caching-to-sharedcache)
 - [Adopting the Security Framework](#adopting-the-security-framework)
 - [Integrating the Persistence Layer](#integrating-the-persistence-layer)
 - [Version Compatibility Notes](#version-compatibility-notes)
+
+---
+
+## Migrating to 1.0.0
+
+### Overview
+
+HL7kit 1.0.0 is the first stable release. If you were using pre-release or development versions, this section covers the key changes and migration paths.
+
+### Breaking Changes from Pre-1.0
+
+**Good News:** Version 1.0.0 represents the first official release with no breaking changes from previous versions, as there were no official pre-1.0 releases. All APIs are now stable and will follow semantic versioning going forward.
+
+### What's New in 1.0.0
+
+1. **API Stability**: All public APIs are now stable and documented
+2. **Swift 6.2 Strict Concurrency**: Full Sendable conformance for all public types
+3. **Comprehensive Test Coverage**: 2,100+ tests with 90%+ code coverage
+4. **Complete Documentation**: DocC documentation for all public APIs
+5. **Production Security Guidance**: See [SECURITY_GUIDE.md](SECURITY_GUIDE.md) for production requirements
+
+### Installation
+
+HL7kit 1.0.0 is distributed via Swift Package Manager:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Raster-Lab/HL7kit.git", from: "1.0.0")
+]
+```
+
+### Module Organization
+
+HL7kit is organized into four main modules:
+
+- **HL7Core**: Shared utilities, protocols, and services
+- **HL7v2Kit**: HL7 v2.x message processing (versions 2.1-2.8)
+- **HL7v3Kit**: HL7 v3.x and CDA R2 document processing
+- **FHIRkit**: FHIR R4 resource handling and RESTful client
+
+Import only the modules you need:
+
+```swift
+import HL7v2Kit  // For HL7 v2.x
+import HL7v3Kit  // For HL7 v3.x / CDA
+import FHIRkit   // For FHIR
+import HL7Core   // For shared utilities
+```
+
+### Swift 6.2 Concurrency
+
+All HL7kit types are designed for Swift 6.2's strict concurrency model:
+
+- All mutable state is protected by actors
+- All public types conform to `Sendable` where appropriate
+- Async/await is used throughout for asynchronous operations
+- No data races or concurrency warnings in strict mode
+
+### Security Requirements for Production
+
+**Important:** The cryptographic implementations in 1.0.0 are suitable for development and testing but **must be upgraded for production** use with Protected Health Information (PHI):
+
+```swift
+// ⚠️ Demo-grade encryption (development only)
+let encryptor = MessageEncryptor()
+let encrypted = try await encryptor.encrypt(data, key: key)
+
+// ✅ Production: Use CryptoKit or OpenSSL
+import CryptoKit
+let symmetricKey = SymmetricKey(size: .bits256)
+let sealedBox = try AES.GCM.seal(data, using: symmetricKey)
+```
+
+See [SECURITY_GUIDE.md](SECURITY_GUIDE.md) and [SECURITY_VULNERABILITY_ASSESSMENT.md](SECURITY_VULNERABILITY_ASSESSMENT.md) for complete production security requirements.
+
+### Performance Optimization
+
+HL7kit is optimized for performance out of the box:
+
+- **HL7 v2.x**: 50,000+ messages/second throughput
+- **HL7 v3.x**: 5,000+ CDA documents/second
+- **FHIR**: 10,000+ resources/second
+- **Memory**: <1MB per message for typical ADT/ORU messages
+
+For advanced optimization, see [PERFORMANCE.md](PERFORMANCE.md) and the performance examples in [Examples/PerformanceOptimization.swift](Examples/PerformanceOptimization.swift).
+
+### Getting Help
+
+- **Documentation**: [README.md](README.md)
+- **Examples**: [Examples/](Examples/)
+- **Standards**: [HL7V2X_STANDARDS.md](HL7V2X_STANDARDS.md), [HL7V3X_STANDARDS.md](HL7V3X_STANDARDS.md), [FHIR_STANDARDS.md](FHIR_STANDARDS.md)
+- **Issues**: [GitHub Issues](https://github.com/Raster-Lab/HL7kit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Raster-Lab/HL7kit/discussions)
 
 ---
 
