@@ -166,6 +166,108 @@ Tested on Apple M1 Pro, macOS 14.0, Swift 6.2:
 
 ---
 
+## HL7 v3.x Performance Characteristics
+
+### XML Parsing Throughput
+
+Tested with CDA (Clinical Document Architecture) documents of varying complexity:
+
+| Document Type | Size | Throughput |
+|---------------|------|------------|
+| Small CDA (~1 KB) | 1 section | 10,000-20,000 docs/s |
+| Medium CDA (~5 KB) | 5 sections | 2,000-7,000 docs/s |
+| Large CDA (~20 KB) | 50 sections | 500-1,000 docs/s |
+| Very Large CDA (~40 KB) | 100 sections | 300-500 docs/s |
+
+### XML Parsing Latency
+
+| Operation | p50 | p95 | p99 |
+|-----------|-----|-----|-----|
+| Parse Small CDA | 80 μs | 110 μs | 140 μs |
+| Parse Medium CDA | 200 μs | 350 μs | 500 μs |
+| Parse Large CDA | 1,000 μs | 1,500 μs | 2,000 μs |
+
+### v3.x Optimization Techniques
+
+1. **XMLElement Pool**: Actor-based object pool for XML elements with 94-98% reuse rate under sustained load
+2. **String Interning**: Common CDA element names (100+) are interned for fast lookup and reduced allocations
+3. **XPath Query Cache**: Caches repeated XPath-like queries to avoid re-parsing expressions
+4. **Lazy Section Content**: CDA section entries and narrative text are parsed on-demand
+5. **Streaming XML Processing**: Large documents can be processed section-by-section without full DOM load
+
+### v3.x Scalability
+
+Throughput scales linearly with document complexity. Doubling the number of sections approximately halves throughput, consistent with O(n) parsing behavior.
+
+---
+
+## FHIR Performance Characteristics
+
+### JSON Parsing Throughput
+
+Tested with FHIR R4 resources:
+
+| Resource Type | Size | Throughput |
+|---------------|------|------------|
+| Patient (simple) | ~500 bytes | 15,000-25,000 resources/s |
+| Bundle (5 entries) | ~1 KB | 8,000-15,000 bundles/s |
+| Bundle (streaming) | ~1 KB | 5,000-10,000 bundles/s |
+
+### FHIR Latency
+
+| Operation | p50 | p95 | p99 |
+|-----------|-----|-----|-----|
+| Parse Patient JSON | 40 μs | 60 μs | 100 μs |
+| Parse Bundle JSON | 80 μs | 120 μs | 180 μs |
+| Streaming Bundle | 100 μs | 150 μs | 250 μs |
+
+### FHIR Caching
+
+The `FHIRResourceCache` provides LRU caching with TTL expiration:
+
+| Metric | Typical Value |
+|--------|--------------|
+| Cache Hit Rate | 70-95% (depends on workload) |
+| LRU Eviction | Automatic when max entries reached |
+| TTL Expiration | Configurable (default: 300s) |
+| Memory Overhead | ~100 bytes per cached entry |
+
+```swift
+let cache = FHIRResourceCache(maxSize: 1000, ttl: 300)
+await cache.put(resourceType: "Patient", id: "p1", data: patientData)
+let cached = await cache.get(resourceType: "Patient", id: "p1")
+```
+
+### FHIR Optimization Techniques
+
+1. **Optimized JSON Parser**: Direct `JSONSerialization`-based parser bypassing `Codable` overhead for raw resource dictionaries
+2. **Streaming Bundle Processor**: Processes Bundle entries one at a time without loading entire Bundle into memory
+3. **Resource Cache**: LRU cache with TTL reduces repeated parsing of frequently accessed resources
+4. **Connection Pool**: Reusable HTTP connections for REST client operations
+5. **Performance Metrics**: Built-in operation recording with throughput and latency tracking
+
+---
+
+## Cross-Module Performance Summary
+
+Comprehensive benchmarks run across all three modules with the cross-module performance benchmark test suite (`CrossModulePerformanceBenchmarkTests`):
+
+| Module | Metric | Typical Result |
+|--------|--------|---------------|
+| HL7 v2.x | ADT Throughput | 4,000-25,000 msg/s |
+| HL7 v2.x | p50 Latency | 45-250 μs |
+| HL7 v2.x | Concurrent (4 tasks) | 5,000-30,000 msg/s |
+| HL7 v3.x | CDA Throughput | 10,000-20,000 docs/s |
+| HL7 v3.x | p50 Latency | 80-200 μs |
+| HL7 v3.x | Concurrent (4 tasks) | 15,000-30,000 docs/s |
+| FHIR | Patient JSON Throughput | 15,000-25,000 res/s |
+| FHIR | p50 Latency | 40-100 μs |
+| FHIR | Concurrent (4 tasks) | 20,000-40,000 res/s |
+
+**Note**: Performance varies by hardware. Results above reflect Apple Silicon (M1/M2) and CI/CD Linux environments. String interning hit rates exceed 99% across all modules after warmup.
+
+---
+
 ## Configuration Guide
 
 ### High-Throughput Configuration

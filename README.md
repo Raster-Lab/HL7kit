@@ -66,7 +66,7 @@ HL7kit is designed to be a modern, Swift-native alternative to HAPI, built from 
 - **FHIR Subscriptions & Real-time**: R5 topic-based subscription management with WebSocket transport, REST-hook notification handling, event filtering, and automatic reconnection with configurable backoff strategies. Features FHIRSubscriptionManager actor for CRUD operations and real-time notification streaming, SubscriptionEventFilter with fluent EventFilterBuilder API, RESTHookHandler for processing notification bundles, WebSocketTransport actor with auto-reconnection, and ReconnectionStrategy with preset configurations (default, aggressive, conservative, noRetry). All types are Sendable for Swift 6 strict concurrency. Includes 40+ unit tests.
 - **FHIR Performance Optimization**: Comprehensive performance toolkit including OptimizedJSONParser and OptimizedXMLParser with benchmarking, FHIRResourceCache actor with LRU eviction and TTL-based expiration, StreamingBundleProcessor for memory-efficient large Bundle handling, ConnectionPool actor for HTTP session reuse, FHIRBenchmark harness with comparison support, FHIRPerformanceMetrics actor for operation timing, and MemoryPressureMonitor for runtime memory tracking. All types are public and Sendable for Swift 6 strict concurrency. Includes 44 unit tests.
 - **Test Data Sets**: Realistic test messages for validation including valid, invalid, and edge cases
-- **High Test Coverage**: 2090+ unit tests with 90%+ code coverage
+- **High Test Coverage**: 2120+ unit tests with 90%+ code coverage
 - **Testing Infrastructure**: Reusable testing utilities for HL7 integrations including IntegrationTestRunner actor with sequential/parallel execution and dependency management, PerformanceBenchmarkRunner actor with min/max/avg/median/p95/p99 timing and baseline comparison, ConformanceTestRunner actor with category-based conformance reports, MockServer/MockClient actors with route matching and interaction verification, and TestDataGenerator with seed-based reproducible generation of patient names, MRNs, SSNs, phone numbers, HL7 v2.x messages (ADT, ORU), and FHIR-like JSON. All types are public, Sendable, and XCTest-independent for use by library consumers. Includes 45+ unit tests.
 - **Persistence Layer**: Message archive/retrieval system with `MessageArchive` actor for thread-safe storage, `PersistenceStore` protocol with `InMemoryStore` actor for key-value persistence, `DataExporter`/`DataImporter` for JSON export/import with round-trip fidelity, `ArchiveIndex` actor for full-text search and field-based indexing with TF-IDF relevance scoring, date range queries, tag-based filtering, and archive statistics. All types are public and Sendable for Swift 6 strict concurrency. Includes 80 unit tests.
 - **Common Services**: Unified cross-module services including `UnifiedLogger` actor with subsystem/category tagging, correlation ID tracing, and buffered log export; `SecurityService` actor with PHI sanitization (SSN, phone, email masking), input validation, secure random generation, and SHA-256 hashing; `SharedCache<Key, Value>` generic LRU cache actor with TTL expiration and hit/miss statistics. All types are public and Sendable for Swift 6 strict concurrency.
@@ -120,7 +120,7 @@ HL7kit/
 │   ├── IntegrationExamples.swift  # Cross-module integration
 │   ├── PerformanceOptimization.swift # High-throughput techniques
 │   └── README.md                  # Examples index
-├── Tests/             # Comprehensive test suites (2090+ tests, 90%+ coverage)
+├── Tests/             # Comprehensive test suites (2120+ tests, 90%+ coverage)
 ├── TestData/          # Test messages for validation
 │   └── HL7v2x/       # HL7 v2.x test messages
 ├── Documentation/     # API documentation and guides
@@ -172,11 +172,13 @@ HL7kit is optimized for high-performance scenarios:
 
 | Metric | Target | Typical Performance |
 |--------|--------|---------------------|
-| Throughput | >10,000 msg/s | 15,000-25,000 msg/s |
+| v2.x Throughput | >10,000 msg/s | 15,000-25,000 msg/s |
+| v3.x Throughput | >5,000 docs/s | 10,000-20,000 docs/s |
+| FHIR Throughput | >10,000 res/s | 15,000-25,000 res/s |
 | Latency (p50) | <100 μs | 40-80 μs |
 | Memory/Message | <10 KB | 4-8 KB |
 
-*Tested on Apple Silicon (M1/M2). See [PERFORMANCE.md](PERFORMANCE.md) for detailed benchmarks.*
+*Tested on Apple Silicon (M1/M2). See [PERFORMANCE.md](PERFORMANCE.md) for detailed benchmarks across all modules.*
 
 ### Optimization Features
 

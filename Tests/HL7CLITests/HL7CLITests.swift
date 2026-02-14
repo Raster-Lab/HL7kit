@@ -372,6 +372,77 @@ final class CLIParserTests: XCTestCase {
             XCTFail("Expected conformance command with json format")
         }
     }
+
+    // MARK: - Benchmark Command Parsing
+
+    func testParseBenchmarkNoArgs() {
+        let result = CLIParser.parse(["hl7", "benchmark"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertNil(opts.inputFile)
+            XCTAssertEqual(opts.iterations, 100)
+            XCTAssertEqual(opts.format.rawValue, "text")
+        } else {
+            XCTFail("Expected benchmark command")
+        }
+    }
+
+    func testParseBenchmarkWithFile() {
+        let result = CLIParser.parse(["hl7", "benchmark", "message.hl7"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertEqual(opts.inputFile, "message.hl7")
+            XCTAssertEqual(opts.iterations, 100)
+        } else {
+            XCTFail("Expected benchmark command")
+        }
+    }
+
+    func testParseBenchmarkWithIterations() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--iterations", "500"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertNil(opts.inputFile)
+            XCTAssertEqual(opts.iterations, 500)
+        } else {
+            XCTFail("Expected benchmark command")
+        }
+    }
+
+    func testParseBenchmarkShortIterations() {
+        let result = CLIParser.parse(["hl7", "benchmark", "-n", "200"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertEqual(opts.iterations, 200)
+        } else {
+            XCTFail("Expected benchmark command")
+        }
+    }
+
+    func testParseBenchmarkFormatJSON() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--format", "json"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertEqual(opts.format.rawValue, "json")
+        } else {
+            XCTFail("Expected benchmark command with json format")
+        }
+    }
+
+    func testParseBenchmarkInvalidIterations() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--iterations", "abc"])
+        if case .failure(.invalidArgument) = result {
+            // pass
+        } else {
+            XCTFail("Expected invalidArgument error")
+        }
+    }
+
+    func testParseBenchmarkAllOptions() {
+        let result = CLIParser.parse(["hl7", "benchmark", "msg.hl7", "-n", "1000", "--format", "json"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertEqual(opts.inputFile, "msg.hl7")
+            XCTAssertEqual(opts.iterations, 1000)
+            XCTAssertEqual(opts.format.rawValue, "json")
+        } else {
+            XCTFail("Expected benchmark command with all options")
+        }
+    }
 }
 
 // MARK: - CLI Error Tests
@@ -828,6 +899,44 @@ final class CommandExecutionTests: XCTestCase {
 
         let options = ConformanceOptions(inputFile: path, profile: "ADT_A01", format: .json)
         let exitCode = runConformance(options)
+        XCTAssertEqual(exitCode, .success)
+    }
+
+    // MARK: - Benchmark Command
+
+    func testBenchmarkBuiltIn() {
+        let options = BenchmarkOptions()
+        let exitCode = runBenchmark(options)
+        XCTAssertEqual(exitCode, .success)
+    }
+
+    func testBenchmarkWithFile() {
+        let msg = "MSH|^~\\&|A|B|C|D|20240101||ADT^A01|M1|P|2.5.1\nEVN|A01|20240101\nPID|1||123^^^H^MR||Doe^John\nPV1|1|I"
+        let path = createTestFile("bench.hl7", content: msg)
+
+        let options = BenchmarkOptions(inputFile: path, iterations: 50)
+        let exitCode = runBenchmark(options)
+        XCTAssertEqual(exitCode, .success)
+    }
+
+    func testBenchmarkFileNotFound() {
+        let options = BenchmarkOptions(inputFile: "/tmp/nonexistent_bench.hl7")
+        let exitCode = runBenchmark(options)
+        XCTAssertEqual(exitCode, .inputError)
+    }
+
+    func testBenchmarkJSONFormat() {
+        let options = BenchmarkOptions(iterations: 20, format: .json)
+        let exitCode = runBenchmark(options)
+        XCTAssertEqual(exitCode, .success)
+    }
+
+    func testBenchmarkFileJSONFormat() {
+        let msg = "MSH|^~\\&|A|B|C|D|20240101||ADT^A01|M1|P|2.5.1\nEVN|A01|20240101\nPID|1||123^^^H^MR||Doe^John\nPV1|1|I"
+        let path = createTestFile("bench_json.hl7", content: msg)
+
+        let options = BenchmarkOptions(inputFile: path, iterations: 20, format: .json)
+        let exitCode = runBenchmark(options)
         XCTAssertEqual(exitCode, .success)
     }
 }

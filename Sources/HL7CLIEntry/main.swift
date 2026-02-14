@@ -23,6 +23,8 @@ case .success(let command):
         exitCode = runBatch(options)
     case .conformance(let options):
         exitCode = runConformance(options)
+    case .benchmark(let options):
+        exitCode = runBenchmark(options)
     case .help:
         print(HelpText.main)
         exitCode = .success
