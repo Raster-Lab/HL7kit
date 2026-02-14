@@ -95,6 +95,18 @@ swift run hl7 batch path/to/directory --operation validate
 swift run hl7 conformance path/to/message.hl7 --profile ADT_A01
 ```
 
+## Video Tutorials
+
+For visual learners, check out our comprehensive video tutorial series:
+
+- [Video Tutorials Guide](../VIDEO_TUTORIALS.md) — Complete video tutorial scripts and guides covering:
+  - Introduction to HL7kit (3 videos)
+  - HL7 v2.x mastery (4 videos)
+  - HL7 v3.x and CDA documents (3 videos)
+  - FHIR integration (3 videos)
+  - Platform-specific features (3 videos)
+  - Advanced topics (3 videos)
+
 ## Further Reading
 
 - [Architecture Guide](../ARCHITECTURE.md) — Module design and data flow
