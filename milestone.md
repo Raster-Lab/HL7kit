@@ -555,14 +555,15 @@ Finalize the framework for production release.
 #### 9.1 Beta Testing (Weeks 57-58)
 - [ ] Private beta program (requires external access - deferred)
 - [ ] Collect feedback (requires external users - deferred)
-- [x] Fix critical bugs (Fixed: HL7v3Kit missing HL7v2Kit dependency for transformation features)
+- [x] Fix critical bugs
 - [ ] Performance tuning based on real usage (requires external usage data)
 - [x] Documentation updates (Updated milestone.md with current status)
 
 **Deliverables**: Beta release with feedback incorporated (In Progress - CI/CD environment)
 
 **Notes**: 
-- Fixed critical dependency bug preventing HL7v3Kit transformation features from compiling
+- **Fixed**: HL7CoreTests missing dependencies - Added HL7v2Kit, HL7v3Kit, and FHIRkit dependencies to HL7CoreTests target in Package.swift. This resolved compilation errors where PlatformExamplesTests.swift was importing these modules but they weren't declared as dependencies.
+- **Fixed**: HL7v3Kit missing HL7v2Kit dependency for transformation features (previously completed)
 - Added HL7v2Kit dependency to HL7v3Kit and HL7v3KitTests targets
 - Transformer tests now compile and run successfully
 - Test suite shows 2090+ tests with some pre-existing failures unrelated to this work

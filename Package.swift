@@ -51,7 +51,7 @@ let package = Package(
         ),
         .testTarget(
             name: "HL7CoreTests",
-            dependencies: ["HL7Core"],
+            dependencies: ["HL7Core", "HL7v2Kit", "HL7v3Kit", "FHIRkit"],
             path: "Tests/HL7CoreTests"
         ),
         
