@@ -872,6 +872,7 @@ extension SecurityFrameworkTests {
     
     // MARK: - Key Size Validation Tests
     
+    @MainActor
     func testEncryptionKeyMinimumSizeEnforced() {
         // Test that generating a key smaller than 16 bytes fails
         let expectation = expectation(description: "Key generation should fail")
