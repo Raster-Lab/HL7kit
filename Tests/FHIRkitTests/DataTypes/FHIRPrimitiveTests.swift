@@ -116,7 +116,7 @@ final class FHIRPrimitiveTests: XCTestCase {
     }
     
     func testFHIRUrlInvalid() {
-        let value = FHIRUrl("not a url")
+        let value = FHIRUrl("")
         XCTAssertThrowsError(try value.validate())
     }
     

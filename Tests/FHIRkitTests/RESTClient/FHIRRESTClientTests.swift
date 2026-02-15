@@ -78,7 +78,7 @@ enum TestJSONHelper {
             "resourceType": "Patient",
             "id": "\(id)",
             "messageID": "test-msg",
-            "timestamp": 0,
+            "timestamp": "2024-01-01T12:00:00Z",
             "name": [{"family": "\(family)", "given": ["\(given)"]}],
             "active": true
         }
@@ -105,7 +105,7 @@ enum TestJSONHelper {
             "resourceType": "Bundle",
             "id": "bundle-1",
             "messageID": "test-bundle",
-            "timestamp": 0,
+            "timestamp": "2024-01-01T12:00:00Z",
             "type": "\(type)",
             "total": \(total),
             "link": [\(linksJSON)],
@@ -115,7 +115,7 @@ enum TestJSONHelper {
                     "resourceType": "Patient",
                     "id": "123",
                     "messageID": "test-entry",
-                    "timestamp": 0,
+                    "timestamp": "2024-01-01T12:00:00Z",
                     "name": [{"family": "Smith", "given": ["John"]}],
                     "active": true
                 }
@@ -130,7 +130,7 @@ enum TestJSONHelper {
         {
             "resourceType": "OperationOutcome",
             "messageID": "test-outcome",
-            "timestamp": 0,
+            "timestamp": "2024-01-01T12:00:00Z",
             "issue": [{
                 "severity": "\(severity)",
                 "code": "\(code)",
@@ -147,7 +147,7 @@ enum TestJSONHelper {
             "resourceType": "Bundle",
             "id": "transaction-response",
             "messageID": "test-txn",
-            "timestamp": 0,
+            "timestamp": "2024-01-01T12:00:00Z",
             "type": "transaction-response",
             "entry": [{
                 "response": {
@@ -920,9 +920,8 @@ final class FHIRClientHistoryTests: XCTestCase {
         
         let request = mockSession.requests[0]
         let urlString = request.url?.absoluteString ?? ""
-        XCTAssertTrue(urlString.contains("Patient/_history"))
-        XCTAssertFalse(urlString.contains("Patient/"))
         // The URL should be Patient/_history, not Patient/<id>/_history
+        XCTAssertTrue(urlString.hasSuffix("Patient/_history"))
     }
 }
 

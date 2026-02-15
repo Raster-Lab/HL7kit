@@ -565,11 +565,14 @@ public actor FHIRClient {
         statusCode: Int, data: Data,
         resourceType: String?, id: String?
     ) throws {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
         switch statusCode {
         case 200...299:
             return // Success
         case 404:
-            if let outcome = try? JSONDecoder().decode(OperationOutcome.self, from: data) {
+            if let outcome = try? decoder.decode(OperationOutcome.self, from: data) {
                 throw FHIRClientError.operationOutcome(outcome)
             }
             throw FHIRClientError.notFound(
@@ -582,13 +585,13 @@ public actor FHIRClient {
                 id: id ?? "Unknown"
             )
         case 400, 401, 403, 409, 422:
-            if let outcome = try? JSONDecoder().decode(OperationOutcome.self, from: data) {
+            if let outcome = try? decoder.decode(OperationOutcome.self, from: data) {
                 throw FHIRClientError.operationOutcome(outcome)
             }
             throw FHIRClientError.httpError(statusCode: statusCode, data: data)
         default:
             if statusCode >= 400 {
-                if let outcome = try? JSONDecoder().decode(OperationOutcome.self, from: data) {
+                if let outcome = try? decoder.decode(OperationOutcome.self, from: data) {
                     throw FHIRClientError.operationOutcome(outcome)
                 }
                 throw FHIRClientError.httpError(statusCode: statusCode, data: data)

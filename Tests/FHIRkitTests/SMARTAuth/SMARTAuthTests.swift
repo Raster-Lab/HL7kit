@@ -489,11 +489,10 @@ final class SMARTScopeParserTests: XCTestCase {
     }
 
     func testParseEmptyString() {
-        // Splitting an empty string by space yields one empty element
+        // Swift's split(separator:) omits empty subsequences by default,
+        // so splitting an empty string returns an empty array
         let scopes = parser.parseScopes("")
-        // The single empty-string scope
-        XCTAssertEqual(scopes.count, 1)
-        XCTAssertEqual(scopes[0].scopeString, "")
+        XCTAssertEqual(scopes.count, 0)
     }
 }
 

@@ -8,7 +8,7 @@ final class ComplianceVerificationTests: XCTestCase {
     
     // MARK: - Test Configuration
     
-    private let parser = HL7v2Parser()
+    private let parser = HL7v2Parser(configuration: ParserConfiguration(segmentTerminator: .any))
     private let validator = HL7v2ValidationEngine()
     
     // MARK: - Version-Specific Compliance Tests
@@ -334,7 +334,9 @@ final class ComplianceVerificationTests: XCTestCase {
         // MSH segment has special structure
         let message = """
         MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000|Security|ADT^A01^ADT_A01|MSG001|P|2.5.1|||||USA||EN
+        EVN|A01|20240101120000
         PID|1||12345||Doe^John
+        PV1|1|I|Ward^Room^Bed
         """
         
         let result = try parser.parse(message)

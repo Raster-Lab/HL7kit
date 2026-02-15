@@ -221,12 +221,12 @@ final class PlatformExamplesTests: XCTestCase {
     
     func testMessageParsingForPlatformExamples() async throws {
         let parser = HL7v2Parser()
-        let result = try await parser.parse("""
-        MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|20240101120000||ADT^A01|MSG001|P|2.5.1
-        EVN||20240101120000
-        PID|1||MRN12345^^^Hospital^MR||Doe^John^A||19800115|M|||123 Main St^^Anytown^CA^12345||555-1234
-        PV1|1|I|Ward1^Room101^Bed1
-        """)
+        let result = try parser.parse(
+            "MSH|^~\\&|SendingApp|SendingFac|ReceivingApp|ReceivingFac|20240101120000||ADT^A01|MSG001|P|2.5.1\r" +
+            "EVN||20240101120000\r" +
+            "PID|1||MRN12345^^^Hospital^MR||Doe^John^A||19800115|M|||123 Main St^^Anytown^CA^12345||555-1234\r" +
+            "PV1|1|I|Ward1^Room101^Bed1"
+        )
         
         let message = result.message
         XCTAssertEqual(message.segmentCount, 4)
@@ -265,10 +265,10 @@ final class PlatformExamplesTests: XCTestCase {
     
     func testMessageValidationForPlatformExamples() async throws {
         let parser = HL7v2Parser()
-        let result = try await parser.parse("""
-        MSH|^~\\&|App|Fac|App|Fac|20240101120000||ADT^A01|MSG001|P|2.5.1
-        PID|1||MRN001^^^Hosp^MR||Smith^John
-        """)
+        let result = try parser.parse(
+            "MSH|^~\\&|App|Fac|App|Fac|20240101120000||ADT^A01|MSG001|P|2.5.1\r" +
+            "PID|1||MRN001^^^Hosp^MR||Smith^John"
+        )
         
         // Should not throw
         try result.message.validate()
@@ -277,10 +277,10 @@ final class PlatformExamplesTests: XCTestCase {
     
     func testMessageSerializationForPlatformExamples() async throws {
         let parser = HL7v2Parser()
-        let result = try await parser.parse("""
-        MSH|^~\\&|App|Fac|App|Fac|20240101120000||ADT^A01|MSG001|P|2.5.1
-        PID|1||MRN001^^^Hosp^MR||Smith^John
-        """)
+        let result = try parser.parse(
+            "MSH|^~\\&|App|Fac|App|Fac|20240101120000||ADT^A01|MSG001|P|2.5.1\r" +
+            "PID|1||MRN001^^^Hosp^MR||Smith^John"
+        )
         
         let message = result.message
         let serialized = try message.serialize()
@@ -288,7 +288,7 @@ final class PlatformExamplesTests: XCTestCase {
         XCTAssertFalse(serialized.isEmpty)
         
         // Parse it back
-        let reparsedResult = try await parser.parse(serialized)
+        let reparsedResult = try parser.parse(serialized)
         XCTAssertEqual(reparsedResult.message.segmentCount, message.segmentCount)
     }
 }

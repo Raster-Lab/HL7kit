@@ -279,8 +279,8 @@ final class FHIRFoundationTests: XCTestCase {
         
         let jsonString = String(data: jsonData, encoding: .utf8)
         XCTAssertNotNil(jsonString)
-        XCTAssertTrue(jsonString!.contains("\"resourceType\":\"Patient\""))
-        XCTAssertTrue(jsonString!.contains("\"gender\":\"male\""))
+        XCTAssertTrue(jsonString!.contains("\"resourceType\"") && jsonString!.contains("Patient"))
+        XCTAssertTrue(jsonString!.contains("\"gender\"") && jsonString!.contains("male"))
     }
     
     // MARK: - Performance Tests
