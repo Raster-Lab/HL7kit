@@ -23,14 +23,14 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify version
-        XCTAssertEqual(result.message.version, "2.1")
+        XCTAssertEqual(result.message.version(), "2.1")
         
         // v2.1 should have minimal segment requirements
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
         
         // Basic structure validation - parser should succeed
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
     }
     
     func testVersion25Compliance() throws {
@@ -45,19 +45,20 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify version
-        XCTAssertEqual(result.message.version, "2.5")
+        XCTAssertEqual(result.message.version(), "2.5")
         
         // v2.5 enhanced field structure
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "EVN" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PV1" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "EVN" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PV1" })
         
         // Test enhanced data types
-        let pid = try XCTUnwrap(result.message.segments.first { $0.id == "PID" })
+        let pid = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "PID" })
         XCTAssertFalse(pid.fields.isEmpty)
         
-        XCTAssertNoThrow(try validator.validate(result.message))
+        let validationResult = validator.validate(result.message, against: StandardProfiles.adtA01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testVersion251Compliance() throws {
@@ -72,15 +73,16 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify version
-        XCTAssertEqual(result.message.version, "2.5.1")
+        XCTAssertEqual(result.message.version(), "2.5.1")
         
         // v2.5.1 regulatory compliance features
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "EVN" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PV1" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "EVN" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PV1" })
         
-        XCTAssertNoThrow(try validator.validate(result.message))
+        let validationResult = validator.validate(result.message, against: StandardProfiles.adtA01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testVersion28Compliance() throws {
@@ -95,16 +97,16 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify version
-        XCTAssertEqual(result.message.version, "2.8")
+        XCTAssertEqual(result.message.version(), "2.8")
         
         // All standard segments present
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "EVN" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PV1" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "EVN" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PV1" })
         
-        let result = validator.validate(parsed, against: StandardConformanceProfiles.adtA01)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: StandardProfiles.adtA01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     // MARK: - Message Type Compliance Tests
@@ -121,19 +123,19 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify message type structure
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         XCTAssertTrue(msh.fields.count >= 9)
         
         // ADT A01 required segments
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "EVN" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PV1" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "EVN" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PV1" })
         
         // Use standard profile for validation
-        let profile = StandardConformanceProfiles.adtA01
-        let result = validator.validate(parsed, against: profile)
-        XCTAssertTrue(result.isValid)
+        let profile = StandardProfiles.adtA01
+        let validationResult = validator.validate(result.message, against: profile)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testORUR01MessageCompliance() throws {
@@ -149,19 +151,19 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify message type
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         XCTAssertTrue(msh.fields.count >= 9)
         
         // ORU R01 required segments
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "OBR" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "OBX" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "OBR" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "OBX" })
         
         // Use standard profile for validation
-        let profile = StandardConformanceProfiles.oruR01
-        let result = validator.validate(parsed, against: profile)
-        XCTAssertTrue(result.isValid)
+        let profile = StandardProfiles.oruR01
+        let validationResult = validator.validate(result.message, against: profile)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testORMO01MessageCompliance() throws {
@@ -176,19 +178,19 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify message type
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         XCTAssertTrue(msh.fields.count >= 9)
         
         // ORM O01 required segments
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "ORC" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "OBR" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "ORC" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "OBR" })
         
         // Use standard profile for validation
-        let profile = StandardConformanceProfiles.ormO01
-        let result = validator.validate(parsed, against: profile)
-        XCTAssertTrue(result.isValid)
+        let profile = StandardProfiles.ormO01
+        let validationResult = validator.validate(result.message, against: profile)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testACKMessageCompliance() throws {
@@ -201,17 +203,17 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify message type
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         XCTAssertTrue(msh.fields.count >= 9)
         
         // ACK required segments
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSH" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "MSA" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSH" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "MSA" })
         
         // Use standard profile for validation
-        let profile = StandardConformanceProfiles.ack
-        let result = validator.validate(parsed, against: profile)
-        XCTAssertTrue(result.isValid)
+        let profile = StandardProfiles.ack
+        let validationResult = validator.validate(result.message, against: profile)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     // MARK: - Encoding Rules Compliance Tests
@@ -226,7 +228,7 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify encoding characters are properly handled
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         XCTAssertTrue(msh.fields.count >= 2)
     }
     
@@ -240,11 +242,11 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify escape sequences are handled
-        let pid = try XCTUnwrap(result.message.segments.first { $0.id == "PID" })
+        let pid = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "PID" })
         XCTAssertFalse(pid.fields.isEmpty)
         
         // Parser should handle escape sequences
-        XCTAssertEqual(result.message.version, "2.5.1")
+        XCTAssertEqual(result.message.version(), "2.5.1")
     }
     
     func testRepetitionCompliance() throws {
@@ -257,11 +259,11 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify repetition is handled
-        let pid = try XCTUnwrap(result.message.segments.first { $0.id == "PID" })
+        let pid = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "PID" })
         XCTAssertFalse(pid.fields.isEmpty)
         
         // Parser should handle repetitions
-        XCTAssertEqual(result.message.version, "2.5.1")
+        XCTAssertEqual(result.message.version(), "2.5.1")
     }
     
     // MARK: - Data Type Compliance Tests
@@ -298,12 +300,12 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify numeric values are preserved
-        let obxSegments = result.message.segments.filter { $0.id == "OBX" }
+        let obxSegments = result.message.allSegments.filter { $0.segmentID == "OBX" }
         XCTAssertEqual(obxSegments.count, 2)
         
         // Validation with ORU profile
-        let result = validator.validate(parsed, against: StandardConformanceProfiles.oruR01)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: StandardProfiles.oruR01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testCodedValueCompliance() throws {
@@ -318,12 +320,12 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify coded values are parsed correctly
-        XCTAssertTrue(result.message.segments.contains { $0.id == "OBR" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "OBX" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "OBR" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "OBX" })
         
         // Validation with ORU profile
-        let result = validator.validate(parsed, against: StandardConformanceProfiles.oruR01)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: StandardProfiles.oruR01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     // MARK: - Segment Structure Compliance Tests
@@ -336,19 +338,22 @@ final class ComplianceVerificationTests: XCTestCase {
         """
         
         let result = try parser.parse(message)
-        let msh = try XCTUnwrap(result.message.segments.first { $0.id == "MSH" })
+        let msh = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "MSH" })
         
         // MSH field 1 is encoding characters (special case)
         XCTAssertTrue(msh.fields.count >= 12)
         
         // Test required MSH fields
-        XCTAssertFalse(result.message.sendingApplication.isEmpty)
-        XCTAssertFalse(result.message.receivingApplication.isEmpty)
-        XCTAssertFalse(result.message.messageControlID.isEmpty)
+        let sendingApp = msh[2].value.value.raw
+        let receivingApp = msh[4].value.value.raw
+        let msgControlID = result.message.messageControlID()
+        XCTAssertFalse(sendingApp.isEmpty)
+        XCTAssertFalse(receivingApp.isEmpty)
+        XCTAssertFalse(msgControlID.isEmpty)
         
         // MSH validation
-        let result = validator.validate(parsed, against: StandardConformanceProfiles.adtA01)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: StandardProfiles.adtA01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testSegmentOrderCompliance() throws {
@@ -363,15 +368,15 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify segment order
-        let segmentIds = result.message.segments.map { $0.id }
+        let segmentIds = result.message.allSegments.map { $0.segmentID }
         XCTAssertEqual(segmentIds[0], "MSH")
         XCTAssertEqual(segmentIds[1], "EVN")
         XCTAssertEqual(segmentIds[2], "PID")
         XCTAssertEqual(segmentIds[3], "PV1")
         
         // Segment order validation
-        let result = validator.validate(parsed, against: StandardConformanceProfiles.adtA01)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: StandardProfiles.adtA01)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     // MARK: - Field Cardinality Compliance Tests
@@ -386,10 +391,10 @@ final class ComplianceVerificationTests: XCTestCase {
         """
         
         let result = try parser.parse(validMessage)
-        let profile = StandardConformanceProfiles.adtA01
+        let profile = StandardProfiles.adtA01
         
-        let result = validator.validate(parsed, against: profile)
-        XCTAssertTrue(result.isValid)
+        let validationResult = validator.validate(result.message, against: profile)
+        XCTAssertTrue(validationResult.isValid)
     }
     
     func testOptionalFieldCompliance() throws {
@@ -404,8 +409,8 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Should parse successfully with optional fields missing
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PV1" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PV1" })
     }
     
     // MARK: - Reference Test Message Compliance
@@ -446,9 +451,9 @@ final class ComplianceVerificationTests: XCTestCase {
         """
         
         let result = try parser.parse(v21Message)
-        XCTAssertEqual(result.message.version, "2.1")
+        XCTAssertEqual(result.message.version(), "2.1")
         // Backward compatibility - parser should handle v2.1
-        XCTAssertTrue(result.message.segments.contains { $0.id == "PID" })
+        XCTAssertTrue(result.message.allSegments.contains { $0.segmentID == "PID" })
     }
     
     func testForwardCompatibility() throws {
@@ -474,11 +479,11 @@ final class ComplianceVerificationTests: XCTestCase {
         let result = try parser.parse(message)
         
         // Verify UTF-8 characters are preserved
-        let pid = try XCTUnwrap(result.message.segments.first { $0.id == "PID" })
+        let pid = try XCTUnwrap(result.message.allSegments.first { $0.segmentID == "PID" })
         XCTAssertFalse(pid.fields.isEmpty)
         
         // UTF-8 should be handled
-        XCTAssertEqual(result.message.version, "2.5.1")
+        XCTAssertEqual(result.message.version(), "2.5.1")
     }
     
     func testASCIICompliance() throws {
@@ -490,7 +495,7 @@ final class ComplianceVerificationTests: XCTestCase {
         
         let result = try parser.parse(message)
         // ASCII should be handled
-        XCTAssertEqual(result.message.version, "2.5.1")
+        XCTAssertEqual(result.message.version(), "2.5.1")
     }
     
     // MARK: - Compliance Reporting

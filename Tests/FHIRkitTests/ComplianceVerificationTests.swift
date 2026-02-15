@@ -19,7 +19,7 @@ final class ComplianceVerificationTests: XCTestCase {
             ],
             active: true,
             name: [
-                HumanName(family: "Doe", given: ["John", "A"], use: "official")
+                HumanName(use: "official", family: "Doe", given: ["John", "A"])
             ],
             gender: "male",
             birthDate: "1980-01-01"
@@ -134,8 +134,8 @@ final class ComplianceVerificationTests: XCTestCase {
         let snomed = Coding(system: "http://snomed.info/sct", code: "38341003", display: "Hypertension")
         
         // Verify code system bindings
-        XCTAssertTrue(loinc.system.contains("loinc"))
-        XCTAssertTrue(snomed.system.contains("snomed"))
+        XCTAssertTrue(loinc.system?.contains("loinc") ?? false)
+        XCTAssertTrue(snomed.system?.contains("snomed") ?? false)
     }
     
     // MARK: - Bundle Compliance Tests

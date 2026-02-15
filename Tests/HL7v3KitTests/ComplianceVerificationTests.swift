@@ -8,7 +8,7 @@ final class ComplianceVerificationTests: XCTestCase {
     
     // MARK: - Test Configuration
     
-    private let parser = HL7v3Parser()
+    private let parser = HL7v3XMLParser()
     
     // MARK: - RIM (Reference Information Model) Compliance Tests
     
@@ -27,12 +27,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify RIM Act class attributes
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertFalse(document.title.isEmpty)
-        XCTAssertFalse(document.effectiveTime.isEmpty)
+        XCTAssertNotNil(document.root)
+        XCTAssertNotNil(document.root?.firstChild(named: "id"))
+        XCTAssertNotNil(document.root?.firstChild(named: "title"))
+        XCTAssertNotNil(document.root?.firstChild(named: "effectiveTime"))
     }
     
     func testRIMActRelationshipCompliance() throws {
@@ -61,10 +62,10 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify component relationships
-        XCTAssertTrue(document.hasStructuredBody)
+        XCTAssertNotNil(document.root?.firstChild(named: "component")?.firstChild(named: "structuredBody"))
     }
     
     func testRIMParticipationCompliance() throws {
@@ -105,11 +106,11 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify participation structures
-        XCTAssertFalse(document.patientName.isEmpty)
-        XCTAssertFalse(document.authors.isEmpty)
+        XCTAssertNotNil(document.root?.firstChild(named: "recordTarget"))
+        XCTAssertNotNil(document.root?.firstChild(named: "author"))
     }
     
     // MARK: - CDA Document Compliance Tests
@@ -158,17 +159,17 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify all required CDA header elements
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertFalse(document.title.isEmpty)
-        XCTAssertFalse(document.effectiveTime.isEmpty)
-        XCTAssertFalse(document.patientName.isEmpty)
-        XCTAssertFalse(document.authors.isEmpty)
+        XCTAssertNotNil(document.root?.firstChild(named: "id"))
+        XCTAssertNotNil(document.root?.firstChild(named: "title"))
+        XCTAssertNotNil(document.root?.firstChild(named: "effectiveTime"))
+        XCTAssertNotNil(document.root?.firstChild(named: "recordTarget"))
+        XCTAssertNotNil(document.root?.firstChild(named: "author"))
         
-        // Validate document
-        XCTAssertNoThrow(try document.validate())
+        // Verify document structure
+        XCTAssertEqual(document.root?.name, "ClinicalDocument")
     }
     
     func testCDANarrativeTextCompliance() throws {
@@ -203,11 +204,12 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify narrative text is required and present
-        XCTAssertTrue(document.hasStructuredBody)
-        XCTAssertNoThrow(try document.validate())
+        let structuredBody = document.root?.firstChild(named: "component")?.firstChild(named: "structuredBody")
+        XCTAssertNotNil(structuredBody)
+        XCTAssertNotNil(structuredBody?.firstChild(named: "component")?.firstChild(named: "section")?.firstChild(named: "text"))
     }
     
     func testCDAStructuredBodyCompliance() throws {
@@ -251,11 +253,12 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify structured body with entries
-        XCTAssertTrue(document.hasStructuredBody)
-        XCTAssertNoThrow(try document.validate())
+        let section = document.root?.firstChild(named: "component")?.firstChild(named: "structuredBody")?.firstChild(named: "component")?.firstChild(named: "section")
+        XCTAssertNotNil(section)
+        XCTAssertNotNil(section?.firstChild(named: "entry"))
     }
     
     // MARK: - Data Type Compliance Tests
@@ -275,11 +278,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify coded values are parsed correctly
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertNoThrow(try document.validate())
+        let code = document.root?.firstChild(named: "code")
+        XCTAssertNotNil(code)
+        XCTAssertEqual(code?.attributeValue(forName: "code"), "34133-9")
+        XCTAssertEqual(code?.attributeValue(forName: "codeSystem"), "2.16.840.1.113883.6.1")
     }
     
     func testIntervalOfTimeCompliance() throws {
@@ -305,11 +310,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify interval of time is parsed
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertNoThrow(try document.validate())
+        let effectiveTime = document.findElements(byName: "effectiveTime").first { $0.attributeValue(forName: "xsi:type") != nil }
+        XCTAssertNotNil(effectiveTime)
+        XCTAssertNotNil(effectiveTime?.firstChild(named: "low"))
+        XCTAssertNotNil(effectiveTime?.firstChild(named: "high"))
     }
     
     func testPhysicalQuantityCompliance() throws {
@@ -344,11 +351,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify physical quantity is parsed
-        XCTAssertTrue(document.hasStructuredBody)
-        XCTAssertNoThrow(try document.validate())
+        let value = document.findElements(byName: "value").first
+        XCTAssertNotNil(value)
+        XCTAssertEqual(value?.attributeValue(forName: "value"), "120")
+        XCTAssertEqual(value?.attributeValue(forName: "unit"), "mm[Hg]")
     }
     
     // MARK: - Template Compliance Tests
@@ -379,11 +388,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify C-CDA template compliance
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertNoThrow(try document.validate())
+        let templateIds = document.root?.childElements(named: "templateId")
+        XCTAssertNotNil(templateIds)
+        XCTAssertFalse(templateIds!.isEmpty)
+        XCTAssertEqual(templateIds?.first?.attributeValue(forName: "root"), "2.16.840.1.113883.10.20.22.1.1")
     }
     
     // MARK: - XML Schema Validation Tests
@@ -403,11 +414,11 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify namespace handling
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertNoThrow(try document.validate())
+        XCTAssertEqual(document.root?.name, "ClinicalDocument")
+        XCTAssertEqual(document.root?.namespace, "urn:hl7-org:v3")
     }
     
     func testXMLSchemaCompliance() throws {
@@ -426,7 +437,7 @@ final class ComplianceVerificationTests: XCTestCase {
         """
         
         // Should validate against schema
-        XCTAssertNoThrow(try parser.parseCDADocument(xml))
+        XCTAssertNoThrow(try parser.parse(xml.data(using: .utf8)!))
     }
     
     // MARK: - OID (Object Identifier) Compliance Tests
@@ -453,7 +464,7 @@ final class ComplianceVerificationTests: XCTestCase {
             </ClinicalDocument>
             """
             
-            XCTAssertNoThrow(try parser.parseCDADocument(xml), "Failed to parse document with OID: \(oid)")
+            XCTAssertNoThrow(try parser.parse(xml.data(using: .utf8)!), "Failed to parse document with OID: \(oid)")
         }
     }
     
@@ -474,11 +485,12 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify LOINC code system is recognized
-        XCTAssertFalse(document.documentID.isEmpty)
-        XCTAssertNoThrow(try document.validate())
+        let code = document.root?.firstChild(named: "code")
+        XCTAssertEqual(code?.attributeValue(forName: "codeSystem"), "2.16.840.1.113883.6.1")
+        XCTAssertEqual(code?.attributeValue(forName: "codeSystemName"), "LOINC")
     }
     
     func testSNOMEDCodeCompliance() throws {
@@ -513,11 +525,13 @@ final class ComplianceVerificationTests: XCTestCase {
         </ClinicalDocument>
         """
         
-        let document = try parser.parseCDADocument(xml)
+        let document = try parser.parse(xml.data(using: .utf8)!)
         
         // Verify SNOMED CT code system is recognized
-        XCTAssertTrue(document.hasStructuredBody)
-        XCTAssertNoThrow(try document.validate())
+        let observations = document.findElements(byName: "observation")
+        XCTAssertFalse(observations.isEmpty)
+        let snomedValue = observations.first?.firstChild(named: "value")
+        XCTAssertEqual(snomedValue?.attributeValue(forName: "codeSystem"), "2.16.840.1.113883.6.96")
     }
     
     // MARK: - Compliance Reporting
