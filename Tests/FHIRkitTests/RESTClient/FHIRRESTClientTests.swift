@@ -920,7 +920,6 @@ final class FHIRClientHistoryTests: XCTestCase {
         
         let request = mockSession.requests[0]
         let urlString = request.url?.absoluteString ?? ""
-        XCTAssertTrue(urlString.contains("Patient/_history"))
         // The URL should be Patient/_history, not Patient/<id>/_history
         XCTAssertTrue(urlString.hasSuffix("Patient/_history"))
     }

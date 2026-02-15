@@ -574,6 +574,19 @@ Finalize the framework for production release.
   - HL7CoreTests: Fixed SecurityFrameworkTests concurrency warning with @MainActor and InteroperabilityTests API mismatches
   - All test targets now compile successfully
 - Beta testing tasks requiring external access are deferred pending production environment
+- **Fixed (Feb 2026)**: Multiple test suite crash and failure fixes:
+  - InteroperabilityTests: Configured parser with `.any` segment terminator for multiline string compatibility
+  - PlatformExamplesTests: Fixed segment separators from `\n` to `\r` (HL7 standard)
+  - SMARTScopeParserTests: Fixed crash from incorrect empty string scope count assertion
+  - FHIRClient tests: Fixed `"timestamp": 0` to ISO8601 date strings for proper JSON decoding
+  - FHIRRESTClient: Fixed `handleErrorResponse` to use ISO8601 date decoder matching FHIR serializer
+  - FHIRTerminologyServices: Fixed `parseLookupResult` to catch raw JSON parsing errors as `TerminologyServiceError`
+  - SchemaValidator: Added element-specific validation (id, code, timestamp) to generic XML validation path
+  - ComplianceVerificationTests: Configured parser with `.any` terminator; added missing required segments
+  - ExampleCodeTests: Fixed MessageBuilder field indexing from 0-based to 1-based
+  - FHIRFoundationTests: Fixed JSON assertion to handle prettyPrinted format
+  - FHIRPrimitiveTests: Updated URL validation test for Swift 6.2 Foundation behavior
+  - Test suite: 1398 passing, 4 remaining (FHIRXMLSerialization round-trip), 0 crashes
 
 #### 9.2 Security Audit (Week 59)
 - [ ] Third-party security review (Deferred - requires external engagement)
