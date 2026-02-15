@@ -40,13 +40,16 @@ let package = Package(
         ),
     ],
     dependencies: [
-        // No external dependencies - native Swift only
+        // Apple's cross-platform cryptography library for production-grade encryption
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
     ],
     targets: [
         // MARK: - Core Module
         .target(
             name: "HL7Core",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Crypto", package: "swift-crypto"),
+            ],
             path: "Sources/HL7Core"
         ),
         .testTarget(
