@@ -7,6 +7,7 @@
 import Foundation
 import HL7Core
 import HL7v2Kit
+import HL7v3Kit
 
 // MARK: - File I/O Utilities
 
@@ -115,7 +116,7 @@ struct MessageValidationResult {
     let isValid: Bool
     let segmentCount: Int
     let messageType: String?
-    let issues: [ValidationIssue]
+    let issues: [HL7Core.ValidationIssue]
     let parseError: String?
 
     func toDict(name: String) -> [String: Any] {
@@ -153,7 +154,7 @@ private func validateMessage(
         let msgType = message.messageType()
 
         // Auto-detect profile and validate against it
-        let validationResult: ValidationResult
+        let validationResult: HL7Core.ValidationResult
         if let profile = resolveProfile(msgType) {
             validationResult = engine.validate(message, against: profile)
         } else {
@@ -168,7 +169,7 @@ private func validateMessage(
 
         // Add parser warnings as validation issues
         for warning in parseResult.diagnostics.warnings {
-            issues.append(ValidationIssue(
+            issues.append(HL7Core.ValidationIssue(
                 severity: .warning,
                 message: warning.message,
                 location: nil,
@@ -189,14 +190,14 @@ private func validateMessage(
             segmentCount: message.segmentCount,
             messageType: msgType,
             issues: issues,
-            parseError: nil
+            parseError: Optional<String>.none
         )
     } catch {
         return MessageValidationResult(
             name: name,
             isValid: false,
             segmentCount: 0,
-            messageType: nil,
+            messageType: Optional<String>.none,
             issues: [],
             parseError: "\(error)"
         )
@@ -366,15 +367,47 @@ private func convertV2ToV2(_ content: String, options: ConvertOptions) -> ExitCo
     }
 }
 
-/// Converts an HL7 v2.x message to v3.x CDA format
+/// Converts an HL7 v2.x message to v3.x CDA format using proper transformers
 private func convertV2ToV3(_ content: String, options: ConvertOptions) -> ExitCode {
     let parser = createParser()
     do {
         let result = try parser.parse(content)
         let message = result.message
-
-        // Build a basic CDA-like XML representation from the v2.x message
-        let xml = buildBasicCDAFromV2(message, pretty: options.pretty)
+        
+        // Determine message type and use appropriate transformer
+        let msgType = message.messageType()
+        
+        // Extract the message type code (before the caret)
+        let msgCode = msgType.split(separator: "^").first.map(String.init) ?? msgType
+        
+        // Create transformation context with lenient validation for CLI
+        let config = TransformationConfiguration(
+            validationMode: .lenient,
+            dataLossMode: .warn,
+            trackMetrics: true,
+            timeout: 30.0,
+            customRules: []
+        )
+        let context = TransformationContext(configuration: config)
+        
+        // Transform based on message type
+        let xml: String
+        switch msgCode {
+        case "ADT":
+            let adtMessage = try ADTMessage(message: message)
+            xml = try convertADTToV3(adtMessage, context: context, pretty: options.pretty)
+        case "ORU":
+            let oruMessage = try ORUMessage(message: message)
+            xml = try convertORUToV3(oruMessage, context: context, pretty: options.pretty)
+        case "ORM":
+            let ormMessage = try ORMMessage(message: message)
+            xml = try convertORMToV3(ormMessage, context: context, pretty: options.pretty)
+        default:
+            // Fall back to basic conversion for unsupported message types
+            printError("Warning: Message type \(msgType) not fully supported. Using basic conversion.")
+            xml = buildBasicCDAFromV2(message, pretty: options.pretty)
+        }
+        
         try writeOutput(xml, to: options.outputFile)
         return .success
     } catch {
@@ -383,7 +416,110 @@ private func convertV2ToV3(_ content: String, options: ConvertOptions) -> ExitCo
     }
 }
 
-/// Builds a basic CDA XML document from an HL7 v2.x message
+/// Converts an ADT message to CDA using the proper transformer
+private func convertADTToV3(_ adtMessage: ADTMessage, context: TransformationContext, pretty: Bool) throws -> String {
+    // Create the transformer and perform transformation
+    let transformer = ADTToCDATransformer()
+    
+    // Use a task to run the async transformation
+    let result = try runAsyncTask {
+        try await transformer.transform(adtMessage, context: context)
+    }
+    
+    // Handle transformation result
+    if result.success, let document = result.target {
+        // Print warnings and info to stderr
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        for infoMsg in result.info {
+            printError("Info: \(infoMsg)")
+        }
+        // Serialize to XML
+        return try document.toXML(prettyPrint: pretty, includeXMLDeclaration: true)
+    } else {
+        // Print warnings
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        // Throw error with details
+        let errorMessages = result.errors.map { "\($0.message)" }.joined(separator: "; ")
+        throw CLIError.processingError("Transformation failed: \(errorMessages)")
+    }
+}
+
+/// Converts an ORU message to CDA using the proper transformer
+private func convertORUToV3(_ oruMessage: ORUMessage, context: TransformationContext, pretty: Bool) throws -> String {
+    let transformer = ORUToCDATransformer()
+    
+    let result = try runAsyncTask {
+        try await transformer.transform(oruMessage, context: context)
+    }
+    
+    if result.success, let document = result.target {
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        for infoMsg in result.info {
+            printError("Info: \(infoMsg)")
+        }
+        return try document.toXML(prettyPrint: pretty, includeXMLDeclaration: true)
+    } else {
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        let errorMessages = result.errors.map { "\($0.message)" }.joined(separator: "; ")
+        throw CLIError.processingError("Transformation failed: \(errorMessages)")
+    }
+}
+
+/// Converts an ORM message to CDA using the proper transformer
+private func convertORMToV3(_ ormMessage: ORMMessage, context: TransformationContext, pretty: Bool) throws -> String {
+    let transformer = ORMToCDATransformer()
+    
+    let result = try runAsyncTask {
+        try await transformer.transform(ormMessage, context: context)
+    }
+    
+    if result.success, let document = result.target {
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        for infoMsg in result.info {
+            printError("Info: \(infoMsg)")
+        }
+        return try document.toXML(prettyPrint: pretty, includeXMLDeclaration: true)
+    } else {
+        for warning in result.warnings {
+            printError("Warning: \(warning)")
+        }
+        let errorMessages = result.errors.map { "\($0.message)" }.joined(separator: "; ")
+        throw CLIError.processingError("Transformation failed: \(errorMessages)")
+    }
+}
+
+/// Helper to run async code synchronously in CLI context
+private func runAsyncTask<T: Sendable>(_ task: @escaping @Sendable () async throws -> T) throws -> T {
+    let group = DispatchGroup()
+    group.enter()
+    
+    var result: Result<T, Error>!
+    
+    Task.detached {
+        do {
+            let value = try await task()
+            result = .success(value)
+        } catch {
+            result = .failure(error)
+        }
+        group.leave()
+    }
+    
+    group.wait()
+    return try result.get()
+}
+
+/// Builds a basic CDA XML document from an HL7 v2.x message (fallback for unsupported types)
 private func buildBasicCDAFromV2(_ message: HL7v2Message, pretty: Bool) -> String {
     let indent = pretty ? "  " : ""
     let nl = pretty ? "\n" : ""
@@ -727,7 +863,7 @@ private func resolveProfile(_ name: String) -> ConformanceProfile? {
 
 /// Prints conformance result in text format
 private func printConformanceResult(
-    _ result: ValidationResult, profile: ConformanceProfile,
+    _ result: HL7Core.ValidationResult, profile: ConformanceProfile,
     file: String, message: HL7v2Message
 ) {
     let icon = result.isValid ? "✓" : "✗"
@@ -744,9 +880,9 @@ private func printConformanceResult(
     if issues.isEmpty {
         print("  No conformance issues found.")
     } else {
-        let errors = issues.filter { $0.severity == .error }
-        let warnings = issues.filter { $0.severity == .warning }
-        let infos = issues.filter { $0.severity == .info }
+        let errors = issues.filter { $0.severity == HL7Core.ValidationSeverity.error }
+        let warnings = issues.filter { $0.severity == HL7Core.ValidationSeverity.warning }
+        let infos = issues.filter { $0.severity == HL7Core.ValidationSeverity.info }
 
         if !errors.isEmpty {
             print("  Errors (\(errors.count)):")
@@ -776,7 +912,7 @@ private func printConformanceResult(
 
 /// Prints conformance result in JSON format
 private func printConformanceJSON(
-    _ result: ValidationResult, profile: ConformanceProfile,
+    _ result: HL7Core.ValidationResult, profile: ConformanceProfile,
     file: String, message: HL7v2Message
 ) {
     let issues = result.issues
