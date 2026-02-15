@@ -616,11 +616,14 @@ For detailed compliance information, see [COMPLIANCE_STATUS.md](COMPLIANCE_STATU
 
 We welcome contributions! Before contributing, please:
 
-1. Read our [Coding Standards](CODING_STANDARDS.md)
-2. Ensure your code passes SwiftLint checks
-3. Maintain >90% test coverage for new code
-4. Add documentation for public APIs
-5. Follow Swift 6.2 concurrency best practices
+1. Read our [Contributing Guidelines](CONTRIBUTING.md)
+2. Review our [Governance Model](GOVERNANCE.md)
+3. Understand our [Release Cadence](RELEASE_CADENCE.md)
+4. Read our [Coding Standards](CODING_STANDARDS.md)
+5. Ensure your code passes SwiftLint checks
+6. Maintain >90% test coverage for new code
+7. Add documentation for public APIs
+8. Follow Swift 6.2 concurrency best practices
 
 Contributions welcome in:
 
@@ -629,6 +632,12 @@ Contributions welcome in:
 - Testing
 - Examples and tutorials
 - Bug reports and feature requests
+
+For detailed information on:
+- **How to contribute**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Project governance**: See [GOVERNANCE.md](GOVERNANCE.md)
+- **Release process**: See [RELEASE_CADENCE.md](RELEASE_CADENCE.md)
+- **Code of conduct**: See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ---
 

@@ -19,6 +19,13 @@ Thank you for your interest in contributing to HL7kit! This document provides gu
 
 This project adheres to a Code of Conduct that all contributors are expected to follow. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
 
+## Project Governance
+
+HL7kit follows a transparent governance model with clear decision-making processes and roles. For details on:
+- **Project structure and roles**: See [GOVERNANCE.md](GOVERNANCE.md)
+- **Release schedule and process**: See [RELEASE_CADENCE.md](RELEASE_CADENCE.md)
+- **Decision-making process**: See [GOVERNANCE.md#decision-making](GOVERNANCE.md#decision-making)
+
 ## Getting Started
 
 ### Prerequisites
