@@ -9,7 +9,7 @@ final class InteroperabilityTests: XCTestCase {
     
     // MARK: - Test Configuration
     
-    private let v2Parser = HL7v2Parser()
+    private let v2Parser = HL7v2Parser(configuration: ParserConfiguration(segmentTerminator: .any))
     private let v3Parser = HL7v3XMLParser()
     
     // MARK: - Basic Interoperability Tests

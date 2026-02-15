@@ -689,7 +689,7 @@ final class FHIROperationsClientTests: XCTestCase {
         {
             "resourceType": "OperationOutcome",
             "messageID": "test",
-            "timestamp": 0,
+            "timestamp": "2024-01-01T12:00:00Z",
             "issue": [{"severity": "information", "code": "informational"}]
         }
         """.data(using: .utf8)!
