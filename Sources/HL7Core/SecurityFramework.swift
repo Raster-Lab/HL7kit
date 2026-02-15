@@ -660,10 +660,23 @@ public struct SecureEncryptionKey: Sendable {
     /// Uses cryptographically secure random generation.
     ///
     /// - Returns: A new secure encryption key
+    /// - Note: This method cannot fail under normal circumstances since
+    ///         SymmetricKey(size: .bits256) always generates exactly 32 bytes.
     public static func generate() -> SecureEncryptionKey {
         let symmetricKey = SymmetricKey(size: .bits256)
-        // This cannot fail since we're generating a 256-bit key
-        return try! SecureEncryptionKey(symmetricKey: symmetricKey)
+        do {
+            return try SecureEncryptionKey(symmetricKey: symmetricKey)
+        } catch {
+            // This should never happen since SymmetricKey.bits256 is exactly 256 bits
+            assertionFailure("SecureEncryptionKey.generate() failed unexpectedly: \(error)")
+            // Fallback: generate using SystemRandomNumberGenerator (also cryptographically secure)
+            var bytes = [UInt8](repeating: 0, count: 32)
+            for i in 0..<32 {
+                bytes[i] = UInt8.random(in: 0...255)
+            }
+            // swiftlint:disable:next force_try
+            return try! SecureEncryptionKey(keyData: Data(bytes))
+        }
     }
 }
 
@@ -703,9 +716,23 @@ public struct SecureSigningKey: Sendable {
     /// Generates a new cryptographically secure random 256-bit signing key
     ///
     /// - Returns: A new secure signing key
+    /// - Note: This method cannot fail under normal circumstances since
+    ///         SymmetricKey(size: .bits256) always generates exactly 32 bytes.
     public static func generate() -> SecureSigningKey {
         let symmetricKey = SymmetricKey(size: .bits256)
-        return try! SecureSigningKey(keyData: symmetricKey.withUnsafeBytes { Data($0) })
+        do {
+            return try SecureSigningKey(keyData: symmetricKey.withUnsafeBytes { Data($0) })
+        } catch {
+            // This should never happen since SymmetricKey.bits256 generates exactly 32 bytes
+            assertionFailure("SecureSigningKey.generate() failed unexpectedly: \(error)")
+            // Fallback: generate using SystemRandomNumberGenerator (also cryptographically secure)
+            var bytes = [UInt8](repeating: 0, count: 32)
+            for i in 0..<32 {
+                bytes[i] = UInt8.random(in: 0...255)
+            }
+            // swiftlint:disable:next force_try
+            return try! SecureSigningKey(keyData: Data(bytes))
+        }
     }
 }
 
