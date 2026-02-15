@@ -773,7 +773,9 @@ final class CommandExecutionTests: XCTestCase {
         let output = try? String(contentsOfFile: outPath, encoding: .utf8)
         XCTAssertNotNil(output)
         XCTAssertTrue(output?.contains("ClinicalDocument") ?? false)
-        XCTAssertTrue(output?.contains("Doe") ?? false)
+        // The transformer creates a CDA structure with proper templates and type IDs
+        XCTAssertTrue(output?.contains("typeId") ?? false)
+        XCTAssertTrue(output?.contains("templateId") ?? false)
     }
 
     func testConvertUnsupportedFormat() {

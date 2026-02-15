@@ -94,7 +94,7 @@ let package = Package(
         // MARK: - CLI Executable
         .target(
             name: "HL7CLICore",
-            dependencies: ["HL7Core", "HL7v2Kit"],
+            dependencies: ["HL7Core", "HL7v2Kit", "HL7v3Kit"],
             path: "Sources/HL7CLI"
         ),
         .executableTarget(
@@ -104,7 +104,7 @@ let package = Package(
         ),
         .testTarget(
             name: "HL7CLITests",
-            dependencies: ["HL7CLICore", "HL7Core", "HL7v2Kit"],
+            dependencies: ["HL7CLICore", "HL7Core", "HL7v2Kit", "HL7v3Kit"],
             path: "Tests/HL7CLITests"
         ),
     ],
