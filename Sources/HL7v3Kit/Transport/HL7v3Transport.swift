@@ -80,7 +80,7 @@ public struct TransportConfiguration: Sendable {
 // MARK: - TLS Configuration
 
 #if canImport(Security)
-import Security
+@preconcurrency import Security
 
 /// TLS/SSL configuration
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
