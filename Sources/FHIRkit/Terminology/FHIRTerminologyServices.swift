@@ -949,7 +949,13 @@ public actor FHIRTerminologyClient {
 
     /// Parse a Parameters resource from a CodeSystem $lookup response
     private func parseLookupResult(data: Data, system: String) throws -> CodeSystemLookupResult {
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+        let jsonObject: Any
+        do {
+            jsonObject = try JSONSerialization.jsonObject(with: data)
+        } catch {
+            throw TerminologyServiceError.invalidResponse("Expected Parameters resource with parameter array")
+        }
+        guard let json = jsonObject as? [String: Any],
               let parameters = json["parameter"] as? [[String: Any]] else {
             throw TerminologyServiceError.invalidResponse("Expected Parameters resource with parameter array")
         }

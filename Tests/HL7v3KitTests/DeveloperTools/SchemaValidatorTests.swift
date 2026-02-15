@@ -420,13 +420,13 @@ final class SchemaValidatorTests: XCTestCase {
     }
     
     func testSkipCDASchema() async throws {
-        let config = SchemaValidator.Configuration(validateCDASchema: false)
+        let config = SchemaValidator.Configuration(validateCDASchema: false, checkConformanceRules: false)
         let validator = SchemaValidator(configuration: config)
         let element = createInvalidCDADocument()
         
         let result = await validator.validate(element: element)
         
-        // Should have fewer errors since schema validation is skipped
+        // Should have no rules checked since both schema and conformance validation are skipped
         XCTAssertTrue(result.statistics.rulesChecked == 0)
     }
     

@@ -193,8 +193,8 @@ final class ExampleCodeTests: XCTestCase {
                    .version("2.5.1")
             }
             .segment("MSA") { msa in
-                msa.field(0, value: "AA")
-                   .field(1, value: controlID)
+                msa.field(1, value: "AA")
+                   .field(2, value: controlID)
             }
             .build()
 
@@ -256,8 +256,8 @@ final class ExampleCodeTests: XCTestCase {
                    .version("2.5.1")
             }
             .segment("MSA") { msa in
-                msa.field(0, value: "AA")
-                   .field(1, value: controlID)
+                msa.field(1, value: "AA")
+                   .field(2, value: controlID)
             }
             .build()
 

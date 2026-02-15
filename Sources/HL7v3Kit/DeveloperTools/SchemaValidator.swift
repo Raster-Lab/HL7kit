@@ -556,6 +556,27 @@ public actor SchemaValidator: Sendable {
             )
         }
         
+        // Element-specific validation
+        var rulesChecked = 0
+        switch element.name {
+        case "id":
+            validateIdentifier(element, rulesChecked: &rulesChecked)
+        case "code":
+            validateCode(element, rulesChecked: &rulesChecked)
+        case "effectiveTime":
+            validateTimestamp(element, rulesChecked: &rulesChecked)
+        case "templateId":
+            validateTemplateId(element, rulesChecked: &rulesChecked)
+        case "section":
+            validateSection(element, rulesChecked: &rulesChecked)
+        case "entry":
+            validateEntry(element, rulesChecked: &rulesChecked)
+        case "observation":
+            validateObservation(element, rulesChecked: &rulesChecked)
+        default:
+            break
+        }
+        
         // Recursively validate children
         for child in element.children {
             validateGenericXML(element: child, stats: &elementsValidated, &attributesValidated)
