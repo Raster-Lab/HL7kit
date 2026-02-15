@@ -416,17 +416,17 @@ private func convertV2ToV3(_ content: String, options: ConvertOptions) -> ExitCo
     }
 }
 
-/// Converts an ADT message to CDA using the proper transformer
-private func convertADTToV3(_ adtMessage: ADTMessage, context: TransformationContext, pretty: Bool) throws -> String {
-    // Create the transformer and perform transformation
-    let transformer = ADTToCDATransformer()
-    
-    // Use a task to run the async transformation
+/// Helper to convert any message to CDA using a transformer
+private func convertWithTransformer<M, T: Transformer>(
+    _ message: M,
+    transformer: T,
+    context: TransformationContext,
+    pretty: Bool
+) throws -> String where T.Source == M, T.Target == ClinicalDocument {
     let result = try runAsyncTask {
-        try await transformer.transform(adtMessage, context: context)
+        try await transformer.transform(message, context: context)
     }
     
-    // Handle transformation result
     if result.success, let document = result.target {
         // Print warnings and info to stderr
         for warning in result.warnings {
@@ -448,54 +448,22 @@ private func convertADTToV3(_ adtMessage: ADTMessage, context: TransformationCon
     }
 }
 
+/// Converts an ADT message to CDA using the proper transformer
+private func convertADTToV3(_ adtMessage: ADTMessage, context: TransformationContext, pretty: Bool) throws -> String {
+    let transformer = ADTToCDATransformer()
+    return try convertWithTransformer(adtMessage, transformer: transformer, context: context, pretty: pretty)
+}
+
 /// Converts an ORU message to CDA using the proper transformer
 private func convertORUToV3(_ oruMessage: ORUMessage, context: TransformationContext, pretty: Bool) throws -> String {
     let transformer = ORUToCDATransformer()
-    
-    let result = try runAsyncTask {
-        try await transformer.transform(oruMessage, context: context)
-    }
-    
-    if result.success, let document = result.target {
-        for warning in result.warnings {
-            printError("Warning: \(warning)")
-        }
-        for infoMsg in result.info {
-            printError("Info: \(infoMsg)")
-        }
-        return try document.toXML(prettyPrint: pretty, includeXMLDeclaration: true)
-    } else {
-        for warning in result.warnings {
-            printError("Warning: \(warning)")
-        }
-        let errorMessages = result.errors.map { "\($0.message)" }.joined(separator: "; ")
-        throw CLIError.processingError("Transformation failed: \(errorMessages)")
-    }
+    return try convertWithTransformer(oruMessage, transformer: transformer, context: context, pretty: pretty)
 }
 
 /// Converts an ORM message to CDA using the proper transformer
 private func convertORMToV3(_ ormMessage: ORMMessage, context: TransformationContext, pretty: Bool) throws -> String {
     let transformer = ORMToCDATransformer()
-    
-    let result = try runAsyncTask {
-        try await transformer.transform(ormMessage, context: context)
-    }
-    
-    if result.success, let document = result.target {
-        for warning in result.warnings {
-            printError("Warning: \(warning)")
-        }
-        for infoMsg in result.info {
-            printError("Info: \(infoMsg)")
-        }
-        return try document.toXML(prettyPrint: pretty, includeXMLDeclaration: true)
-    } else {
-        for warning in result.warnings {
-            printError("Warning: \(warning)")
-        }
-        let errorMessages = result.errors.map { "\($0.message)" }.joined(separator: "; ")
-        throw CLIError.processingError("Transformation failed: \(errorMessages)")
-    }
+    return try convertWithTransformer(ormMessage, transformer: transformer, context: context, pretty: pretty)
 }
 
 /// Helper to run async code synchronously in CLI context
@@ -503,7 +471,7 @@ private func runAsyncTask<T: Sendable>(_ task: @escaping @Sendable () async thro
     let group = DispatchGroup()
     group.enter()
     
-    var result: Result<T, Error>!
+    var result: Result<T, Error>?
     
     Task.detached {
         do {
@@ -516,7 +484,11 @@ private func runAsyncTask<T: Sendable>(_ task: @escaping @Sendable () async thro
     }
     
     group.wait()
-    return try result.get()
+    
+    guard let finalResult = result else {
+        throw CLIError.processingError("Task completed without result")
+    }
+    return try finalResult.get()
 }
 
 /// Builds a basic CDA XML document from an HL7 v2.x message (fallback for unsupported types)
