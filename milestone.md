@@ -433,7 +433,7 @@ Add advanced capabilities, SMART on FHIR support, and optimization for FHIRkit.
 
 ---
 
-## Phase 7: Integration & Common Services (Weeks 45-50)
+## Phase 7: Integration & Common Services (Weeks 45-52)
 
 ### Goals
 Build shared services and integration capabilities across all toolkits.
@@ -487,6 +487,34 @@ Build shared services and integration capabilities across all toolkits.
 - [x] Migration guides
 
 **Deliverables**: Comprehensive documentation ✓ (ARCHITECTURE.md, INTEGRATION_GUIDE.md, SECURITY_GUIDE.md, MIGRATION_GUIDE.md created; README.md and milestone.md updated with Phase 7 summaries)
+
+#### 7.6 Integration Testing (Weeks 50-51)
+- [ ] Cross-module end-to-end workflow tests (v2.x → v3.x → FHIR pipelines)
+- [ ] HL7 v2.x parsing and building round-trip integration tests
+- [ ] HL7 v3.x CDA document lifecycle integration tests
+- [ ] FHIR resource CRUD and Bundle transaction integration tests
+- [ ] Cross-version interoperability tests (v2/v3/FHIR coexistence)
+- [ ] Persistence and archival integration tests (message store → retrieve → export)
+- [ ] Security framework integration tests (encrypt → sign → verify → decrypt pipeline)
+- [ ] Error recovery and fault tolerance integration tests across modules
+- [ ] Mock server/client integration tests for MLLP and REST transports
+- [ ] CLI tool integration tests (end-to-end command execution with real data)
+
+**Deliverables**: Comprehensive integration test suite validating cross-module workflows, data consistency across HL7 versions, and end-to-end system behavior
+
+#### 7.7 Performance Testing (Weeks 51-52)
+- [ ] HL7 v2.x message parsing throughput benchmarks (target: >10,000 msg/s)
+- [ ] HL7 v3.x XML parsing and CDA document processing benchmarks
+- [ ] FHIR JSON/XML serialization and deserialization benchmarks
+- [ ] Memory profiling for large message volumes (1,000+ concurrent messages)
+- [ ] Concurrent parsing scalability tests (multi-core utilization)
+- [ ] Network transport performance tests (MLLP framing, REST latency, TLS overhead)
+- [ ] Object pool and string interning efficiency benchmarks
+- [ ] Streaming API performance for large documents and Bundles
+- [ ] Latency profiling with p50/p95/p99 percentile measurements
+- [ ] Regression baseline comparison tests to detect performance degradation
+
+**Deliverables**: Complete performance benchmark suite with throughput, latency, memory, and scalability metrics across all modules; regression baselines for continuous monitoring
 
 ---
 
@@ -890,7 +918,7 @@ Maintain and enhance the framework based on community feedback.
 | 4 | Weeks 25-30 | HL7 v3.x Advanced | Templates, transforms, optimization |
 | 5 | Weeks 31-38 | FHIRkit Core | Data model, resources, REST client, search |
 | 6 | Weeks 39-44 | FHIRkit Advanced | SMART on FHIR, terminology, subscriptions |
-| 7 | Weeks 45-50 | Integration | Common services, security, testing |
+| 7 | Weeks 45-52 | Integration | Common services, security, testing, integration testing, performance testing |
 | 8 | Weeks 51-56 | Platform Features | Examples, integrations, tutorials |
 | 9 | Weeks 57-62 | Release | Beta testing, audit, release |
 | 10 | Ongoing | Maintenance | Community, improvements, features |
