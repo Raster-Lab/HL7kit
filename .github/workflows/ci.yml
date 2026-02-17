@@ -289,8 +289,13 @@ jobs:
         if [ "${COVERAGE_INT}" -gt 0 ] 2>/dev/null; then
           FILLED=$((COVERAGE_INT / 5))
           EMPTY=$((20 - FILLED))
-          BAR=$(printf '█%.0s' $(seq 1 $FILLED 2>/dev/null) || true)
-          BAR="${BAR}$(printf '░%.0s' $(seq 1 $EMPTY 2>/dev/null) || true)"
+          BAR=""
+          if [ "$FILLED" -gt 0 ]; then
+            BAR=$(printf '█%.0s' $(seq 1 $FILLED))
+          fi
+          if [ "$EMPTY" -gt 0 ]; then
+            BAR="${BAR}$(printf '░%.0s' $(seq 1 $EMPTY))"
+          fi
         else
           BAR="░░░░░░░░░░░░░░░░░░░░"
         fi
@@ -401,7 +406,7 @@ jobs:
             errors = sum(1 for v in data if v.get('severity','') == 'Error')
             warnings = sum(1 for v in data if v.get('severity','') == 'Warning')
             print(f'{errors}|{warnings}|{len(data)}')
-        except:
+        except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
             print('0|0|0')
         " 2>/dev/null || echo "0|0|0")
           
@@ -439,16 +444,19 @@ jobs:
             
             python3 -c "
         import json
-        with open('swiftlint-report.json') as f:
-            data = json.load(f)
-        for v in data[:50]:
-            sev = '🔴' if v.get('severity','') == 'Error' else '🟡'
-            fname = v.get('file','').split('/')[-1]
-            line = v.get('line', 0)
-            rule = v.get('rule_id', 'unknown')
-            print(f'| {fname} | {line} | {sev} | \`{rule}\` |')
-        if len(data) > 50:
-            print(f'| ... | ... | ... | *({len(data)-50} more)* |')
+        try:
+            with open('swiftlint-report.json') as f:
+                data = json.load(f)
+            for v in data[:50]:
+                sev = '🔴' if v.get('severity','') == 'Error' else '🟡'
+                fname = v.get('file','').split('/')[-1]
+                line = v.get('line', 0)
+                rule = v.get('rule_id', 'unknown')
+                print(f'| {fname} | {line} | {sev} | \`{rule}\` |')
+            if len(data) > 50:
+                print(f'| ... | ... | ... | *({len(data)-50} more)* |')
+        except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+            print('| N/A | N/A | N/A | *Error reading report* |')
         " >> "$REPORT_FILE" 2>/dev/null || true
             
             cat >> "$REPORT_FILE" << 'DETFTR'
