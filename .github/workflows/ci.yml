@@ -10,6 +10,14 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: macos-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.coverage }}
+      test_passed: ${{ steps.test-results.outputs.passed }}
+      test_failed: ${{ steps.test-results.outputs.failed }}
+      test_skipped: ${{ steps.test-results.outputs.skipped }}
+      test_total: ${{ steps.test-results.outputs.total }}
+      build_time: ${{ steps.build-timing.outputs.duration }}
+      test_time: ${{ steps.test-timing.outputs.duration }}
     
     steps:
     - name: Checkout code
@@ -20,19 +28,40 @@ jobs:
       with:
         xcode-version: latest-stable
     
-    - name: Print Swift version
-      run: swift --version
+    - name: Capture environment info
+      id: env-info
+      run: |
+        SWIFT_VERSION=$(swift --version 2>&1 | head -1)
+        XCODE_VERSION=$(xcodebuild -version 2>/dev/null | head -1 || echo "N/A")
+        OS_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "N/A")
+        echo "swift_version=${SWIFT_VERSION}" >> $GITHUB_OUTPUT
+        echo "xcode_version=${XCODE_VERSION}" >> $GITHUB_OUTPUT
+        echo "os_version=${OS_VERSION}" >> $GITHUB_OUTPUT
     
     - name: Build package
-      run: swift build -v
+      id: build-timing
+      run: |
+        BUILD_START=$(date +%s)
+        swift build -v 2>&1 | tee build-output.log
+        BUILD_EXIT=$?
+        BUILD_END=$(date +%s)
+        DURATION=$((BUILD_END - BUILD_START))
+        echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+        echo "exit_code=${BUILD_EXIT}" >> $GITHUB_OUTPUT
+        exit $BUILD_EXIT
 
     - name: Build tests
       run: swift build --build-tests
     
     - name: Run tests with coverage
+      id: test-timing
       run: |
+        TEST_START=$(date +%s)
         swift test --enable-code-coverage 2>&1 | tee test-output.log
         TEST_EXIT=$?
+        TEST_END=$(date +%s)
+        DURATION=$((TEST_END - TEST_START))
+        echo "duration=${DURATION}" >> $GITHUB_OUTPUT
         # Check for actual test failures vs runtime signal crashes
         if [ $TEST_EXIT -ne 0 ]; then
           if grep -q "with [1-9][0-9]* failure" test-output.log; then
@@ -45,44 +74,278 @@ jobs:
             echo "::warning::Test runner exited with code $TEST_EXIT but no test failures detected (likely a signal crash during teardown)"
           fi
         fi
+
+    - name: Parse test results
+      if: always()
+      id: test-results
+      run: |
+        if [ -f test-output.log ]; then
+          # Parse per-module test results from swift test output
+          # Swift test output format: "Test Suite 'SomeTests' passed at ..."
+          # and final: "Executed N tests, with M failures ... in T seconds"
+          
+          PASSED=0
+          FAILED=0
+          SKIPPED=0
+          
+          # Count individual test case results
+          PASSED=$(grep -c "Test Case.*passed" test-output.log 2>/dev/null || echo "0")
+          FAILED=$(grep -c "Test Case.*failed" test-output.log 2>/dev/null || echo "0")
+          SKIPPED=$(grep -c "Test Case.*skipped" test-output.log 2>/dev/null || echo "0")
+          TOTAL=$((PASSED + FAILED + SKIPPED))
+          
+          echo "passed=${PASSED}" >> $GITHUB_OUTPUT
+          echo "failed=${FAILED}" >> $GITHUB_OUTPUT
+          echo "skipped=${SKIPPED}" >> $GITHUB_OUTPUT
+          echo "total=${TOTAL}" >> $GITHUB_OUTPUT
+          
+          # Parse per-module test results
+          # Modules: HL7CoreTests, HL7v2KitTests, HL7v3KitTests, FHIRkitTests, HL7CLITests
+          {
+            echo "MODULE_RESULTS<<EOF"
+            for MODULE in HL7CoreTests HL7v2KitTests HL7v3KitTests FHIRkitTests HL7CLITests; do
+              M_PASSED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "passed" || echo "0")
+              M_FAILED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "failed" || echo "0")
+              M_SKIPPED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "skipped" || echo "0")
+              M_TOTAL=$((M_PASSED + M_FAILED + M_SKIPPED))
+              if [ $M_TOTAL -gt 0 ]; then
+                if [ $M_FAILED -gt 0 ]; then
+                  M_STATUS="❌"
+                else
+                  M_STATUS="✅"
+                fi
+              else
+                M_STATUS="⚪"
+              fi
+              echo "${MODULE}|${M_PASSED}|${M_FAILED}|${M_SKIPPED}|${M_TOTAL}|${M_STATUS}"
+            done
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+        else
+          echo "passed=0" >> $GITHUB_OUTPUT
+          echo "failed=0" >> $GITHUB_OUTPUT
+          echo "skipped=0" >> $GITHUB_OUTPUT
+          echo "total=0" >> $GITHUB_OUTPUT
+        fi
     
     - name: Generate coverage report
+      if: always()
       run: |
         xcrun llvm-cov export -format="lcov" \
           .build/debug/HL7kitPackageTests.xctest/Contents/MacOS/HL7kitPackageTests \
           -instr-profile .build/debug/codecov/default.profdata > coverage.lcov || true
     
     - name: Calculate coverage percentage
+      if: always()
       id: coverage
       run: |
         if [ -f coverage.lcov ]; then
-          COVERAGE=$(awk -F',' '
-            /^LF:/ { total_lines += $1 }
-            /^LH:/ { covered_lines += $1 }
+          # Overall coverage
+          COVERAGE=$(awk '
+            /^LF:/ { split($0, a, ":"); total_lines += a[2] }
+            /^LH:/ { split($0, a, ":"); covered_lines += a[2] }
             END { 
               if (total_lines > 0) {
                 printf "%.1f", (covered_lines / total_lines) * 100
               } else {
                 print "0.0"
               }
-            }' coverage.lcov | sed 's/LF://g; s/LH://g')
+            }' coverage.lcov)
           echo "coverage=${COVERAGE}" >> $GITHUB_OUTPUT
-          echo "### Code Coverage: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
           
-          # Check if coverage meets 90% threshold
-          THRESHOLD=90
-          COVERAGE_INT=$(echo ${COVERAGE} | cut -d. -f1)
-          if [ ${COVERAGE_INT} -ge ${THRESHOLD} ]; then
-            echo "✅ Code coverage (${COVERAGE}%) meets the ${THRESHOLD}% threshold" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Code coverage (${COVERAGE}%) is below the ${THRESHOLD}% threshold" >> $GITHUB_STEP_SUMMARY
-          fi
+          # Per-module coverage breakdown
+          {
+            echo "MODULE_COVERAGE<<EOF"
+            for MODULE in HL7Core HL7v2Kit HL7v3Kit FHIRkit HL7CLI; do
+              MOD_COVERAGE=$(awk -v mod="Sources/${MODULE}/" '
+                BEGIN { in_mod=0; total=0; covered=0 }
+                /^SF:/ { in_mod = (index($0, mod) > 0) }
+                /^LF:/ && in_mod { split($0, a, ":"); total += a[2] }
+                /^LH:/ && in_mod { split($0, a, ":"); covered += a[2] }
+                END {
+                  if (total > 0) {
+                    printf "%.1f", (covered / total) * 100
+                  } else {
+                    print "N/A"
+                  }
+                }' coverage.lcov)
+              echo "${MODULE}|${MOD_COVERAGE}" 
+            done
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
         else
           echo "coverage=0.0" >> $GITHUB_OUTPUT
-          echo "### Code Coverage: No coverage data available" >> $GITHUB_STEP_SUMMARY
         fi
     
+    - name: Generate CI report
+      if: always()
+      run: |
+        REPORT_FILE=$GITHUB_STEP_SUMMARY
+        COVERAGE="${{ steps.coverage.outputs.coverage }}"
+        PASSED="${{ steps.test-results.outputs.passed }}"
+        FAILED="${{ steps.test-results.outputs.failed }}"
+        SKIPPED="${{ steps.test-results.outputs.skipped }}"
+        TOTAL="${{ steps.test-results.outputs.total }}"
+        BUILD_TIME="${{ steps.build-timing.outputs.duration }}"
+        TEST_TIME="${{ steps.test-timing.outputs.duration }}"
+        THRESHOLD=90
+        
+        # --- Report Header ---
+        cat >> "$REPORT_FILE" << 'HEADER'
+        # 📊 CI/CD Pipeline Report
+        
+        HEADER
+        
+        # --- Environment ---
+        cat >> "$REPORT_FILE" << ENVEOF
+        <details>
+        <summary>🖥️ Environment</summary>
+        
+        | Property | Value |
+        |----------|-------|
+        | **Swift** | ${{ steps.env-info.outputs.swift_version }} |
+        | **Xcode** | ${{ steps.env-info.outputs.xcode_version }} |
+        | **macOS** | ${{ steps.env-info.outputs.os_version }} |
+        | **Runner** | \`${{ runner.os }}\` |
+        | **Ref** | \`${{ github.ref_name }}\` |
+        | **SHA** | \`${{ github.sha }}\` |
+        
+        </details>
+        
+        ENVEOF
+        
+        # --- Build Summary ---
+        BUILD_EXIT="${{ steps.build-timing.outputs.exit_code }}"
+        if [ "$BUILD_EXIT" = "0" ] || [ -z "$BUILD_EXIT" ]; then
+          BUILD_STATUS="✅ Passed"
+        else
+          BUILD_STATUS="❌ Failed"
+        fi
+        
+        cat >> "$REPORT_FILE" << BUILDEOF
+        ## 🔨 Build
+        
+        | Metric | Value |
+        |--------|-------|
+        | **Status** | ${BUILD_STATUS} |
+        | **Duration** | ${BUILD_TIME}s |
+        
+        BUILDEOF
+        
+        # --- Test Results ---
+        if [ "$FAILED" -gt 0 ] 2>/dev/null; then
+          TEST_STATUS="❌ ${FAILED} failure(s)"
+        elif [ "$TOTAL" -gt 0 ] 2>/dev/null; then
+          TEST_STATUS="✅ All passed"
+        else
+          TEST_STATUS="⚪ No results"
+        fi
+        
+        cat >> "$REPORT_FILE" << TESTEOF
+        ## 🧪 Tests
+        
+        | Metric | Value |
+        |--------|-------|
+        | **Status** | ${TEST_STATUS} |
+        | **Duration** | ${TEST_TIME}s |
+        | **Total** | ${TOTAL} |
+        | ✅ **Passed** | ${PASSED} |
+        | ❌ **Failed** | ${FAILED} |
+        | ⏭️ **Skipped** | ${SKIPPED} |
+        
+        TESTEOF
+        
+        # Per-module test results table
+        cat >> "$REPORT_FILE" << 'MODTESTHDR'
+        <details>
+        <summary>📋 Per-Module Test Results</summary>
+        
+        | Module | Passed | Failed | Skipped | Total | Status |
+        |--------|-------:|-------:|--------:|------:|--------|
+        MODTESTHDR
+        
+        echo '${{ steps.test-results.outputs.MODULE_RESULTS }}' | while IFS='|' read -r MOD MP MF MS MT MSTAT; do
+          [ -z "$MOD" ] && continue
+          echo "| ${MOD} | ${MP} | ${MF} | ${MS} | ${MT} | ${MSTAT} |" >> "$REPORT_FILE"
+        done
+        
+        cat >> "$REPORT_FILE" << 'MODTESTFTR'
+        
+        </details>
+        
+        MODTESTFTR
+        
+        # --- Coverage ---
+        COVERAGE_INT=$(echo "${COVERAGE}" | cut -d. -f1)
+        if [ "${COVERAGE_INT}" -ge "${THRESHOLD}" ] 2>/dev/null; then
+          COV_STATUS="✅"
+          COV_ICON="🟢"
+        else
+          COV_STATUS="⚠️"
+          COV_ICON="🟡"
+        fi
+        
+        # Generate visual progress bar
+        if [ "${COVERAGE_INT}" -gt 0 ] 2>/dev/null; then
+          FILLED=$((COVERAGE_INT / 5))
+          EMPTY=$((20 - FILLED))
+          BAR=$(printf '█%.0s' $(seq 1 $FILLED 2>/dev/null) || true)
+          BAR="${BAR}$(printf '░%.0s' $(seq 1 $EMPTY 2>/dev/null) || true)"
+        else
+          BAR="░░░░░░░░░░░░░░░░░░░░"
+        fi
+        
+        cat >> "$REPORT_FILE" << COVEOF
+        ## 📈 Code Coverage
+        
+        ${COV_ICON} **${COVERAGE}%** ${BAR} (threshold: ${THRESHOLD}%)
+        
+        ${COV_STATUS} Coverage $([ "${COVERAGE_INT}" -ge "${THRESHOLD}" ] 2>/dev/null && echo "meets" || echo "is below") the ${THRESHOLD}% threshold
+        
+        COVEOF
+        
+        # Per-module coverage table
+        if [ -n "${{ steps.coverage.outputs.MODULE_COVERAGE }}" ]; then
+          cat >> "$REPORT_FILE" << 'MODCOVHDR'
+        <details>
+        <summary>📊 Per-Module Coverage</summary>
+        
+        | Module | Coverage | Status |
+        |--------|----------|--------|
+        MODCOVHDR
+          
+          echo '${{ steps.coverage.outputs.MODULE_COVERAGE }}' | while IFS='|' read -r MOD MCOV; do
+            [ -z "$MOD" ] && continue
+            MCOV_INT=$(echo "${MCOV}" | cut -d. -f1)
+            if [ "${MCOV}" = "N/A" ]; then
+              MCOV_STATUS="⚪ N/A"
+            elif [ "${MCOV_INT}" -ge "${THRESHOLD}" ] 2>/dev/null; then
+              MCOV_STATUS="✅"
+            else
+              MCOV_STATUS="⚠️"
+            fi
+            if [ "${MCOV}" = "N/A" ]; then
+              echo "| ${MOD} | N/A | ${MCOV_STATUS} |" >> "$REPORT_FILE"
+            else
+              echo "| ${MOD} | ${MCOV}% | ${MCOV_STATUS} |" >> "$REPORT_FILE"
+            fi
+          done
+          
+          cat >> "$REPORT_FILE" << 'MODCOVFTR'
+        
+        </details>
+        
+        MODCOVFTR
+        fi
+        
+        # --- Footer ---
+        cat >> "$REPORT_FILE" << FOOTEOF
+        ---
+        <sub>Generated by CI/CD Pipeline • $(date -u '+%Y-%m-%d %H:%M:%S UTC') • Run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})</sub>
+        FOOTEOF
+    
     - name: Upload coverage to Codecov
+      if: always()
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage.lcov
@@ -96,7 +359,7 @@ jobs:
       with:
         name: test-results
         path: |
-          .build/debug/*.xctest
+          test-output.log
           coverage.lcov
         retention-days: 30
 
@@ -112,7 +375,105 @@ jobs:
       run: brew install swiftlint
     
     - name: Run SwiftLint
-      run: swiftlint lint --reporter github-actions-logging || true
+      id: swiftlint
+      run: |
+        swiftlint lint --reporter github-actions-logging 2>&1 | tee swiftlint-output.log || true
+        # Also generate JSON report for summary
+        swiftlint lint --reporter json > swiftlint-report.json 2>/dev/null || true
+      continue-on-error: true
+
+    - name: Generate lint report
+      if: always()
+      run: |
+        REPORT_FILE=$GITHUB_STEP_SUMMARY
+        
+        cat >> "$REPORT_FILE" << 'HEADER'
+        # 🔍 SwiftLint Report
+        
+        HEADER
+        
+        if [ -f swiftlint-report.json ]; then
+          ERRORS=$(python3 -c "
+        import json, sys
+        try:
+            with open('swiftlint-report.json') as f:
+                data = json.load(f)
+            errors = sum(1 for v in data if v.get('severity','') == 'Error')
+            warnings = sum(1 for v in data if v.get('severity','') == 'Warning')
+            print(f'{errors}|{warnings}|{len(data)}')
+        except:
+            print('0|0|0')
+        " 2>/dev/null || echo "0|0|0")
+          
+          LINT_ERRORS=$(echo "$ERRORS" | cut -d'|' -f1)
+          LINT_WARNINGS=$(echo "$ERRORS" | cut -d'|' -f2)
+          LINT_TOTAL=$(echo "$ERRORS" | cut -d'|' -f3)
+          
+          if [ "$LINT_ERRORS" -gt 0 ] 2>/dev/null; then
+            LINT_STATUS="❌ ${LINT_ERRORS} error(s)"
+          elif [ "$LINT_WARNINGS" -gt 0 ] 2>/dev/null; then
+            LINT_STATUS="⚠️ ${LINT_WARNINGS} warning(s)"
+          else
+            LINT_STATUS="✅ No issues"
+          fi
+          
+          cat >> "$REPORT_FILE" << LINTEOF
+        | Metric | Value |
+        |--------|-------|
+        | **Status** | ${LINT_STATUS} |
+        | **Total Issues** | ${LINT_TOTAL} |
+        | 🔴 **Errors** | ${LINT_ERRORS} |
+        | 🟡 **Warnings** | ${LINT_WARNINGS} |
+        
+        LINTEOF
+          
+          # Show top violations if any
+          if [ "$LINT_TOTAL" -gt 0 ] 2>/dev/null; then
+            cat >> "$REPORT_FILE" << 'DETHDR'
+        <details>
+        <summary>📋 Violation Details</summary>
+        
+        | File | Line | Severity | Rule |
+        |------|-----:|----------|------|
+        DETHDR
+            
+            python3 -c "
+        import json
+        with open('swiftlint-report.json') as f:
+            data = json.load(f)
+        for v in data[:50]:
+            sev = '🔴' if v.get('severity','') == 'Error' else '🟡'
+            fname = v.get('file','').split('/')[-1]
+            line = v.get('line', 0)
+            rule = v.get('rule_id', 'unknown')
+            print(f'| {fname} | {line} | {sev} | \`{rule}\` |')
+        if len(data) > 50:
+            print(f'| ... | ... | ... | *({len(data)-50} more)* |')
+        " >> "$REPORT_FILE" 2>/dev/null || true
+            
+            cat >> "$REPORT_FILE" << 'DETFTR'
+        
+        </details>
+        
+        DETFTR
+          fi
+        else
+          echo "⚪ No lint report available" >> "$REPORT_FILE"
+        fi
+        
+        cat >> "$REPORT_FILE" << FOOTEOF
+        ---
+        <sub>Generated by CI/CD Pipeline • $(date -u '+%Y-%m-%d %H:%M:%S UTC')</sub>
+        FOOTEOF
+
+    - name: Archive lint results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: lint-results
+        path: |
+          swiftlint-report.json
+        retention-days: 30
       continue-on-error: true
 
   documentation:
@@ -129,18 +490,49 @@ jobs:
         xcode-version: latest-stable
     
     - name: Generate documentation
+      id: docgen
       run: |
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target HL7Core --output-path ./docs/HL7Core || true
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target HL7v2Kit --output-path ./docs/HL7v2Kit || true
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target HL7v3Kit --output-path ./docs/HL7v3Kit || true
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target FHIRkit --output-path ./docs/FHIRkit || true
+        DOC_RESULTS=""
+        for TARGET in HL7Core HL7v2Kit HL7v3Kit FHIRkit; do
+          if swift package --allow-writing-to-directory ./docs \
+            generate-documentation --target "$TARGET" --output-path "./docs/${TARGET}" 2>&1; then
+            DOC_RESULTS="${DOC_RESULTS}${TARGET}|✅ Generated\n"
+          else
+            DOC_RESULTS="${DOC_RESULTS}${TARGET}|⚠️ Failed\n"
+          fi
+        done
+        {
+          echo "DOC_RESULTS<<EOF"
+          echo -e "$DOC_RESULTS"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
       continue-on-error: true
+
+    - name: Generate documentation report
+      if: always()
+      run: |
+        REPORT_FILE=$GITHUB_STEP_SUMMARY
+
+        cat >> "$REPORT_FILE" << 'HEADER'
+        # 📚 Documentation Report
+        
+        | Module | Status |
+        |--------|--------|
+        HEADER
+
+        echo '${{ steps.docgen.outputs.DOC_RESULTS }}' | while IFS='|' read -r MOD STATUS; do
+          [ -z "$MOD" ] && continue
+          echo "| ${MOD} | ${STATUS} |" >> "$REPORT_FILE"
+        done
+
+        cat >> "$REPORT_FILE" << FOOTEOF
+        
+        ---
+        <sub>Generated by CI/CD Pipeline • $(date -u '+%Y-%m-%d %H:%M:%S UTC')</sub>
+        FOOTEOF
     
     - name: Archive documentation
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: documentation

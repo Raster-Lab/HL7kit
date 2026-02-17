@@ -562,6 +562,16 @@ swiftlint lint
 swiftlint --fix
 ```
 
+### CI Reports
+
+Every CI run generates a detailed **GitHub Job Summary** report for each job:
+
+- **Build & Test Report**: Build status and timing, test results with per-module breakdown (pass/fail/skip counts), overall and per-module code coverage with visual progress bars, and threshold checks
+- **Lint Report**: SwiftLint violation summary with error/warning counts and per-file violation details
+- **Documentation Report**: Per-module documentation generation status
+
+Reports are visible on the **Summary** tab of each [GitHub Actions run](https://github.com/Raster-Lab/HL7kit/actions/workflows/ci.yml). Artifacts (test logs, coverage data, lint results, generated docs) are archived for 30 days.
+
 ---
 
 ## Standards Compliance

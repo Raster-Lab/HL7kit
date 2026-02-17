@@ -18,6 +18,7 @@ Establish project foundation, architecture, and development infrastructure.
 - [x] Configure code coverage and quality tools
 - [x] Establish coding standards and SwiftLint rules
 - [x] Set up documentation generation (DocC)
+- [x] Modern CI reports (GitHub Job Summary with per-module test results, coverage breakdown, lint report, and documentation status)
 
 #### 0.2 Architecture Design
 - [x] Define common protocols and interfaces (HL7Core)
