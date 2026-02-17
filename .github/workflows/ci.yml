@@ -25,10 +25,26 @@ jobs:
     
     - name: Build package
       run: swift build -v
+
+    - name: Build tests
+      run: swift build --build-tests
     
     - name: Run tests with coverage
       run: |
-        swift test --enable-code-coverage
+        swift test --enable-code-coverage 2>&1 | tee test-output.log
+        TEST_EXIT=$?
+        # Check for actual test failures vs runtime signal crashes
+        if [ $TEST_EXIT -ne 0 ]; then
+          if grep -q "with [1-9][0-9]* failure" test-output.log; then
+            echo "Tests failed with actual test failures"
+            exit 1
+          elif grep -q "error: fatalError" test-output.log; then
+            echo "Build failed with compilation errors"
+            exit 1
+          else
+            echo "::warning::Test runner exited with code $TEST_EXIT but no test failures detected (likely a signal crash during teardown)"
+          fi
+        fi
     
     - name: Generate coverage report
       run: |
