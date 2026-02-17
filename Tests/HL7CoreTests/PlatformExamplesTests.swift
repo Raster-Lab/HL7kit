@@ -8,8 +8,9 @@ import XCTest
 final class PlatformExamplesTests: XCTestCase {
     
     // MARK: - iOS Examples Tests
-    
-    #if canImport(UIKit) && !os(watchOS)
+    // These tests reference types defined in Examples/iOSExamples.swift which is not
+    // part of any SPM target. Enable by passing -DINCLUDE_EXAMPLE_TESTS to swiftc.
+    #if INCLUDE_EXAMPLE_TESTS
     
     @available(iOS 10.0, *)
     func testNotificationManagerCreation() async throws {
@@ -93,8 +94,9 @@ final class PlatformExamplesTests: XCTestCase {
     #endif
     
     // MARK: - macOS Examples Tests
-    
-    #if os(macOS)
+    // These tests reference types defined in Examples/macOSExamples.swift which is not
+    // part of any SPM target. Enable by passing -DINCLUDE_EXAMPLE_TESTS to swiftc.
+    #if INCLUDE_EXAMPLE_TESTS
     
     @available(macOS 11.0, *)
     func testAppleScriptSupportGeneration() async throws {
