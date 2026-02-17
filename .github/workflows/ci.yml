@@ -89,9 +89,12 @@ jobs:
           SKIPPED=0
           
           # Count individual test case results
-          PASSED=$(grep -c "Test Case.*passed" test-output.log 2>/dev/null || echo "0")
-          FAILED=$(grep -c "Test Case.*failed" test-output.log 2>/dev/null || echo "0")
-          SKIPPED=$(grep -c "Test Case.*skipped" test-output.log 2>/dev/null || echo "0")
+          PASSED=$(grep -c "Test Case.*passed" test-output.log 2>/dev/null || true)
+          FAILED=$(grep -c "Test Case.*failed" test-output.log 2>/dev/null || true)
+          SKIPPED=$(grep -c "Test Case.*skipped" test-output.log 2>/dev/null || true)
+          PASSED=${PASSED:-0}
+          FAILED=${FAILED:-0}
+          SKIPPED=${SKIPPED:-0}
           TOTAL=$((PASSED + FAILED + SKIPPED))
           
           echo "passed=${PASSED}" >> $GITHUB_OUTPUT
@@ -104,9 +107,12 @@ jobs:
           {
             echo "MODULE_RESULTS<<EOF"
             for MODULE in HL7CoreTests HL7v2KitTests HL7v3KitTests FHIRkitTests HL7CLITests; do
-              M_PASSED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "passed" || echo "0")
-              M_FAILED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "failed" || echo "0")
-              M_SKIPPED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "skipped" || echo "0")
+              M_PASSED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "passed" || true)
+              M_FAILED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "failed" || true)
+              M_SKIPPED=$(grep "Test Case.*${MODULE}" test-output.log 2>/dev/null | grep -c "skipped" || true)
+              M_PASSED=${M_PASSED:-0}
+              M_FAILED=${M_FAILED:-0}
+              M_SKIPPED=${M_SKIPPED:-0}
               M_TOTAL=$((M_PASSED + M_FAILED + M_SKIPPED))
               if [ $M_TOTAL -gt 0 ]; then
                 if [ $M_FAILED -gt 0 ]; then
