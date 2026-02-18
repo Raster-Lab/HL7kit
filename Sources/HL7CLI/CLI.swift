@@ -116,11 +116,13 @@ public struct BenchmarkOptions: Sendable {
     public let inputFile: String?
     public let iterations: Int
     public let format: OutputFormat
+    public let regression: Bool
 
-    public init(inputFile: String? = nil, iterations: Int = 100, format: OutputFormat = .text) {
+    public init(inputFile: String? = nil, iterations: Int = 100, format: OutputFormat = .text, regression: Bool = false) {
         self.inputFile = inputFile
         self.iterations = iterations
         self.format = format
+        self.regression = regression
     }
 }
 
@@ -425,6 +427,7 @@ public enum CLIParser {
         var inputFile: String?
         var iterations = 100
         var format: OutputFormat = .text
+        var regression = false
 
         var i = 0
         while i < args.count {
@@ -441,6 +444,8 @@ public enum CLIParser {
                     return .failure(.invalidArgument("--format requires 'text' or 'json'"))
                 }
                 format = f
+            case "--regression":
+                regression = true
             case "--help", "-h":
                 return .success(.help)
             default:
@@ -457,7 +462,7 @@ public enum CLIParser {
         }
 
         return .success(.benchmark(BenchmarkOptions(
-            inputFile: inputFile, iterations: iterations, format: format
+            inputFile: inputFile, iterations: iterations, format: format, regression: regression
         )))
     }
 }

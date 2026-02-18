@@ -936,6 +936,11 @@ public func printJSON(_ dict: [String: Any]) {
 public func runBenchmark(_ options: BenchmarkOptions) -> ExitCode {
     let iterations = options.iterations
 
+    // If regression mode, run regression baseline checks
+    if options.regression {
+        return benchmarkRegression(iterations: iterations, format: options.format)
+    }
+
     // If a file is provided, benchmark that specific file
     if let inputFile = options.inputFile {
         return benchmarkFile(inputFile, iterations: iterations, format: options.format)
@@ -1064,4 +1069,115 @@ private func benchmarkBuiltIn(iterations: Int, format: OutputFormat) -> ExitCode
     }
 
     return .success
+}
+
+// MARK: - Regression Baseline
+
+/// Regression baseline definition
+private struct RegressionBaseline {
+    let name: String
+    let minimumAcceptable: Double
+    let expectedBaseline: Double
+    let unit: String
+}
+
+/// Regression result for a single baseline
+private struct RegressionResult {
+    let name: String
+    let current: Double
+    let minimum: Double
+    let expected: Double
+    let unit: String
+
+    var status: String {
+        if current >= expected { return "PASS" }
+        if current >= minimum { return "WARN" }
+        return "FAIL"
+    }
+}
+
+/// Runs regression baseline checks comparing current performance against defined thresholds
+private func benchmarkRegression(iterations: Int, format: OutputFormat) -> ExitCode {
+    let baselines = [
+        RegressionBaseline(name: "v2 parsing throughput", minimumAcceptable: 100, expectedBaseline: 1000, unit: "msg/s"),
+        RegressionBaseline(name: "v2 latency p99", minimumAcceptable: 50, expectedBaseline: 10, unit: "ms"),
+    ]
+
+    let sampleMessage = [
+        "MSH|^~\\&|SENDING_APP|SENDING_FAC|RECEIVING_APP|RECEIVING_FAC|20231115120000||ADT^A01|MSG00001|P|2.5.1",
+        "EVN|A01|20231115120000",
+        "PID|1||12345^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^ANYTOWN^CA^12345^USA|||||||12345678",
+        "PV1|1|I|2000^2012^01||||004777^SMITH^JOHN^A|||SUR||||ADM|A0|"
+    ].joined(separator: "\r")
+
+    let parser = createParser()
+
+    // Warmup
+    for _ in 0..<min(10, iterations) {
+        _ = try? parser.parse(sampleMessage)
+    }
+
+    // Measured run
+    var durations: [TimeInterval] = []
+    for _ in 0..<iterations {
+        let start = Date()
+        _ = try? parser.parse(sampleMessage)
+        durations.append(Date().timeIntervalSince(start))
+    }
+
+    durations.sort()
+    let totalTime = durations.reduce(0, +)
+    let throughput = Double(iterations) / totalTime
+    let p99 = durations[max(0, Int(Double(iterations) * 0.99) - 1)]
+    let p99ms = p99 * 1000
+
+    let results: [RegressionResult] = [
+        RegressionResult(name: "v2 parsing throughput", current: throughput,
+                         minimum: baselines[0].minimumAcceptable, expected: baselines[0].expectedBaseline,
+                         unit: baselines[0].unit),
+        RegressionResult(name: "v2 latency p99", current: p99ms,
+                         minimum: baselines[1].minimumAcceptable, expected: baselines[1].expectedBaseline,
+                         unit: baselines[1].unit),
+    ]
+
+    let allPassed = results.allSatisfy { $0.status != "FAIL" }
+
+    switch format {
+    case .text:
+        print("HL7kit Regression Baseline Report")
+        print("═══════════════════════════════════════════════════════════════")
+        print("  Benchmark            │ Current       │ Target        │ Status")
+        print("  ─────────────────────┼───────────────┼───────────────┼───────")
+        for r in results {
+            let name = r.name.padding(toLength: 21, withPad: " ", startingAt: 0)
+            let cur = String(format: "%8.1f %-5s", r.current, r.unit)
+            let tgt = String(format: "%8.1f %-5s", r.expected, r.unit)
+            print("  \(name) │ \(cur) │ \(tgt) │ \(r.status)")
+        }
+        print("═══════════════════════════════════════════════════════════════")
+        if allPassed {
+            print("✅ All regression baselines met")
+        } else {
+            print("❌ Some regression baselines failed")
+        }
+    case .json:
+        let jsonResults = results.map { r in
+            [
+                "name": r.name,
+                "current": r.current,
+                "minimum": r.minimum,
+                "expected": r.expected,
+                "unit": r.unit,
+                "status": r.status
+            ] as [String: Any]
+        }
+        printJSON([
+            "regression": true,
+            "iterations": iterations,
+            "allPassed": allPassed,
+            "baselines": jsonResults
+        ])
+    }
+
+    return allPassed ? .success : .validationFailure
 }

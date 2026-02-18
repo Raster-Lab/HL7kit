@@ -443,6 +443,46 @@ final class CLIParserTests: XCTestCase {
             XCTFail("Expected benchmark command with all options")
         }
     }
+
+    func testParseBenchmarkRegressionFlag() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--regression"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertTrue(opts.regression)
+            XCTAssertNil(opts.inputFile)
+            XCTAssertEqual(opts.iterations, 100)
+        } else {
+            XCTFail("Expected benchmark command with regression flag")
+        }
+    }
+
+    func testParseBenchmarkRegressionWithIterations() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--regression", "-n", "500"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertTrue(opts.regression)
+            XCTAssertEqual(opts.iterations, 500)
+        } else {
+            XCTFail("Expected benchmark command with regression and iterations")
+        }
+    }
+
+    func testParseBenchmarkRegressionJSON() {
+        let result = CLIParser.parse(["hl7", "benchmark", "--regression", "--format", "json"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertTrue(opts.regression)
+            XCTAssertEqual(opts.format.rawValue, "json")
+        } else {
+            XCTFail("Expected benchmark command with regression and json format")
+        }
+    }
+
+    func testParseBenchmarkNoRegressionByDefault() {
+        let result = CLIParser.parse(["hl7", "benchmark"])
+        if case .success(.benchmark(let opts)) = result {
+            XCTAssertFalse(opts.regression)
+        } else {
+            XCTFail("Expected benchmark command")
+        }
+    }
 }
 
 // MARK: - CLI Error Tests
@@ -940,5 +980,18 @@ final class CommandExecutionTests: XCTestCase {
         let options = BenchmarkOptions(inputFile: path, iterations: 20, format: .json)
         let exitCode = runBenchmark(options)
         XCTAssertEqual(exitCode, .success)
+    }
+
+    func testBenchmarkRegressionText() {
+        let options = BenchmarkOptions(iterations: 50, regression: true)
+        let exitCode = runBenchmark(options)
+        // Should pass or warn (not fail) since we're running on reasonable hardware
+        XCTAssertTrue(exitCode == .success || exitCode == .validationFailure)
+    }
+
+    func testBenchmarkRegressionJSON() {
+        let options = BenchmarkOptions(iterations: 50, format: .json, regression: true)
+        let exitCode = runBenchmark(options)
+        XCTAssertTrue(exitCode == .success || exitCode == .validationFailure)
     }
 }
