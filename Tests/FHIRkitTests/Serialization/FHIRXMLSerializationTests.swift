@@ -173,11 +173,13 @@ final class FHIRXMLSerializationTests: XCTestCase {
     // MARK: - Resource Container Tests
     
     func testResourceContainerXMLDecoding() async throws {
-        // Create a simple XML patient
+        // Create a simple XML patient with required metadata fields
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <Patient xmlns="http://hl7.org/fhir">
             <id value="patient-007"/>
+            <messageID value="test-msg-007"/>
+            <timestamp value="2026-01-01T00:00:00Z"/>
             <name>
                 <family value="Miller"/>
             </name>

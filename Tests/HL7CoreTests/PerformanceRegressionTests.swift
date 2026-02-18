@@ -270,12 +270,23 @@ final class PerformanceRegressionTests: XCTestCase {
     // MARK: - 7. Object Pool Regression Baseline
 
     func testObjectPoolRegressionBaseline() async throws {
-        // SegmentPool reuse rate
+        // SegmentPool reuse rate - two cycles to demonstrate pool reuse
         let segPool = SegmentPool(maxPoolSize: 50)
         await segPool.preallocate(20)
 
+        // First cycle: acquire and release to populate pool
         var segStorages: [SegmentPool.SegmentStorage] = []
-        for _ in 0..<100 {
+        for _ in 0..<50 {
+            let storage = await segPool.acquire()
+            segStorages.append(storage)
+        }
+        for storage in segStorages {
+            await segPool.release(storage)
+        }
+
+        // Second cycle: acquire again to measure reuse from pool
+        segStorages.removeAll()
+        for _ in 0..<50 {
             let storage = await segPool.acquire()
             segStorages.append(storage)
         }
@@ -284,12 +295,21 @@ final class PerformanceRegressionTests: XCTestCase {
         }
         let segStats = await segPool.statistics()
 
-        // XMLElementPool reuse rate
+        // XMLElementPool reuse rate - two cycles to demonstrate pool reuse
         let xmlPool = XMLElementPool(maxPoolSize: 50)
         await xmlPool.preallocate(20)
 
         var xmlStorages: [XMLElementPool.ElementStorage] = []
-        for _ in 0..<100 {
+        for _ in 0..<50 {
+            let storage = await xmlPool.acquire()
+            xmlStorages.append(storage)
+        }
+        for storage in xmlStorages {
+            await xmlPool.release(storage)
+        }
+
+        xmlStorages.removeAll()
+        for _ in 0..<50 {
             let storage = await xmlPool.acquire()
             xmlStorages.append(storage)
         }

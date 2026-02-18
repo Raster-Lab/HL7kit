@@ -115,12 +115,12 @@ private struct XMLBuilder {
     private func buildElement(name: String, value: Any, indent: Int) -> String {
         let indentString = String(repeating: "  ", count: indent)
         
-        if let stringValue = value as? String {
+        if let boolValue = value as? Bool {
+            return "\(indentString)<\(name) value=\"\(boolValue)\"/>\n"
+        } else if let stringValue = value as? String {
             return "\(indentString)<\(name) value=\"\(escapeXML(stringValue))\"/>\n"
         } else if let numberValue = value as? NSNumber {
             return "\(indentString)<\(name) value=\"\(numberValue)\"/>\n"
-        } else if let boolValue = value as? Bool {
-            return "\(indentString)<\(name) value=\"\(boolValue)\"/>\n"
         } else if let arrayValue = value as? [Any] {
             var result = ""
             for item in arrayValue {
@@ -130,6 +130,9 @@ private struct XMLBuilder {
                         result += buildElement(name: key, value: val, indent: indent + 1)
                     }
                     result += "\(indentString)</\(name)>\n"
+                } else {
+                    // Handle primitive array items (string, number, bool)
+                    result += buildElement(name: name, value: item, indent: indent)
                 }
             }
             return result
@@ -170,12 +173,145 @@ private struct FHIRXMLParser {
             throw FHIRSerializationError.invalidXML(parser.parserError?.localizedDescription ?? "Unknown parsing error")
         }
         
-        guard let jsonObject = delegate.result else {
+        guard let rawResult = delegate.result else {
             throw FHIRSerializationError.invalidXML("Failed to build JSON structure from XML")
         }
         
+        // Convert raw XML structure to proper FHIR JSON
+        let fhirJSON = convertToFHIRJSON(rawResult)
+        
         // Convert to JSON data
-        return try JSONSerialization.data(withJSONObject: jsonObject, options: [])
+        return try JSONSerialization.data(withJSONObject: fhirJSON, options: [])
+    }
+    
+    /// Convert raw XML-parsed dict to proper FHIR JSON structure
+    private func convertToFHIRJSON(_ xmlDict: [String: Any]) -> [String: Any] {
+        // The raw dict is like {"Patient": {"xmlns": "...", "id": {"value": "x"}, ...}}
+        // We need {"resourceType": "Patient", "id": "x", ...}
+        guard let (resourceType, innerValue) = xmlDict.first,
+              let inner = innerValue as? [String: Any] else {
+            return xmlDict
+        }
+        
+        var result: [String: Any] = ["resourceType": resourceType]
+        let arrayFields = Self.fhirArrayFields(for: resourceType)
+        
+        for (key, value) in inner {
+            if key == "xmlns" { continue }
+            result[key] = convertValue(value, key: key, parentArrayFields: arrayFields)
+        }
+        
+        return result
+    }
+    
+    /// Recursively convert XML-parsed values to FHIR JSON values
+    private func convertValue(_ value: Any, key: String, parentArrayFields: Set<String>) -> Any {
+        if let dict = value as? [String: Any] {
+            let meaningfulKeys = dict.keys.filter { $0 != "xmlns" }
+            
+            // Simple value attribute → flatten to plain value
+            if meaningfulKeys == ["value"] {
+                let flatValue = dict["value"]!
+                if parentArrayFields.contains(key) {
+                    return [flatValue]
+                }
+                return flatValue
+            }
+            
+            // Complex object → recursively convert children
+            let nestedArrayFields = Self.fhirArrayFields(for: key)
+            var converted: [String: Any] = [:]
+            for (k, v) in dict where k != "xmlns" {
+                converted[k] = convertValue(v, key: k, parentArrayFields: nestedArrayFields)
+            }
+            
+            if parentArrayFields.contains(key) {
+                return [converted]
+            }
+            return converted
+        }
+        
+        if let array = value as? [Any] {
+            return array.map { item -> Any in
+                if let dict = item as? [String: Any] {
+                    let meaningfulKeys = dict.keys.filter { $0 != "xmlns" }
+                    if meaningfulKeys == ["value"] {
+                        return dict["value"]!
+                    }
+                    let nestedArrayFields = Self.fhirArrayFields(for: key)
+                    var converted: [String: Any] = [:]
+                    for (k, v) in dict where k != "xmlns" {
+                        converted[k] = convertValue(v, key: k, parentArrayFields: nestedArrayFields)
+                    }
+                    return converted
+                }
+                return item
+            }
+        }
+        
+        // Primitive value
+        if parentArrayFields.contains(key) {
+            return [value]
+        }
+        return value
+    }
+    
+    /// Known array fields for FHIR resource types and complex types
+    private static func fhirArrayFields(for typeOrField: String) -> Set<String> {
+        switch typeOrField.lowercased() {
+        // Resource types
+        case "patient":
+            return ["identifier", "name", "telecom", "address", "contact", "communication",
+                    "generalPractitioner", "contained", "extension", "modifierExtension", "link",
+                    "photo"]
+        case "observation":
+            return ["identifier", "basedOn", "partOf", "category", "focus", "performer",
+                    "interpretation", "note", "referenceRange", "hasMember", "derivedFrom",
+                    "component", "contained", "extension", "modifierExtension"]
+        case "practitioner":
+            return ["identifier", "name", "telecom", "address", "qualification",
+                    "communication", "contained", "extension", "modifierExtension", "photo"]
+        case "medicationrequest":
+            return ["identifier", "instantiatesCanonical", "instantiatesUri", "basedOn",
+                    "category", "supportingInformation", "insurance", "note", "dosageInstruction",
+                    "detectedIssue", "eventHistory", "contained", "extension", "modifierExtension",
+                    "reasonCode", "reasonReference"]
+        case "bundle":
+            return ["entry", "link", "contained", "extension", "modifierExtension"]
+        case "encounter":
+            return ["identifier", "statusHistory", "classHistory", "type", "episodeOfCare",
+                    "basedOn", "participant", "reasonCode", "reasonReference", "diagnosis",
+                    "account", "location", "contained", "extension", "modifierExtension"]
+        // Complex types
+        case "name", "humanname":
+            return ["given", "prefix", "suffix", "extension"]
+        case "identifier":
+            return ["extension"]
+        case "codeableconcept":
+            return ["coding", "extension"]
+        case "address":
+            return ["line", "extension"]
+        case "contactpoint":
+            return ["extension"]
+        case "coding":
+            return ["extension"]
+        case "reference":
+            return ["extension"]
+        case "quantity":
+            return ["extension"]
+        case "period":
+            return ["extension"]
+        case "narrative":
+            return ["extension"]
+        case "meta":
+            return ["profile", "security", "tag", "extension"]
+        case "extension":
+            return ["extension"]
+        case "dosage", "dosageinstruction":
+            return ["additionalInstruction", "extension"]
+        default:
+            return ["extension", "modifierExtension", "contained"]
+        }
     }
 }
 
