@@ -173,12 +173,15 @@ public enum HelpText {
             Runs performance benchmarks on HL7 v2.x message parsing.
             If a file is provided, benchmarks parsing that specific file.
             Otherwise, runs a built-in benchmark with a sample ADT^A01 message.
+            Use --regression to run regression baseline checks against defined
+            performance thresholds with PASS/WARN/FAIL reporting.
 
         ARGUMENTS:
             <file>                  Optional HL7 message file to benchmark
 
         OPTIONS:
             --iterations, -n <num>  Number of parsing iterations (default: 100)
+            --regression            Run regression baseline checks
             --format <fmt>          Output format: 'text' (default) or 'json'
             --help, -h              Show help information
 
@@ -187,6 +190,8 @@ public enum HelpText {
             hl7 benchmark message.hl7
             hl7 benchmark --iterations 1000
             hl7 benchmark message.hl7 -n 500 --format json
+            hl7 benchmark --regression
+            hl7 benchmark --regression --format json
         """
 
     /// Version string

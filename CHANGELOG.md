@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build and test duration tracking in CI
 - CI job outputs for downstream workflow consumption
 - Performance regression baseline test suite (`PerformanceRegressionTests.swift`) with defined baselines for throughput, latency, memory, and scalability across all modules
+- CLI `hl7 benchmark --regression` command for regression baseline checks with PASS/WARN/FAIL reporting (text and JSON output)
 
 ### Fixed
 - Fixed `grep -c` exit code handling in CI test result parsing (`|| echo "0"` → `|| true`)
