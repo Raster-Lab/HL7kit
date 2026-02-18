@@ -5,6 +5,22 @@ All notable changes to HL7kit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Modern CI reporting with rich GitHub Job Summary reports for build, test, lint, and documentation jobs
+- Per-module test result breakdown (pass/fail/skip counts) in CI reports
+- Per-module code coverage breakdown with visual progress bars and 90% threshold checks
+- SwiftLint violation summary with per-file violation details in CI reports
+- Documentation generation status report per module
+- Build and test duration tracking in CI
+- CI job outputs for downstream workflow consumption
+- Performance regression baseline test suite (`PerformanceRegressionTests.swift`) with defined baselines for throughput, latency, memory, and scalability across all modules
+
+### Fixed
+- Fixed `grep -c` exit code handling in CI test result parsing (`|| echo "0"` → `|| true`)
+- Fixed LCOV coverage parsing using correct colon-delimited field splitting
+
 ## [1.0.0] - 2026-02-14
 
 ### 🎉 Initial Release
