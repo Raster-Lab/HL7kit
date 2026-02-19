@@ -320,16 +320,23 @@ For detailed development milestones, phase breakdowns, and timelines, please see
 
 ### Quick Overview
 
-The HL7kit project follows a phased development approach spanning approximately 62 weeks (~15 months):
+Version 1.0.0 has been delivered. Phases 0–9 are complete. The project is now in active maintenance and planning for the next feature releases.
 
-- **Phase 0** (Weeks 1-2): Foundation & Planning
-- **Phases 1-2** (Weeks 3-16): HL7 v2.x Core & Advanced Features
-- **Phases 3-4** (Weeks 17-30): HL7 v3.x Core & Advanced Features
-- **Phases 5-6** (Weeks 31-44): FHIRkit Core & Advanced Features
-- **Phase 7** (Weeks 45-50): Integration & Common Services
-- **Phase 8** (Weeks 51-56): Platform Features & Examples
-- **Phase 9** (Weeks 57-62): Polish & Release
-- **Phase 10** (Ongoing): Post-Release & Maintenance
+#### Completed (v1.0.0)
+
+- **Phase 0** (Weeks 1-2): Foundation & Planning ✅
+- **Phases 1-2** (Weeks 3-16): HL7 v2.x Core & Advanced Features ✅
+- **Phases 3-4** (Weeks 17-30): HL7 v3.x Core & Advanced Features ✅
+- **Phases 5-6** (Weeks 31-44): FHIRkit Core & Advanced Features ✅
+- **Phase 7** (Weeks 45-54): Integration & Common Services ✅
+- **Phase 8** (Weeks 55-60): Platform Features & Examples ✅
+- **Phase 9** (Weeks 61-66): Polish & Release ✅
+- **Phase 10** (Ongoing): Post-Release & Maintenance 🔄
+
+#### Upcoming
+
+- **Phase 11** (Weeks 67-82): v1.x Feature Releases — FHIR R5, Bulk Data Access, US Core / international profiles, enhanced DX (macros, result builders), observability, new transports, security hardening
+- **Phase 12** (Weeks 83-100): v2.0 Next Generation — SwiftNIO high-performance networking, ML/AI clinical intelligence, cloud platform integrations (AWS HealthLake, Google Healthcare, Azure), ecosystem tooling
 
 ### Quality Targets
 
@@ -679,4 +686,4 @@ TBD - Consider MIT or Apache 2.0 for maximum adoption
 
 ---
 
-*This is a work in progress. The framework is currently in the planning and early development phase.*
+*HL7kit v1.0.0 — Production-ready HL7 v2.x, v3.x, and FHIR toolkit for Swift. See [milestone.md](milestone.md) for the full roadmap.*

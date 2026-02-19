@@ -736,18 +736,156 @@ Maintain and enhance the framework based on community feedback.
 - [ ] Community events and presentations (Future - requires active community)
 
 #### 10.2 Continuous Improvement
-- [ ] Regular performance optimizations
-- [ ] Bug fixes and patches
-- [ ] New HL7 and FHIR version support
-- [ ] Enhanced platform features
-- [ ] Integration with new Apple frameworks
+- [ ] Regular performance optimizations based on community profiling data
+- [ ] Bug fixes and patches on a monthly cadence
+- [ ] Triage and label incoming issues within 48 hours
+- [ ] Maintain CI/CD green status across all supported platforms
+- [ ] Track and resolve deprecation warnings from new Swift toolchain releases
 
-#### 10.3 Extended Features (Future)
-- [ ] Additional transport protocols
-- [ ] More data type support
-- [ ] Extended vocabulary services
-- [ ] Machine learning integration
-- [ ] Cloud service integrations
+#### 10.3 Monitoring & Metrics
+- [ ] Set up crash and diagnostic reporting for adopters (opt-in telemetry)
+- [ ] Publish quarterly health reports (test pass rate, coverage trends, open issue counts)
+- [ ] Monitor dependency updates (swift-crypto, SwiftNIO) and apply security patches promptly
+
+---
+
+## Phase 11: v1.x Feature Releases (Weeks 67-82)
+
+### Goals
+Deliver incremental feature releases (v1.1, v1.2, v1.3) that expand standards coverage, improve developer experience, and harden production readiness — without breaking API compatibility.
+
+### Milestones
+
+#### 11.1 FHIR R5 Support (Weeks 67-70)
+- [ ] Audit FHIR R5 specification changes relative to R4
+- [ ] Add new R5 resource types (SubscriptionTopic, Evidence, EvidenceVariable, etc.)
+- [ ] Update existing resources for R5 field additions and deprecations
+- [ ] Implement R5 search parameter changes
+- [ ] Add R5 operation definitions ($member-match, $bulk-data-status, etc.)
+- [ ] Update FHIRPath evaluator for R5 expression additions
+- [ ] Create R4 ↔ R5 migration utilities for resource conversion
+- [ ] Expand FHIR serialization tests for R5 edge cases
+- [ ] Update FHIR_STANDARDS.md and COMPLIANCE_STATUS.md
+
+**Deliverables**: Full FHIR R5 support alongside existing R4, with migration tooling
+
+#### 11.2 FHIR Bulk Data Access (Weeks 71-72)
+- [ ] Implement FHIR Bulk Data Access IG ($export for Patient, Group, System)
+- [ ] Add NDJSON (Newline Delimited JSON) streaming parser and serializer
+- [ ] Create async polling client for long-running export operations
+- [ ] Implement Bulk Data import ($import) support
+- [ ] Add progress reporting and cancellation for bulk operations
+- [ ] Create bulk data CLI commands (`hl7 bulk-export`, `hl7 bulk-import`)
+
+**Deliverables**: Production-ready Bulk Data Access support for large-scale data exchange
+
+#### 11.3 US Core & International Profiles (Weeks 73-74)
+- [ ] Implement US Core 6.x profile validation rules
+- [ ] Add International Patient Summary (IPS) profile support
+- [ ] Create AU Core (Australian) profile support
+- [ ] Add UK Core (NHS) profile support
+- [ ] Implement profile-specific search parameters and validation
+- [ ] Create profile conformance test suites
+
+**Deliverables**: Support for major national/international FHIR profiles
+
+#### 11.4 Enhanced Developer Experience (Weeks 75-77)
+- [ ] Add Swift macros for compile-time FHIR resource validation
+- [ ] Create result builder DSL for constructing complex resources
+- [ ] Implement SwiftUI property wrappers for FHIR data binding (`@FHIRResource`, `@FHIRQuery`)
+- [ ] Add Xcode source editor extension for HL7 message formatting
+- [ ] Create interactive playground examples for each module
+- [ ] Build HL7 message diff tool for comparing messages side by side
+- [ ] Add `hl7 init` CLI command to scaffold integration projects
+
+**Deliverables**: Modern, ergonomic APIs that reduce boilerplate and catch errors at compile time
+
+#### 11.5 Observability & Diagnostics (Week 78)
+- [ ] Integrate with Swift Distributed Tracing for end-to-end request tracking
+- [ ] Add structured logging with OSLog on Apple platforms, swift-log elsewhere
+- [ ] Create middleware-style hooks for request/response interception
+- [ ] Implement metrics collection (message throughput, error rates, latency histograms)
+- [ ] Add health check endpoint builder for FHIR server monitoring
+
+**Deliverables**: Production observability primitives for healthcare system integrations
+
+#### 11.6 Additional Transport Protocols (Weeks 79-80)
+- [ ] Implement FHIR Messaging ($process-message) with reliable delivery
+- [ ] Add Apache Kafka / AMQP consumer/producer adapters for event-driven architectures
+- [ ] Create gRPC transport option for high-throughput internal services
+- [ ] Implement FHIR AsyncAPI / WebSocket subscription improvements
+- [ ] Add HTTP/2 and HTTP/3 (QUIC) transport support for REST client
+
+**Deliverables**: Extended transport options beyond REST and MLLP
+
+#### 11.7 Hardening & Certification Prep (Weeks 81-82)
+- [ ] Engage third-party security firm for penetration testing
+- [ ] Implement remaining deferred security items (OCSP/CRL, secure memory erasure, Keychain integration)
+- [ ] Add fuzz testing for all parsers (HL7 v2.x, v3.x XML, FHIR JSON/XML)
+- [ ] Create conformance test harness compatible with HL7 Touchstone / Inferno
+- [ ] Achieve ONC Health IT certification readiness (documentation and test evidence)
+- [ ] Publish reproducible benchmark results for performance claims
+
+**Deliverables**: Hardened, audit-ready framework suitable for regulated healthcare environments
+
+---
+
+## Phase 12: v2.0 — Next Generation (Weeks 83-100)
+
+### Goals
+Major evolution of the framework with breaking API changes allowed. Adopt latest Swift language features, expand ecosystem integrations, and add intelligent capabilities.
+
+### Milestones
+
+#### 12.1 Swift Language Evolution (Weeks 83-85)
+- [ ] Adopt Swift typed throws across all public APIs for precise error handling
+- [ ] Migrate to Swift Testing framework (`@Test`, `#expect`) alongside XCTest
+- [ ] Leverage non-copyable types for zero-copy message parsing
+- [ ] Use Swift parameter packs for variadic generic resource operations
+- [ ] Evaluate and adopt Swift concurrency improvements (custom executors, task-local values)
+- [ ] Raise minimum Swift version to latest stable release
+
+**Deliverables**: Modernized API surface leveraging cutting-edge Swift features
+
+#### 12.2 SwiftNIO Integration (Weeks 86-88)
+- [ ] Implement MLLP channel handler on SwiftNIO for high-throughput HL7 v2.x networking
+- [ ] Create FHIR REST server framework on SwiftNIO (Hummingbird or Vapor compatible)
+- [ ] Add backpressure-aware streaming for large Bundle/Bulk Data transfers
+- [ ] Implement connection multiplexing and graceful shutdown
+- [ ] Create load testing harness validating >50,000 messages/second throughput
+
+**Deliverables**: High-performance networking layer suitable for server-side Swift deployments
+
+#### 12.3 Machine Learning & Clinical Intelligence (Weeks 89-92)
+- [ ] Integrate Core ML for clinical code suggestion (ICD-10, SNOMED CT auto-coding)
+- [ ] Implement NLP-based extraction of structured data from clinical narrative text
+- [ ] Add anomaly detection for incoming HL7 messages (schema drift, unusual patterns)
+- [ ] Create clinical decision support hooks (CDS Hooks specification)
+- [ ] Build training data pipeline from de-identified HL7/FHIR messages
+
+**Deliverables**: AI-assisted clinical data processing capabilities
+
+#### 12.4 Cloud & Platform Integrations (Weeks 93-96)
+- [ ] AWS HealthLake integration (FHIR store read/write)
+- [ ] Google Cloud Healthcare API integration
+- [ ] Azure Health Data Services (FHIR, DICOM) integration
+- [ ] Apple HealthKit bidirectional sync (read/write FHIR resources to/from HealthKit)
+- [ ] Apple CareKit data model mapping to FHIR resources
+- [ ] CloudKit-based FHIR resource caching and offline sync
+- [ ] Implement SMART Health Cards / SMART Health Links
+
+**Deliverables**: First-class integrations with major cloud healthcare platforms and Apple frameworks
+
+#### 12.5 Ecosystem & Tooling (Weeks 97-100)
+- [ ] Publish Swift Package Index entry with full documentation
+- [ ] Create Docker images for server-side Swift HL7 processing
+- [ ] Build VS Code extension for HL7/FHIR message editing (via LSP)
+- [ ] Implement OpenAPI spec generation from FHIR CapabilityStatement
+- [ ] Create Terraform/Pulumi provider for FHIR server provisioning
+- [ ] Publish performance comparison benchmarks (updated COMPARISON.md)
+- [ ] Host community documentation site with versioned API docs
+
+**Deliverables**: Rich ecosystem and tooling for adoption across development environments
 
 ---
 
@@ -928,19 +1066,25 @@ Maintain and enhance the framework based on community feedback.
 | 8 | Weeks 55-60 | Platform Features | Examples, integrations, tutorials |
 | 9 | Weeks 61-66 | Release | Beta testing, audit, release |
 | 10 | Ongoing | Maintenance | Community, improvements, features |
+| 11 | Weeks 67-82 | v1.x Features | FHIR R5, Bulk Data, profiles, DX, transports, hardening |
+| 12 | Weeks 83-100 | v2.0 Next Gen | SwiftNIO, ML/AI, cloud integrations, ecosystem |
 
-**Total Estimated Timeline**: 66 weeks (~16 months) to version 1.0.0
+**Total Estimated Timeline**: 66 weeks (~16 months) to version 1.0.0, ~34 additional weeks for v1.x and v2.0
 
 ---
 
 ## Next Steps
 
-1. ✅ Review and approve this comprehensive plan
-2. Set up development environment and CI/CD
-3. Begin Phase 0: Foundation & Planning
-4. Recruit core team members or contributors
-5. Start implementation following the phased approach
+1. ✅ Review and approve the comprehensive development plan (Phases 0-9)
+2. ✅ Set up development environment and CI/CD
+3. ✅ Complete Phases 0-9 — version 1.0.0 delivered (February 2026)
+4. ✅ Publish community resources (CONTRIBUTING.md, GOVERNANCE.md, RELEASE_CADENCE.md)
+5. Begin **Phase 11.1**: Audit FHIR R5 specification and implement new resource types
+6. Recruit core team members and community contributors for Phase 11+ development
+7. Engage third-party security firm for penetration testing (Phase 11.7)
+8. Evaluate Swift language evolution proposals for Phase 12 adoption targets
+9. Establish partnerships with cloud healthcare platforms (AWS HealthLake, Google Healthcare, Azure)
 
 ---
 
-*This document is a living roadmap and will be updated as the project evolves.*
+*This document is a living roadmap and will be updated as the project evolves. Last updated: February 2026.*
