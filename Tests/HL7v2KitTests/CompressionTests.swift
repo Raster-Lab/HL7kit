@@ -10,6 +10,13 @@ final class CompressionTests: XCTestCase {
     
     let sampleMessage = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101120000||ADT^A01|MSG001|P|2.5\rPID|1||12345||Doe^John^A||19800101|M|||123 Main St^^Anytown^CA^12345"
     
+    /// Skip test if Compression framework is not available (e.g., on Linux)
+    private func requireCompression() throws {
+        #if !canImport(Compression)
+        throw XCTSkip("Compression framework not available on this platform")
+        #endif
+    }
+    
     // MARK: - Compression Algorithm Tests
     
     func testCompressionAlgorithms() {
@@ -38,6 +45,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - Basic Compression Tests
     
     func testCompressAndDecompress() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -51,11 +59,13 @@ final class CompressionTests: XCTestCase {
     }
     
     func testCompressString() throws {
+        try requireCompression()
         let compressed = try CompressionUtilities.compress(sampleMessage, algorithm: .lzfse)
         XCTAssertGreaterThan(compressed.count, 0)
     }
     
     func testDecompressToString() throws {
+        try requireCompression()
         let compressed = try CompressionUtilities.compress(sampleMessage, algorithm: .lzfse)
         let decompressed = try CompressionUtilities.decompressToString(compressed, algorithm: .lzfse)
         
@@ -77,6 +87,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - Algorithm-Specific Tests
     
     func testLZFSECompression() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -89,6 +100,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testLZ4Compression() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -101,6 +113,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testZLIBCompression() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -113,6 +126,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testLZMACompression() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -140,6 +154,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - HL7v2Message Compression Tests
     
     func testMessageCompress() throws {
+        try requireCompression()
         let parser = HL7v2Parser()
         let result = try parser.parse(sampleMessage)
         
@@ -151,6 +166,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testMessageCompressAndParse() throws {
+        try requireCompression()
         let parser = HL7v2Parser()
         let parseResult = try parser.parse(sampleMessage)
         
@@ -162,6 +178,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testMessageCompressWithDifferentLevels() throws {
+        try requireCompression()
         let parser = HL7v2Parser()
         let result = try parser.parse(sampleMessage)
         
@@ -177,6 +194,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - Batch Compression Tests
     
     func testBatchMessageCompress() throws {
+        try requireCompression()
         let bhsString = "BHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac"
         let bhs = try BHSSegment.parse(bhsString)
         
@@ -198,6 +216,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - File Compression Tests
     
     func testFileMessageCompress() throws {
+        try requireCompression()
         let fhsString = "FHS|^~\\&|SendApp|SendFac|RecvApp|RecvFac"
         let fhs = try FHSSegment.parse(fhsString)
         
@@ -213,6 +232,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - Parser Integration Tests
     
     func testParserParseCompressedData() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
@@ -227,6 +247,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testParserParseCompressedMessage() throws {
+        try requireCompression()
         let parser = HL7v2Parser()
         let parseResult = try parser.parse(sampleMessage)
         
@@ -241,6 +262,7 @@ final class CompressionTests: XCTestCase {
     // MARK: - Large Message Tests
     
     func testCompressLargeMessage() throws {
+        try requireCompression()
         // Create a large message with many segments
         var largeMessage = "MSH|^~\\&|SendApp|SendFac|RecvApp|RecvFac|20240101||ORU^R01|MSG001|P|2.5\r"
         largeMessage += "PID|1||12345||Doe^John^A||19800101|M\r"
@@ -271,6 +293,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testCompressEmptyData() throws {
+        try requireCompression()
         let emptyData = Data()
         
         // Empty data should still compress/decompress without error
@@ -294,6 +317,7 @@ final class CompressionTests: XCTestCase {
     }
     
     func testDecompressionPerformance() throws {
+        try requireCompression()
         guard let data = sampleMessage.data(using: .utf8) else {
             XCTFail("Failed to encode test message")
             return
